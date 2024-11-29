@@ -29,30 +29,18 @@ class Plant:
     def compute_plant_height(self):
 
         def compute_plant_height_recursive(node):
-            if isinstance(node, Leaf):
-                if node.position[2] > self.plant_height:
-                    self.plant_height = node.position[2]
-            elif isinstance(node, Stem):
-                if node.position[2] > self.plant_height:
-                    self.plant_height = node.position[2]
-            elif isinstance(node, Root):
-                if node.position[2] > self.plant_height:
-                    self.plant_height = node.position[2]
-            elif isinstance(node, SAM):
-                if node.position[2] > self.plant_height:
-                    self.plant_height = node.position[2]
+            if node.position[2] > self.plant_height:
+                self.plant_height = node.position[2]
 
         self.structure.traverse(action=compute_plant_height_recursive)
        
     def update(self, sky=None):
         self.structure.ensure_consistency()
         self.compute_lighting(sky)
-        #self.compute_directions()
+        self.compute_directions()
         self.compute_auxin()
         self.structure.diffuse_auxin()
-
-
-
+        
         # plant height is the maximum height of the plant 
         self.compute_plant_height()
    
@@ -77,6 +65,7 @@ class Plant:
         elif isinstance(parent, Leaf):
             angle = parent.z_angle
             direction = np.array([np.cos(angle), np.sin(angle), 1])
+            pos = parent.position
         elif isinstance(parent, SAM):
             direction = parent.parent.direction
             pos = parent.parent.position
@@ -135,33 +124,33 @@ class Plant:
 
                         stem, leaves, sam = self.gen_prolongation(node, 1, z_angle_offset)
                         
+                    else:
+                        raise ValueError("Invalid leaf arrangement.")
 
                     self.prolongate(node, stem, leaves, sam)
                     #self.structure.G.remove_edge(node.parent, node)
                     self.structure.G.remove_node(node)
                     node.parent.sam = None
 
+        def branch_recursive(node):
+            if isinstance(node, Leaf):
+                if node.auxin < 0.10 and node.auxin > 0:
+                    print(f"Branching on leaf: {node.name}")
+
+                    stem, leaves, sam = self.gen_prolongation(node, 2, 0)
+                    self.prolongate(node, stem, leaves, sam)
+
+                    # delete the leaf
+                    self.structure.G.remove_edge(node.parent, node)
+                    self.structure.G.remove_node(node)
+                    node.parent.leaf_children.remove(node)
+
 
                         
         self.structure.traverse(action=grow_recursive)
         self.structure.traverse(action=eleongate_recursive)
+        self.structure.traverse(action=branch_recursive)
     
-    def branch(self):
-        def branch_recursive(node):
-            if node.auxin > 6:
-                # choose the leaf with the highest lighting
-                leaf = max(node.leaf_children, key=lambda x: x.lighting)
-                # drop the leaf
-                self.structure.drop_leaf(node, leaf)
-                
-                # get the direction of the leaf
-                angle = leaf.z_angle + leaf.angle_offset
-                direction = np.array([np.cos(angle), np.sin(angle), 1])
-                self.prolongate(parent=node, n_leaves=2, initial_leaf_angle= node.initial_leaf_angle + np.pi/2, direction = direction)
-                node.auxin = 0
-
-        self.structure.traverse_stems(action=branch_recursive)
-        self.structure.ensure_consistency()
 
     def compute_directions(self):
         def compute_directions_recursive(node):
@@ -172,10 +161,12 @@ class Plant:
         
     def compute_lighting(self, sky):
         def compute_lighting_recursive(node):  
-            distance = sky.compute_distance(node.position)
-            node.lighting = 1 / (distance)
+            if isinstance(node, Leaf):
+                distance = sky.compute_distance(node.position)
+                print(f"Distance: {distance}")
+                node.lighting = 1 / (distance)
 
-        self.structure.traverse_leaves(action=compute_lighting_recursive)
+        self.structure.traverse(action=compute_lighting_recursive)
 
     def plot(self, ax=None):
          # Plotting in 3D
