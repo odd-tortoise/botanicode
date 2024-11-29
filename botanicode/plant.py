@@ -37,7 +37,7 @@ class Plant:
     def update(self, sky=None):
         self.structure.ensure_consistency()
         self.compute_lighting(sky)
-        self.compute_directions()
+        #self.compute_directions()
         self.compute_auxin()
         self.structure.diffuse_auxin()
         
