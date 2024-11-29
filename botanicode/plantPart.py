@@ -107,7 +107,7 @@ class Stem(PlantPart):
 
             self.position = self.position + self.direction*self.resources.elongation_rate
 
-            if self.age > 10:
+            if self.age > 8:
                 self.stop_growing = True
 
         #self.auxin *= 0.7
@@ -260,11 +260,11 @@ class Leaf(PlantPart):
     def grow(self, dt):
         if not self.stop_growing:
             self.age += dt
-            self.y_angle *= 0.999*self.resources.elongation_rate
-            self.size *= 1+self.resources.elongation_rate*0.1
+            self.y_angle *= self.resources.elongation_rate
+            self.size *= 1+self.resources.elongation_rate*0.5
 
             self.generate_leaf_points()
-            if self.age > 5:
+            if self.age > 8:
                 self.stop_growing = True
 
 

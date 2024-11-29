@@ -54,7 +54,7 @@ class Plant:
         self.compute_water(env.soil)
 
         # plant processes
-        self.compute_directions()
+        #self.compute_directions()
         self.compute_auxin()
         self.compute_sugar()
 
@@ -120,12 +120,13 @@ class Plant:
 
 
 
-        k_e = 10
-        k_s = 0.3
-        k_w = 0.3
-        K = 0.5
+        k_e = 0
+        k_s = 0
+        k_w = 0
+        K = 0
 
         def elongation_rate(S, W):
+            return np.ones_like(S)  # Simplified model
             return k_e * S * W / (K + S + W)
 
 
@@ -135,8 +136,7 @@ class Plant:
         # contrario?! :O
 
         def water_dynamic(t, W):
-            
-            T = - 5* L @ W  - k_w*elongation_rate(S, W)
+            T = - L @ W  - k_w*elongation_rate(S, W)
             return T
         
         def auxin_dynamic(t, A):
@@ -144,8 +144,7 @@ class Plant:
             return T
         
         def sugar_dynamic(t, S):
-            elongation_rate = k_e * S * W / (K + S + W)
-            return - 5*L @ S - k_s * elongation_rate
+            return - L @ S - k_s * elongation_rate(S, W)
 
         
 
@@ -165,7 +164,7 @@ class Plant:
         self.structure.set_nutrients(nutrients=sol_a.y[:, -1], nutrient_name="auxin")
         self.structure.set_nutrients(nutrients=sol_s.y[:, -1], nutrient_name="sugar")
 
-        elongation_rate = k_e * sol_s.y[:, -1] * sol_w.y[:, -1] / ( K +sol_s.y[:, -1] + sol_w.y[:, -1])
+        elongation_rate = elongation_rate(sol_s.y[:, -1], sol_w.y[:, -1])
         elongation = elongation_rate * dt  # Simplified integration
 
         self.structure.set_nutrients(nutrients=elongation, nutrient_name="elongation_rate")

@@ -22,12 +22,42 @@ class Tracker:
     def clear(self):
         self.data = []
 
-    def plot_value(self, ax, resource="auxin"):
+    def plot_value(self, ax, resource="auxin", legend=False):
+
+        line_styles = ['-', '--', '-.', ':']
+        color = ['blue', 'green', 'red', 'black']
+
         for node, node_data in self.data.items():
-            ax.plot(node_data[resource], label=node.name)
+        
+            if isinstance(node, Leaf):
+                line_style = line_styles[0]
+            elif isinstance(node, Stem):
+                line_style = line_styles[1]
+
+            elif isinstance(node, SAM):
+                line_style = line_styles[2]
+                continue
+            elif isinstance(node, Root):
+                line_style = line_styles[3]
+
+            # check 2nd character of the node name
+            if node.name[1] == "1":
+                color_line = color[0]
+            elif node.name[1] == "2":
+                color_line = color[1]
+            elif node.name[1] == "3":
+                color_line = color[2]
+            
+           
+            ax.plot(node_data[resource], label=node.name, linestyle=line_style, color=color_line)
         ax.set_xlabel("Time")
-        ax.set_ylabel(resource)
-        ax.legend()
+        ax.set_ylabel(f"{resource} over time")
+        if legend:
+            ax.legend()
+        
+        
+
+
 
 class Structure:
     def __init__(self):
