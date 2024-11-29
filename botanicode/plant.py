@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 class GrowthRegulation:
     def __init__(self, 
                  leaf_arrangement = "opposite",
-                 length_to_shoot = 3):
+                 length_to_shoot = 4):
         self.leaf_arrangement = leaf_arrangement
         self.length_to_shoot = length_to_shoot
         self.leaf_y_angle = -np.pi/4
@@ -24,6 +24,7 @@ class Plant:
         self.plant_height = 0
         
         initial_stem, leaves, initial_sam = self.gen_prolongation(root, 2, 0)
+        # new plant set the water level to 1
         self.structure.new_plant(root, initial_stem, leaves, initial_sam)
 
     def compute_plant_height(self):
@@ -44,22 +45,33 @@ class Plant:
 
         self.structure.traverse(action=compute_plant_height_recursive)
        
-    def update(self, sky=None):
+    def update(self, env=None):
         self.structure.ensure_consistency()
-        self.compute_lighting(sky)
-        #self.compute_directions()
-        self.compute_auxin()
-        self.structure.diffuse_auxin()
-
-
-
-        # plant height is the maximum height of the plant 
         self.compute_plant_height()
-   
-    def print(self):
-        def print_node(node):
-            node.print()
-        self.structure.traverse(action=print_node)
+
+        # environment interactions
+        self.compute_lighting(env.sky)
+        self.compute_water(env.soil)
+
+        # plant processes
+        self.compute_directions()
+        self.compute_auxin()
+        self.compute_sugar()
+
+        self.structure.record()
+        
+
+    def log(self, logger=None):
+        
+        def log(node):
+            message = str(node)
+            logger.warning(message)
+
+
+        self.structure.traverse(action=log)
+
+
+
 
     def gen_prolongation(self, parent, n_leaves, z_angle_offset):
 
@@ -77,6 +89,7 @@ class Plant:
         elif isinstance(parent, Leaf):
             angle = parent.z_angle
             direction = np.array([np.cos(angle), np.sin(angle), 1])
+            pos = parent.position
         elif isinstance(parent, SAM):
             direction = parent.parent.direction
             pos = parent.parent.position
@@ -104,11 +117,63 @@ class Plant:
         self.structure.add_stuff(parent, stem, leaves, sam)
 
     def grow(self, dt):
+
+
+
+        k_e = 10
+        k_s = 0.3
+        k_w = 0.3
+        K = 0.5
+
+        def elongation_rate(S, W):
+            return k_e * S * W / (K + S + W)
+
+
+        L = self.structure.get_laplacian()
+        A_rtl, L_rtl, A_ltr, L_ltr= self.structure.get_laplacian_directed()
+
+        # contrario?! :O
+
+        def water_dynamic(t, W):
+            
+            T = - 5* L @ W  - k_w*elongation_rate(S, W)
+            return T
         
+        def auxin_dynamic(t, A):
+            T = -L @ A
+            return T
+        
+        def sugar_dynamic(t, S):
+            elongation_rate = k_e * S * W / (K + S + W)
+            return - 5*L @ S - k_s * elongation_rate
+
+        
+
+
+        t_span = [0, dt]
+
+        W = self.structure.get_nutrients("water")
+        A = self.structure.get_nutrients("auxin")
+        S = self.structure.get_nutrients("sugar")
+
+        from scipy.integrate import solve_ivp
+        sol_w = solve_ivp(water_dynamic, t_span, W, t_eval=[dt])
+        sol_a = solve_ivp(auxin_dynamic, t_span, A, t_eval=[dt])
+        sol_s = solve_ivp(sugar_dynamic, t_span, S, t_eval=[dt])
+
+        self.structure.set_nutrients(nutrients=sol_w.y[:, -1], nutrient_name="water")
+        self.structure.set_nutrients(nutrients=sol_a.y[:, -1], nutrient_name="auxin")
+        self.structure.set_nutrients(nutrients=sol_s.y[:, -1], nutrient_name="sugar")
+
+        elongation_rate = k_e * sol_s.y[:, -1] * sol_w.y[:, -1] / ( K +sol_s.y[:, -1] + sol_w.y[:, -1])
+        elongation = elongation_rate * dt  # Simplified integration
+
+        self.structure.set_nutrients(nutrients=elongation, nutrient_name="elongation_rate")
+                                     
+
         # recursive function to grow the plant
         def grow_recursive(node):
             node.grow(dt)
-            
 
         def eleongate_recursive(node):
             if isinstance(node, SAM):
@@ -141,41 +206,26 @@ class Plant:
                     self.structure.G.remove_node(node)
                     node.parent.sam = None
 
+        def branch_recursive(node):
+            if isinstance(node, Leaf):
+                if node.auxin < 0.12 and node.auxin > 0:
+                    print(f"Branching on leaf: {node.name}")
 
-                        
+                    stem, leaves, sam = self.gen_prolongation(node, 2, 0)
+                    self.prolongate(node, stem, leaves, sam)
+
+                    # delete the leaf
+                    self.structure.G.remove_edge(node.parent, node)
+                    self.structure.G.remove_node(node)
+                    node.parent.leaf_children.remove(node)
+       
         self.structure.traverse(action=grow_recursive)
         self.structure.traverse(action=eleongate_recursive)
-    
-    def branch(self):
-        def branch_recursive(node):
-            if node.auxin > 6:
-                # choose the leaf with the highest lighting
-                leaf = max(node.leaf_children, key=lambda x: x.lighting)
-                # drop the leaf
-                self.structure.drop_leaf(node, leaf)
-                
-                # get the direction of the leaf
-                angle = leaf.z_angle + leaf.angle_offset
-                direction = np.array([np.cos(angle), np.sin(angle), 1])
-                self.prolongate(parent=node, n_leaves=2, initial_leaf_angle= node.initial_leaf_angle + np.pi/2, direction = direction)
-                node.auxin = 0
+        #self.structure.traverse(action=branch_recursive)
 
-        self.structure.traverse_stems(action=branch_recursive)
-        self.structure.ensure_consistency()
+ 
 
-    def compute_directions(self):
-        def compute_directions_recursive(node):
-           if not isinstance(node, Root) and not isinstance(node, SAM):
-             node.compute_direction()
 
-        self.structure.traverse_stems(action=compute_directions_recursive)
-        
-    def compute_lighting(self, sky):
-        def compute_lighting_recursive(node):  
-            distance = sky.compute_distance(node.position)
-            node.lighting = 1 / (distance)
-
-        self.structure.traverse_leaves(action=compute_lighting_recursive)
 
     def plot(self, ax=None):
          # Plotting in 3D
@@ -225,10 +275,8 @@ class Plant:
         ax.set_xlabel('X Position')
         ax.set_ylabel('Y Position')
         ax.set_zlabel('Z Position')
-
-
                 
-        size = int(self.plant_height)
+        size = int(self.plant_height) + 1
         size = size if size%2== 0 else size + 2 - size % 2
         
         ax.set_xlim([-size//2, size//2])
@@ -241,7 +289,36 @@ class Plant:
 
     def compute_auxin(self):
         def compute_auxin_recursive(node):
-            if isinstance(node, Leaf):
-                node.produce_auxin()
+            node.produce_auxin()
         
-        self.structure.traverse(action=compute_auxin_recursive)
+        self.structure.traverse_leaves(action=compute_auxin_recursive)
+
+    def compute_water(self, soil):
+        def compute_water_recursive(node):
+            if isinstance(node, Root):
+                node.resources.water = self.plant_height
+
+        self.structure.traverse(action=compute_water_recursive)
+
+    def compute_lighting(self, sky):
+        def compute_lighting_recursive(node):  
+            distance = sky.compute_distance(node.position)
+            node.lighting = 1 / (distance)
+            
+        self.structure.traverse_leaves(action=compute_lighting_recursive)
+
+    def compute_sugar(self):
+        def compute_sugar_recursive(node):
+            node.produce_sugar()
+
+        self.structure.traverse_leaves(action=compute_sugar_recursive)
+
+
+    def compute_directions(self):
+        def compute_directions_recursive(node):
+           if not isinstance(node, Root) and not isinstance(node, SAM):
+             node.compute_direction()
+
+        self.structure.traverse_stems(action=compute_directions_recursive)
+        
+   

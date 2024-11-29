@@ -1,5 +1,36 @@
 import numpy as np
 
+class Resources:
+    def __init__(self, water=0, sugar=0, auxin=0, cytokinins=0):
+        self.water = water
+        self.sugar = sugar
+        self.auxin = auxin
+
+        self.elongation_rate = 0
+
+    def get_dict(self):
+        return {
+            "water": self.water,
+            "sugar": self.sugar,
+            "auxin": self.auxin,
+            "elongation_rate": self.elongation_rate
+        }
+
+    def set_elongation_rate(self, elongation_rate):
+        self.elongation_rate = elongation_rate
+
+    def set_water(self, water):
+        self.water = water
+
+    def set_auxin(self, auxin):
+        self.auxin = auxin
+
+    def set_sugar(self, sugar):
+        self.sugar = sugar
+    
+    def set_cytokinins(self, cytokinins):
+        self.cytokinins = cytokinins
+
 class PlantPart:
     def __init__(self, position = np.array([0,0,0]), age=0):      
         self.position = position 
@@ -13,7 +44,8 @@ class PlantPart:
         self.age = age
         self.parent = None  
         self.stop_growing = False
-        self.auxin = 0
+        
+        self.resources = Resources()
 
         self.real_points = []
         self.skeleton_points = [np.array([0, 0, 0])]
@@ -27,8 +59,6 @@ class PlantPart:
     def compute_real_points(self, offset = np.array([0, 0, 0])):
         self.real_points = [point + offset for point in self.skeleton_points]
     
-    def get_auxin(self):
-        return self.auxin
     
 class Stem(PlantPart):
     counter = 0
@@ -72,12 +102,12 @@ class Stem(PlantPart):
         if not self.stop_growing:
             self.age += dt
             # Generate new skeleton points
-            self.skeleton_points.append(self.skeleton_points[-1] + self.direction)
-            self.radius += 0.1
+            self.skeleton_points.append(self.skeleton_points[-1] + self.direction*self.resources.elongation_rate)
+            self.radius += 0.1*self.resources.elongation_rate
 
-            self.position = self.real_points[-1] + self.direction
+            self.position = self.position + self.direction*self.resources.elongation_rate
 
-            if self.age > 3:
+            if self.age > 10:
                 self.stop_growing = True
 
         #self.auxin *= 0.7
@@ -85,7 +115,7 @@ class Stem(PlantPart):
     def get_length(self):
         return np.linalg.norm(self.skeleton_points[-1] - self.skeleton_points[0])
     
-    def print(self):
+    def __str__(self):
         message = f"""
     Stem Information:
     -----------------
@@ -105,7 +135,7 @@ class Stem(PlantPart):
     Skeleton Points         : {np.round(self.skeleton_points, 2).tolist()}
     Real Points             : {np.round(self.real_points, 2).tolist()}
     """
-        print(message)
+        return message
   
   
 
@@ -115,25 +145,32 @@ class Root(PlantPart):
         super().__init__(position, age=1)
         self.skeleton_points.append(np.array([0, 0, -1]))
         self.direction = np.array([0, 0, -1])
-        self.stop_growing = True
         self.stem_children = []
         Root.counter += 1
         self.id = Root.counter
         self.name = f"R{self.id}"
+        self.radius = 0.1
 
-    def print(self):
+
+    def __str__(self):
         message = f"""
     Root Information:
     -----------------
     Position                : {np.round(self.position, 2).tolist()}
     Age                     : {self.age:.2f} units
+    Radius                  : {self.radius:.2f} units
 
     Skeleton Points         : {np.round(self.skeleton_points, 2).tolist()}
     Real Points             : {np.round(self.real_points, 2).tolist()}
+    Water                   : {self.resources.water:.2f} units
     """
-        print(message)
-        return
-
+        return message
+    
+    def grow(self, dt):
+        self.age += dt
+        # Generate new skeleton points
+        self.skeleton_points.append(self.skeleton_points[-1] + self.direction*self.resources.elongation_rate)
+        self.radius += 0.1*self.resources.elongation_rate
 
 class SAM(PlantPart):
     
@@ -145,7 +182,7 @@ class SAM(PlantPart):
         
         self.name = f"SAM"
        
-    def print(self):
+    def __str__(self):
         message = f"""
     SAM Information:
     -----------------
@@ -156,9 +193,7 @@ class SAM(PlantPart):
     Skeleton Points         : {np.round(self.skeleton_points, 2).tolist()}
     Real Points             : {np.round(self.real_points, 2).tolist()}
     """
-        print(message)
-        return
-    
+        return message
     
 class Leaf(PlantPart):
     def __init__(self,position, z_angle = 0, y_angle = -np.pi/4, radius = 0.1, id = 0):
@@ -167,9 +202,10 @@ class Leaf(PlantPart):
         self.z_angle = z_angle
         self.y_angle = y_angle
         self.radius = radius
+
+        self.size = 1
         
         self.lighting = 0
-        self.auxin = 0
 
         self.position = np.array(self.position, dtype=float) +  np.array([radius * np.cos(z_angle), radius * np.sin(z_angle),0])
 
@@ -203,7 +239,7 @@ class Leaf(PlantPart):
         temp_points = []
         angles = np.linspace(0, 2*np.pi, n_points)
         for theta in angles:
-            point = self.leaf_function(theta, self.age)
+            point = self.leaf_function(theta, self.size)
             temp_points.append(point)
 
         z_rotation_angle = self.z_angle
@@ -224,29 +260,32 @@ class Leaf(PlantPart):
     def grow(self, dt):
         if not self.stop_growing:
             self.age += dt
-            self.y_angle *= 0.7
+            self.y_angle *= 0.999*self.resources.elongation_rate
+            self.size *= 1+self.resources.elongation_rate*0.1
 
             self.generate_leaf_points()
-            if self.age > 4:
+            if self.age > 5:
                 self.stop_growing = True
 
-    def print(self):
+
+
+    def __str__(self):
         message = f"""
     Leaf Information:
     -----------------
     Position                : {np.round(self.position, 2).tolist()}
     Age                     : {self.age:.2f} units
     parent                  : {self.parent.name}
+    size                    : {self.size:.2f} units
 
     Z Angle                 : {self.z_angle:.2f} units
     Y Angle                 : {self.y_angle:.2f} units
     Radius                  : {self.radius:.2f} units
 
     Lighting                : {self.lighting:.2f} units
-    Auxin                   : {self.auxin:.2f} units
+    Auxin                   : {self.resources.auxin:.2f} units
     """
-        print(message)
-        return
+        return message
 
 
     def produce_auxin(self):
@@ -254,7 +293,13 @@ class Leaf(PlantPart):
         # if close to the SAM, produce more auxin
         # if far from the SAM, produce less auxin
 
-        self.auxin = 0
+        max_distacnce = np.max(self.SAM_distance)
 
-        for sam_distace in self.SAM_distance:
-            self.auxin += 1/sam_distace
+        self.resources.auxin = 1/max(max_distacnce, 0.1)
+
+    def produce_sugar(self):
+        # produce sugar based on the light received
+        # if more light, produce more sugar
+        # if less light, produce less sugar
+
+        self.resources.sugar = self.lighting*10

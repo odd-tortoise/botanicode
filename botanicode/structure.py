@@ -3,12 +3,50 @@ import matplotlib.pyplot as plt
 from plantPart import Stem, Leaf, Root, SAM
 import numpy as np
 
+class Tracker:
+    def __init__(self):
+        self.data = {}
+    
+    def track(self, node, node_data):
+        if node not in self.data:
+            self.data[node] = {}
+
+        for key, value in node_data.items():
+            if key not in self.data[node]:
+                self.data[node][key] = []
+            self.data[node][key].append(value)
+
+    def get_data(self):
+        return self.data
+
+    def clear(self):
+        self.data = []
+
+    def plot_value(self, ax, resource="auxin"):
+        for node, node_data in self.data.items():
+            ax.plot(node_data[resource], label=node.name)
+        ax.set_xlabel("Time")
+        ax.set_ylabel(resource)
+        ax.legend()
+
 class Structure:
     def __init__(self):
         self.G = nx.Graph()
         self.root = None
+        self.history = Tracker()
+
+    def record(self):
+        for node in self.G.nodes():
+            node_data = node.resources.get_dict()
+            self.history.track(node, node_data)
 
     def new_plant(self, root, stem, leaves, sam): 
+        #root.resources.water = 1
+        #stem.resources.water = 1
+        #for leaf in leaves:
+        #    leaf.resources.water = 1
+        #sam.resources.water = 1
+
         self.add_root(root)
         self.add_stem(root, stem)
         for leaf in leaves:
@@ -39,8 +77,7 @@ class Structure:
         parent.sam = sam
         sam.parent = parent
         sam.name = f"SAM{parent.id}"
-
-        
+ 
     def add_stem(self, parent, child):
         #check if child is a stem
         if not isinstance(child, Stem):
@@ -58,7 +95,7 @@ class Structure:
 
         # weight is inversely proportional to the length of the stem
         lenght = child.get_length() + 1e-6
-        weight = 1/lenght 
+        weight = 1/lenght + child.radius
         
         # weight = conductivity of the stem
         # lenght = physical length of the stem
@@ -83,17 +120,6 @@ class Structure:
         # Add the edge to the graph
         self.G.add_edge(parent, child, weight=1, length=1)
         child.name = child.name[0] + str(parent.id) + child.name[1:]
-
-    def drop_leaf(self, parent, child):
-
-        if not isinstance(child, Leaf):
-            raise ValueError("You're not dropping a Leaf node.")
-        if not isinstance(parent, Stem):
-            raise ValueError("Can only drop a leaf from a stem node.")
-        
-        parent.leaf_children.remove(child)
-        self.G.remove_node(child)
-        self.G.remove_edge(parent, child)
         
     def traverse(self, node=None, action=lambda node: None):
         if node is None:
@@ -135,17 +161,54 @@ class Structure:
             self.traverse(node.sam, action)
 
     def traverse_leaves(self, node=None, action=lambda node: None):
-        if node is None:
-            node = self.root
+        def new_action(node):
+            if isinstance(node, Leaf):
+                action(node)
 
-        # Perform the action on the current node
-        if isinstance(node, Leaf):
-            action(node)
-        else:
-            #target = self.G.successors(node)
-            #for child in target:
-            #    self.traverse_leaves(child, action)
-            pass
+        self.traverse(node, new_action)
+
+    def ensure_consistency(self):
+
+        def update_position(node):
+            if isinstance(node, Root):
+                node.compute_real_points()
+            elif isinstance(node, Stem):
+                offset = node.parent.position
+                node.compute_real_points(offset)
+                node.position = node.real_points[-1]
+                
+            elif isinstance(node, SAM):
+               offset = node.parent.position
+               node.compute_real_points(offset)
+               node.position = node.real_points[-1]
+               
+            elif isinstance(node, Leaf):
+                radius = node.parent.radius
+                angle = node.z_angle
+                parent_position = node.parent.position
+                node.position = np.array(parent_position, dtype=float) +  np.array([radius * np.cos(angle), radius * np.sin(angle),0])
+                node.compute_real_points(node.position)
+
+        def update_weight_edge(node):
+            if isinstance(node, Root) or isinstance(node, SAM):
+                pass
+            else:
+                lenght = node.get_length() + 1e-6
+                weight = 1/lenght + node.radius
+                self.G[node.parent][node]["weight"] = weight
+                self.G[node.parent][node]["length"] = lenght
+
+        def update_distances_to_SAM(node):
+            if isinstance(node, Leaf):
+                distances = []
+                for sam in self.G.nodes():
+                    if isinstance(sam, SAM):
+                        distances.append(nx.shortest_path_length(self.G, source=node, target=sam, weight="length"))
+                node.SAM_distance = distances
+            
+        self.traverse(action=update_position)
+        self.traverse_stems(action=update_weight_edge)
+        self.traverse(action=update_distances_to_SAM)
 
     def plot(self, ax = None):
         G = self.G
@@ -185,49 +248,6 @@ class Structure:
             edge_labels[edge] = f"w:{G[edge[0]][edge[1]]['weight']:.2f}\nl:{G[edge[0]][edge[1]]['length']:.2f}"
 
         nx.draw_networkx_edge_labels(G, pos, edge_labels=edge_labels, ax=ax)
-
-    def ensure_consistency(self):
-
-        def update_position(node):
-            if isinstance(node, Root):
-                node.compute_real_points()
-            elif isinstance(node, Stem):
-                offset = node.parent.position
-                node.compute_real_points(offset)
-                node.position = node.real_points[-1]
-                
-            elif isinstance(node, SAM):
-               offset = node.parent.position
-               node.compute_real_points(offset)
-               node.position = node.real_points[-1]
-               
-            elif isinstance(node, Leaf):
-                radius = node.parent.radius
-                angle = node.z_angle
-                parent_position = node.parent.position
-                node.position = np.array(parent_position, dtype=float) +  np.array([radius * np.cos(angle), radius * np.sin(angle),0])
-                node.compute_real_points(node.position)
-
-        def update_weight_edge(node):
-            if isinstance(node, Root) or isinstance(node, SAM):
-                pass
-            else:
-                lenght = node.get_length() + 1e-6
-                weight = 1/lenght
-                self.G[node.parent][node]["weight"] = weight
-                self.G[node.parent][node]["length"] = lenght
-
-        def update_distances_to_SAM(node):
-            if isinstance(node, Leaf):
-                distances = []
-                for sam in self.G.nodes():
-                    if isinstance(sam, SAM):
-                        distances.append(nx.shortest_path_length(self.G, source=node, target=sam, weight="length"))
-                node.SAM_distance = distances
-            
-        self.traverse(action=update_position)
-        self.traverse_stems(action=update_weight_edge)
-        self.traverse(action=update_distances_to_SAM)
 
     def plot_lighting(self, ax = None):
         
@@ -282,26 +302,31 @@ class Structure:
         sm.set_array([])
         plt.colorbar(sm, ax=ax, label="Lighting")
 
-    def plot_auxin(self, ax = None):
+    def plot_value(self, ax = None, resource="auxin"):
         
         G = self.G
         positions = nx.bfs_layout(G, self.root, align='horizontal')
         # Collect lighting values for leaf nodes
+        # Define a mapping for the value keyword to the corresponding node attribute
+        value_mapping = {
+            "auxin": lambda node: node.resources.auxin,
+            "water": lambda node: node.resources.water,
+            "sugar": lambda node: node.resources.sugar,
+            "elongation_rate": lambda node: node.resources.elongation_rate
+        }
+
+        if resource not in value_mapping:
+            raise ValueError(f"Unknown resource: {resource}")
         
-        auxin_amount = [node.auxin for node in self.G.nodes()]
+        value_amount = [value_mapping[resource](node) for node in self.G.nodes()]
         
         # Normalize lighting values between 0 and 1
         import matplotlib.colors as mcolors
-        norm = mcolors.Normalize(vmin=min(auxin_amount), vmax=max(auxin_amount))
+        norm = mcolors.Normalize(vmin=min(value_amount), vmax=max(value_amount))
         cmap = plt.cm.Blues  # Choose a colormap
         
-        # Assign colors to nodes
-        node_colors = []
-        for node in self.G.nodes():
-            
-            lighting_value = node.auxin
-            color = cmap(norm(lighting_value))
-            node_colors.append(color)
+        node_colors = [cmap(norm(value_mapping[resource](node))) for node in G.nodes()]
+
             
             # Draw the graph
         nx.draw_networkx_nodes(
@@ -314,60 +339,90 @@ class Structure:
         nx.draw_networkx_edges(G, positions,ax=ax, edge_color='gray', arrows=True)
 
         # node labels on the leaves
-        labels = {}
-        for node in G.nodes():
-            labels[node] = f"{node.auxin:.2f}"
-            if isinstance(node, Leaf):
-                labels[node] += f"\n{np.round(node.SAM_distance,2)}"
+        labels = {node: f"{value_mapping[resource](node):.2f}" for node in G.nodes()}
 
         nx.draw_networkx_labels(G, positions, labels, font_size=8, ax=ax)
+
+        # edge labels are the weights of the edges
+        edge_labels = {}
+        for edge in G.edges():
+            edge_labels[edge] = f"w:{G[edge[0]][edge[1]]['weight']:.2f}\nl:{G[edge[0]][edge[1]]['length']:.2f}"
+        
+        nx.draw_networkx_edge_labels(G, positions, edge_labels=edge_labels, ax=ax)
 
         # colorbar
         sm = plt.cm.ScalarMappable(cmap=cmap, norm=norm)
         sm.set_array([])
-        plt.colorbar(sm, ax=ax, label="Auxin")
+        plt.colorbar(sm, ax=ax, label=str(resource))
 
+    def get_laplacian(self):
+        return nx.laplacian_matrix(self.G).toarray()
+    
+    def get_laplacian_directed(self):
+        # make a copy of the graph
+        G = self.G.to_directed()
 
-    def diffuse_auxin(self):
+        A = nx.adjacency_matrix(G).toarray()
+
        
-        def update_auxin(node):
-            if isinstance(node, Leaf):
-               pass
-            elif isinstance(node, SAM):
-                pass
-            elif isinstance(node, Stem):
-                auxin = 0
-                for leaf in node.leaf_children:
-                    auxin += leaf.auxin
-                auxin /= len(node.leaf_children)
-                node.auxin = auxin
-            
+        A_ltr = np.tril(A)
+        A_rtl = np.triu(A)
+
+        nodes = list(G.nodes())
+
+        G_ltr = nx.DiGraph()
+        
+        G_rtl = nx.DiGraph()
+        
+        for i in range(len(nodes)):
+            for j in range(len(nodes)):
+                if A_ltr[i,j] != 0:
+                    G_ltr.add_node(nodes[i])
+                    G_ltr.add_node(nodes[j])
+                    G_ltr.add_edge(nodes[i], nodes[j], weight=A_ltr[i,j])
+                if A_rtl[i,j] != 0:
+                    G_rtl.add_node(nodes[i])
+                    G_rtl.add_node(nodes[j])
+                    G_rtl.add_edge(nodes[i], nodes[j], weight=A_rtl[i,j])
+
         
 
-    def branch(self, parent, child):
-        if parent.is_leaf():
-            raise ValueError("Cannot add a branch to a leaf node.")
-        parent.stem_children.append(child)
-        child.parent = parent
+        # get the laplacian matrix
+        L_rtl = nx.laplacian_matrix(G_rtl).toarray()
+        L_ltr = nx.laplacian_matrix(G_ltr).toarray()
+        return A_rtl,L_rtl, A_ltr, L_ltr
 
-if __name__ == "__main__":
-    # Create nodes
-    root_stem = Root(position=[0, 0, 0])
-    stem_child_1 = Stem(position=[1, 0, 0])
-    stem_child_2 = Stem(position=[0, 1, 0])
-    leaf_child_1 = Leaf(position=[1, 1, 0])
-    leaf_child_2 = Leaf(position=[-1, 1, 0])
+    def get_nutrients(self, nutrient_name = "water"):
+        nutrients = []
+        
+        mapping = {
+            "water": lambda node: node.resources.water,
+            "auxin": lambda node: node.resources.auxin,
+            "sugar": lambda node: node.resources.sugar,
+            "elongation_rate": lambda node: node.resources.elongation_rate
+        }
 
-    # Build the structure
-    structure = Structure()
-    structure.add_root(root_stem)
-    structure.add_stem(root_stem, stem_child_1)
-    structure.add_stem(root_stem, stem_child_2)
-    structure.add_leaf(stem_child_1, leaf_child_1)
-    structure.add_leaf(stem_child_2, leaf_child_2)
+        if nutrient_name not in mapping:
+            raise ValueError(f"Unknown nutrient: {nutrient_name}")
+        
+        for node in self.G.nodes():
+            nutrients.append(mapping[nutrient_name](node))
 
-    fig,ax = plt.subplots()
+        return np.array(nutrients)
+    
+    def set_nutrients(self, nutrients, nutrient_name = "water"):
+        mapping = {
+            "water": lambda node, value: node.resources.set_water(value),
+            "auxin": lambda node, value: node.resources.set_auxin(value),
+            "sugar": lambda node, value: node.resources.set_sugar(value),
+            "elongation_rate": lambda node, value: node.resources.set_elongation_rate(value),
+        }
 
-    structure.plot(ax)
+        if nutrient_name not in mapping:
+            raise ValueError(f"Unknown nutrient: {nutrient_name}")
+        
+        for node, value in zip(self.G.nodes(), nutrients):
+            mapping[nutrient_name](node, value)
 
-    plt.show()
+        
+# Path: botanicode/plantPart.py

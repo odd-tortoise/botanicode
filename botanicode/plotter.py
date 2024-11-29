@@ -15,7 +15,7 @@ class Plotter:
         """
         self.objects_to_plot = objects_to_plot
         self.plot_methods = plot_methods if plot_methods is not None else [None] * len(objects_to_plot)
-        self.plot_3d = plot_3ds
+        self.plot_3d = plot_3ds if plot_3ds is not None else [False] * len(objects_to_plot)
 
         if len(objects_to_plot) != len(plot_methods) or len(objects_to_plot) != len(plot_3ds):
             raise ValueError("The number of objects and plot methods must be the same.")
@@ -58,9 +58,11 @@ class Plotter:
             obj, method = zipped
 
             if method is not None:
-                plot_method = getattr(obj, method)
+                plot_method = method
                 plot_method(ax=ax)
             else:
+                if getattr(obj, "plot", None) is None:
+                    raise ValueError(f"Object {obj.__class__.__name__} does not have a plot method.")
                 obj.plot(ax=ax)
             
             ax.set_title(f"{obj.__class__.__name__}")

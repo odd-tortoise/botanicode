@@ -1,10 +1,10 @@
 import numpy as np
 import os
 
-from botanicode.lsm import LevelSetMethod
-from botanicode.vec import VectorField, Gravitropism, Phototropism
-from botanicode.lightEngine import Sky
-from botanicode.plotter import Plotter
+from lsm import LevelSetMethod
+from vec import VectorField, Gravitropism, Phototropism
+from lightEngine import Sky
+from plotter import Plotter
 
 
 
