@@ -6,12 +6,12 @@ from plant import Plant, GrowthRegulation
 from plotter import Plotter
 
 reg = GrowthRegulation(
-    leaf_arrangement="alternate",
+    leaf_arrangement="opposite",
     length_to_shoot=2
 )
 
 my_plant = Plant(reg)
-sky = Sky(position=np.array([0, 0, 20]))
+sky = Sky(position=np.array([20, 0, 20]))
 
 
 object_to_plot = [my_plant.structure, my_plant, my_plant.structure, my_plant.structure]
@@ -23,7 +23,7 @@ folder = "results_alternate"
 
 my_plant.update(sky=sky)
 my_plant.print()
-plotter.plot(save_folder=folder)
+plotter.plot()
 
 
 # Simulation parameters
@@ -44,7 +44,7 @@ for step in range(time_steps):
    
     my_plant.update(sky=sky)
     my_plant.print() 
-    plotter.plot(save_folder=folder)
+    plotter.plot()
    
     
     
