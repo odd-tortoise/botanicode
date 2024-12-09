@@ -6,12 +6,13 @@ from plant import Plant, GrowthRegulation
 from plotter import Plotter
 
 reg = GrowthRegulation(
-    leaf_arrangement="opposite",
+    leaf_arrangement="alternate",
     length_to_shoot=2
 )
 
+
 my_plant = Plant(reg)
-sky = Sky(position=np.array([20, 0, 20]))
+sky = Sky(position=np.array([0, 0, 20]))
 
 
 object_to_plot = [my_plant.structure, my_plant, my_plant.structure, my_plant.structure]
