@@ -29,6 +29,7 @@ reg = GrowthRegulation(
     length_to_shoot=5
 )
 
+
 my_plant = Plant(reg)
 sky = Sky(position=np.array([0, 0, 20]))
 soil = Soil()

@@ -4,6 +4,7 @@ import os
 from lsm import LevelSetMethod
 from vec import VectorField, Gravitropism, Phototropism
 from lightEngine import Sky
+
 from plotter import Plotter
 
 
@@ -39,7 +40,9 @@ solver = LevelSetMethod(
     spatial_scheme="upwind",
 )
 
-plotter = Plotter([solver, vector_field], dpi=500)
+plotter = Plotter(objects_to_plot=[solver, vector_field],
+                plot_methods=["plot", "plot"],
+                plot_3ds=[False, False], ncols=2, dpi=500, figsize=(15, 8))
 
 
 # Number of time steps

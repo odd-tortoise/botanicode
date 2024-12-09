@@ -7,11 +7,15 @@ import matplotlib.pyplot as plt
 class GrowthRegulation:
     def __init__(self, 
                  leaf_arrangement = "opposite",
-                 length_to_shoot = 4):
+                 length_to_shoot = 3,
+                 leaflets_number = 1):
         self.leaf_arrangement = leaf_arrangement
         self.length_to_shoot = length_to_shoot
-        self.leaf_y_angle = -np.pi/4
-        self.leaf_z_angle_alternate_offset= np.pi/4,
+        self.leaf_y_angle = np.pi/4
+        if self.leaf_arrangement == "alternate":
+            self.leaf_z_angle_alternate_offset= np.pi/4,
+        self.leaflets_number = leaflets_number
+
     
 
 class Plant:
@@ -30,18 +34,8 @@ class Plant:
     def compute_plant_height(self):
 
         def compute_plant_height_recursive(node):
-            if isinstance(node, Leaf):
-                if node.position[2] > self.plant_height:
-                    self.plant_height = node.position[2]
-            elif isinstance(node, Stem):
-                if node.position[2] > self.plant_height:
-                    self.plant_height = node.position[2]
-            elif isinstance(node, Root):
-                if node.position[2] > self.plant_height:
-                    self.plant_height = node.position[2]
-            elif isinstance(node, SAM):
-                if node.position[2] > self.plant_height:
-                    self.plant_height = node.position[2]
+            if node.position[2] > self.plant_height:
+                self.plant_height = node.position[2]
 
         self.structure.traverse(action=compute_plant_height_recursive)
        
@@ -104,13 +98,10 @@ class Plant:
             z_angle = 2 * np.pi * i / n_leaves + z_angle_offset
             y_angle = self.growth_regulation.leaf_y_angle
             radius = new_stem.radius
-            leaf = Leaf(new_stem.position, z_angle, y_angle, radius, i)
-            
-
+            leaf = Leaf(new_stem.position, z_angle, y_angle, radius, i, self.growth_regulation.leaflets_number)
             leaves.append(leaf)
 
         sam = SAM(new_stem.position)
-
         return new_stem, leaves, sam
 
     def prolongate(self, parent, stem, leaves, sam):
@@ -199,6 +190,8 @@ class Plant:
 
                         stem, leaves, sam = self.gen_prolongation(node, 1, z_angle_offset)
                         
+                    else:
+                        raise ValueError("Invalid leaf arrangement.")
 
                     self.prolongate(node, stem, leaves, sam)
                     #self.structure.G.remove_edge(node.parent, node)
@@ -238,13 +231,20 @@ class Plant:
         # Recursive function to traverse the plant structure
         def traverse(node):
             if isinstance(node, Leaf):
-                leaf_skeletons = node.get_real_points()
-                leaf_skeletons = np.array(leaf_skeletons)
-                if leaf_skeletons.size > 0:
-                    ax.plot(leaf_skeletons[:, 0], leaf_skeletons[:, 1], leaf_skeletons[:, 2],
-                            color='orange', label='Leaf Skeleton', linewidth=2)
+                leaf_skeletons, rachid_skeleton = node.get_real_points()
+
+                rachid_skeleton = np.array(rachid_skeleton)
+                print(leaf_skeletons)
+                if rachid_skeleton.size > 0:
+                    ax.plot(rachid_skeleton[:, 0], rachid_skeleton[:, 1], rachid_skeleton[:, 2],
+                            color='purple', label='Rachid Skeleton', linewidth=2, marker='o')
                     #close the leaf
-                    ax.plot([leaf_skeletons[0, 0], leaf_skeletons[-1, 0]], [leaf_skeletons[0, 1], leaf_skeletons[-1, 1]], [leaf_skeletons[0, 2], leaf_skeletons[-1, 2]], color='orange', linewidth=2)
+                for leaf in leaf_skeletons:
+                    leaf = np.array(leaf)
+                    if leaf.size > 0:
+                        ax.plot(leaf[:, 0], leaf[:, 1], leaf[:, 2],
+                                color='orange', label='Leaf Skeleton', linewidth=2, marker='o')
+                        ax.plot([leaf[0, 0], leaf[-1, 0]], [leaf[0, 1], leaf[-1, 1]], [leaf[0, 2], leaf[-1, 2]], color='orange', linewidth=2)
             elif isinstance(node, Root):
                 root_skeletons = node.get_real_points()
                 root_skeletons = np.array(root_skeletons)
