@@ -18,16 +18,14 @@ logger = logging.getLogger("plant_sim")
 from lightEngine import Sky
 from soil import Soil
 from env import Environment
-from plant import Plant, GrowthRegulation
+from plant import Plant
 from plotter import Plotter
+from tuner import GrowthRegulation
 
 
 #####################################
 
-reg = GrowthRegulation(
-    leaf_arrangement="opposite",
-    length_to_shoot=5
-)
+reg = GrowthRegulation('botanicode/tomato_data/tomato.json')
 
 
 my_plant = Plant(reg)

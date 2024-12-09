@@ -1,0 +1,18 @@
+{
+  "general": {
+    "common_name": "Tomato",
+    "scientific_name": "Solanum lycopersicum"
+  },
+  "phylotaxis": {
+    "leaflets_number": 5,
+    "leaf_arrangement": "alternate",
+    "angle": 144
+  },
+  "leaves_paramters":{
+    "leaf_y_angle": 0.75
+  },
+  "growth_data":{
+    "internode_lenght": "botanicode/tomato_data/internode_lenght.csv",
+    "plant_h": "botanicode/tomato_data/plant_height.csv"
+  }
+}

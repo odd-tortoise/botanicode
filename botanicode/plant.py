@@ -3,23 +3,11 @@ from structure import Structure
 import numpy as np
 from lightEngine import Sky
 import matplotlib.pyplot as plt
+from tuner import GrowthRegulation
 
-class GrowthRegulation:
-    def __init__(self, 
-                 leaf_arrangement = "opposite",
-                 length_to_shoot = 3,
-                 leaflets_number = 1):
-        self.leaf_arrangement = leaf_arrangement
-        self.length_to_shoot = length_to_shoot
-        self.leaf_y_angle = np.pi/4
-        if self.leaf_arrangement == "alternate":
-            self.leaf_z_angle_alternate_offset= np.pi/4,
-        self.leaflets_number = leaflets_number
-
-    
 
 class Plant:
-    def __init__(self, reg=GrowthRegulation()):
+    def __init__(self, reg):
         self.growth_regulation = reg
         self.structure = Structure()
 
@@ -50,7 +38,7 @@ class Plant:
         # plant processes
         #self.compute_directions()
         self.compute_auxin()
-        self.compute_sugar()
+        #self.compute_sugar()
 
         self.structure.record()
         
@@ -234,7 +222,7 @@ class Plant:
                 leaf_skeletons, rachid_skeleton = node.get_real_points()
 
                 rachid_skeleton = np.array(rachid_skeleton)
-                print(leaf_skeletons)
+                
                 if rachid_skeleton.size > 0:
                     ax.plot(rachid_skeleton[:, 0], rachid_skeleton[:, 1], rachid_skeleton[:, 2],
                             color='purple', label='Rachid Skeleton', linewidth=2, marker='o')
