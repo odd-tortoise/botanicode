@@ -1,9 +1,29 @@
 import numpy as np
 import os
 
+import logging
+logging.basicConfig(
+    filename="plant_sim.log",
+    encoding="utf-8",
+    filemode="w",
+    format="{asctime} - {levelname} - {message}",
+    style="{",
+    datefmt="%Y-%m-%d %H:%M",
+    level=logging.INFO,
+
+)
+logger = logging.getLogger("plant_sim")
+
+
 from lightEngine import Sky
-from plant import Plant, GrowthRegulation
+from soil import Soil
+from env import Environment
+from plant import Plant
 from plotter import Plotter
+from tuner import GrowthRegulation
+
+
+#####################################
 
 reg = GrowthRegulation('botanicode/tomato_data/tomato.json')
 my_plant = Plant(reg, age=0)
@@ -40,8 +60,7 @@ time_steps = 30 # one week
 delta_t = 1 # hours
 
 
-
-print("Starting plant growth simulation...")
+logger.info("Starting plant growth simulation...")
 
 
 # Simulation loop

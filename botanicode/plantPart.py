@@ -155,7 +155,7 @@ class Stem(StructuralPart):
                 return child
         return False
     
-    def print(self):
+    def __str__(self):
         message = f"""
     Stem Information:
     -----------------
@@ -264,7 +264,7 @@ class SAM(DevicePart):
 
         self.time_to_next_shoot = 0
        
-    def print(self):
+    def __str__(self):
         message = f"""
     SAM Information:
     -----------------
@@ -483,8 +483,7 @@ class Leaf(DevicePart):
     Y angle                 : {self.y_angle:.2f} units
     Z angle                 : {self.z_angle:.2f} units
     """
-        print(message)
-        return
+        return message
 
     def compute_real_points(self, offset=np.array([0, 0, 0])):
         # override the compute_real_points method

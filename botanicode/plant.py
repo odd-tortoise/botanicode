@@ -3,20 +3,8 @@ from structure import Structure
 import numpy as np
 from lightEngine import Sky
 import matplotlib.pyplot as plt
+from tuner import GrowthRegulation
 
-class GrowthRegulation:
-    def __init__(self, 
-                 leaf_arrangement = "opposite",
-                 length_to_shoot = 3,
-                 leaflets_number = 1):
-        self.leaf_arrangement = leaf_arrangement
-        self.length_to_shoot = length_to_shoot
-        self.leaf_y_angle = np.pi/4
-        if self.leaf_arrangement == "alternate":
-            self.leaf_z_angle_alternate_offset= np.pi/4,
-        self.leaflets_number = leaflets_number
-
-    
 
 class Plant:
     def __init__(self, reg, age=0):
@@ -78,7 +66,7 @@ class Plant:
 
         self.structure.traverse(action=compute_plant_height_recursive)
        
-    def update(self, sky=None):
+    def update(self, env=None):
         self.structure.ensure_consistency()
         self.compute_plant_height()
         self.compute_real_points_for_nodes()
@@ -158,7 +146,6 @@ class Plant:
         # recursive function to grow the plant
         def grow_recursive(node):
             node.grow(dt)
-            
 
         def eleongate_recursive(node):
             if isinstance(node, SAM):
@@ -195,7 +182,7 @@ class Plant:
 
         def branch_recursive(node):
             if isinstance(node, Leaf):
-                if node.auxin < 0.10 and node.auxin > 0:
+                if node.auxin < 0.12 and node.auxin > 0:
                     print(f"Branching on leaf: {node.name}")
 
                     stem, leaves, sam = self.gen_prolongation(node, 2, 0)
@@ -205,9 +192,7 @@ class Plant:
                     self.structure.G.remove_edge(node.parent, node)
                     self.structure.G.remove_node(node)
                     node.parent.leaf_children.remove(node)
-
-
-                        
+       
         self.structure.traverse(action=grow_recursive)
         self.structure.traverse(action=eleongate_recursive)
         #self.structure.traverse(action=branch_recursive)
@@ -348,10 +333,8 @@ class Plant:
         ax.set_xlabel('X Position')
         ax.set_ylabel('Y Position')
         ax.set_zlabel('Z Position')
-
-
                 
-        size = int(self.plant_height)
+        size = int(self.plant_height) + 1
         size = size if size%2== 0 else size + 2 - size % 2
         
         ax.set_xlim([-size//2, size//2])
@@ -378,8 +361,7 @@ class Plant:
 
     def compute_auxin(self):
         def compute_auxin_recursive(node):
-            if isinstance(node, Leaf):
-                node.produce_auxin()
+            node.produce_auxin()
         
         self.structure.traverse_leaves(action=compute_auxin_recursive)
 
