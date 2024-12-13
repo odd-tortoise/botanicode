@@ -23,38 +23,66 @@ class Tracker:
     def clear(self):
         self.data = []
 
-    def plot_value(self, ax, resource="auxin", legend=False):
 
-        line_styles = ['-', '--', '-.', ':']
-        color = ['blue', 'green', 'red', 'black']
-
-        for node, node_data in self.data.items():
+    def plot(self, values = ["position"], node_type = "Stem"):
+        number_of_plots = len(values)
+        if node_type not in self.data:
+            raise ValueError("Node type not found.")
+        if len(self.data[node_type]) == 0:
+            raise ValueError("No data found.")
         
-            if isinstance(node, Leaf):
-                line_style = line_styles[0]
-            elif isinstance(node, Stem):
-                line_style = line_styles[1]
+        node_data = self.data[node_type]
 
-            elif isinstance(node, SAM):
-                line_style = line_styles[2]
-                continue
-            elif isinstance(node, seed):
-                line_style = line_styles[3]
+        # check if the values are in the node data
+        for value in values:
+            if value not in node_data[list(node_data.keys())[0]][0]:
+                raise ValueError(f"Value {value} not found in the node data.")
 
-            # check 2nd character of the node name
-            if node.name[1] == "1":
-                color_line = color[0]
-            elif node.name[1] == "2":
-                color_line = color[1]
-            elif node.name[1] == "3":
-                color_line = color[2]
-            
-           
-            ax.plot(node_data[resource], label=node.name, linestyle=line_style, color=color_line)
-        ax.set_xlabel("Time")
-        ax.set_ylabel(f"{resource} over time")
-        if legend:
-            ax.legend()
+        fig, axs = plt.subplots(number_of_plots, 1, figsize=(10, 10))
+        axs = np.atleast_1d(axs)  # Ensure axs is always an array
+
+        markers = ['o', "x"]
+        standard_marker = ''
+        marker_index = 0
+
+
+        for i in range(number_of_plots):
+            plotted_lines = []
+            for key, value in node_data.items():
+                # key is the stem number
+                # value is the history of the stem 
+
+                # get the stem lenght vs time, time is the key of the dictionary value
+                time_steps = list(value.keys())
+                val = [value[time_step][values[i]] for time_step in time_steps]
+                
+                use_marker = False
+                for line in plotted_lines:
+                    if len(line) != len(val):
+                        continue
+                    else:
+                        distance = np.linalg.norm(np.array(val) - np.array(line))
+                        if distance < 0.05:  # Threshold for considering lines as close
+                            use_marker = True
+                            marker_index = (marker_index + 1) % len(markers)
+                            break
+
+                if use_marker:
+                    axs[i].plot(time_steps, val, label=f"{key}", marker=markers[marker_index])
+                else:
+                    axs[i].plot(time_steps, val, label=f"{key}", marker=standard_marker)
+                
+                plotted_lines.append(val)
+
+               
+                axs[i].set_ylabel(values[i])
+                
+            axs[i].grid()
+            axs[i].legend()
+                
+
+        plt.tight_layout()
+        plt.show()
 
 class Structure:
     def __init__(self, seed=None):

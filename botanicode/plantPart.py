@@ -1,137 +1,6 @@
 import numpy as np
+from graph import StructuralPart, DevicePart, Resources
 
-class Resources:
-    def __init__(self, water=0, sugar=0, auxin=0):
-        self.water = water
-        self.sugar = sugar
-        self.auxin = auxin
-
-    def get_dict(self):
-        return {
-            "water": self.water,
-            "sugar": self.sugar,
-            "auxin": self.auxin,
-        }
-
-    def set_water(self, water):
-        self.water = water
-
-    def set_auxin(self, auxin):
-        self.auxin = auxin
-
-    def set_sugar(self, sugar):
-        self.sugar = sugar  
-
-class Part:
-    def __init__(self, position = np.array([0,0,0]), age = 0):      
-        
-        # position is the position of the leaves in the stem
-        # position is the starting point of the leaf for the leaves
-        # is always zero for the root
-        # is the position of the parent + 0.1 for the stem
-
-        self.name = None
-        
-        # this are the things that need to be consistent within the tree structure
-        self.position = position 
-
-        self.age = age
-        self.resources = Resources()
-        
-        self.parent = None  
-        
-        self.points = []
-        self.real_points = []
-
-        self.color = "black"
-        
-    def grow(self, dt):
-        pass
-
-    def get_real_points(self):
-        return self.real_points
-    
-    def compute_real_points(self, offset = np.array([0, 0, 0])):
-        self.real_points = [point + offset for point in self.points]
-
-    def get_data(self):
-        return {
-            "name": self.name,
-            "position": self.position.tolist(),
-            "age": self.age,
-            "resources": self.resources.get_dict(),
-        }
-
-class DevicePart(Part):
-    def __init__(self, position = np.array([0,0,0]), age = 0):
-        super().__init__(position, age)
-
-        self.is_generator = False
-        self.conductance = 1
-
-    def give(self): # 2 of these with the env, 2  with the structure
-        pass
-
-    def emit(self):
-        pass
-
-    def take(self):
-        pass
-
-    def receive(self):
-        pass
-
-    def get_data(self):
-        data = super().get_data()
-        data["is_generator"] = self.is_generator
-        return data
-    
-    def update_position(self):
-        self.position = self.parent.position 
-
-    def compute_conductance(self):
-        self.conductance = 1
-
-class StructuralPart(Part):
-    def __init__(self, position = np.array([0,0,0]), age = 0, lenght = None, radius = None, direction = np.array([0, 0, 1])):
-        super().__init__(position, age)
-        self.radius = radius
-        self.lenght = lenght
-        self.direction = direction
-        self.conductance = 0
-
-        if lenght is not None:
-            self.points = [np.array([0, 0, 0]), direction*lenght]
-            self.compute_conductance()
-
-        self.structural_children = []
-        self.device_children = []
-
-    def grow(self, dt, new_l, new_r):
-        self.age += dt
-
-        # Generate new skeleton points
-        self.points.append(self.points[-1] + self.direction*(new_l - self.lenght))
-
-        self.lenght = new_l
-        self.radius = new_r
-
-    def compute_conductance(self):
-        self.conductance = self.radius/self.lenght + self.age
-        
-    def compute_direction(self):
-        pass
-
-    def get_data(self):
-        data = super().get_data()
-        data["lenght"] = self.lenght
-        data["radius"] = self.radius
-        data["direction"] = self.direction.tolist()
-        return data
-    
-    def update_position(self):
-        self.position = self.parent.position + self.points[-1]
-    
 class Stem(StructuralPart):
     counter = 0
 
@@ -230,7 +99,7 @@ class Root(StructuralPart):
     
     def __str__(self):
         message = f"""
-    Stem Information:
+    Root Information:
     -----------------
     Position                : {np.round(self.position, 2).tolist()}
     Age                     : {self.age:.2f} units
@@ -360,27 +229,12 @@ class Leaf(DevicePart):
         
         # paramter for the light of each leaflet
         self.leaflets_positions = [self.position] * self.leaflets_number
-        self.lighting = [0]*self.leaflets_number
-
-        #self.position = np.array(self.position, dtype=float) +  np.array([radius * np.cos(z_angle), radius * np.sin(z_angle),0])
-        # position of the base of the leaf is the position of the parent + the radius of the parent in the direction of the leaf
         
-        #self.leaflets_number = leaflets_number
-        #self.rachid_number = int(max(np.floor(leaflets_number/2),1))
-        #self.petioles_length = 0.1
-        
-
-        # the leaflets are the leaves that are attached to the rachid
-        # the points are stored in a list of list (skelton_points)
-
-        #self.rachid_points = []
-        #self.real_rachid_points = []
-
-        #self.skeleton_points = [[np.array([0, 0, 0])]]
-
-        #self.SAM_distance = []
-
         self.generate_total_points()
+
+
+    def probe(self, env):
+        self.env_data = env.measure(self.position)
 
     def generate_total_points(self):
         rachid_points = [np.array([0, 0, 0])]
@@ -504,7 +358,7 @@ class Leaf(DevicePart):
         data["y_angle"] = self.y_angle
         data["z_angle"] = self.z_angle
         data["leaflets_number"] = self.leaflets_number
-        data["lighting"] = self.lighting
+       
         return data
     
     def update_position(self):

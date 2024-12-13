@@ -3,7 +3,7 @@ import os
 
 from lsm import LevelSetMethod
 from vec import VectorField, Gravitropism, Phototropism
-from lightEngine import Sky
+from light import Sky
 
 from plotter import Plotter
 

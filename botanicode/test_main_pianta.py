@@ -15,23 +15,28 @@ logging.basicConfig(
 logger = logging.getLogger("plant_sim")
 
 
-from lightEngine import Sky
+from light import Sky
 from soil import Soil
+from air import Air
 from env import Environment
 from plant import Plant
 from plotter import Plotter
 from tuner import GrowthRegulation
+from simclock import SimClock
 
 
 #####################################
 
+timer = SimClock(start_time=0)
+
 reg = GrowthRegulation('botanicode/tomato_data/tomato.json')
-my_plant = Plant(reg, age=0)
+my_plant = Plant(reg, age=0, timer=timer)
 
-sky = Sky(position=np.array([0, 0, 20]))
-soil = Soil()
+sky = Sky(position=np.array([0, 0, 100]))
+soil = Soil(moisture=0.5)
+air = Air(temperature=20, water_concentration=0.5)
 
-env = Environment(sky=sky, soil=soil)
+env = Environment(sky=sky, soil=soil, air=air)
 
 plotter_graph_objects = [my_plant.structure]*4
 plotter_graph_methods = [lambda ax: my_plant.structure.plot(ax=ax, pos= True),
@@ -47,7 +52,7 @@ plotter_struttura = Plotter(objects_to_plot=[my_plant], plot_methods=[None], plo
 
 folder = "results_ODEs"
 
-my_plant.update(env)
+my_plant.update(env = env)
 logger.info("Plant created.")
 my_plant.log(logger=logger)
 #plotter_grafo.plot(save_folder=folder, name=f"grafo_{0}")
@@ -70,6 +75,7 @@ for step in range(time_steps):
     my_plant.grow(delta_t)
     
     my_plant.update(env)
+    my_plant.structure.snapshot(timer.elapsed_time)
     my_plant.log(logger=logger)
 
     #plotter_grafo.plot(save_folder=folder, name=f"grafo_{step}")
@@ -77,115 +83,16 @@ for step in range(time_steps):
 
     #plotter_grafo.plot()
     #plotter_struttura.plot()
+    timer.tick(delta_t)
+
+
 
     
 
 logger.info("Growth simulation completed.")
 
-data = my_plant.structure.history.get_data()
-
-stem_data = data['Stem']
-SAM_data = data['SAM']
-leaves_data = data['Leaf']
+plotter_struttura.plot()
 
 
-# get number of stems
-number_of_stems = len(stem_data)
-number_of_sams = len(SAM_data)
-number_of_leaves = len(leaves_data)
-
-
-number_of_plots = 2
-
-# make subplots for each stem
-import matplotlib.pyplot as plt
-
-fig, axs = plt.subplots(number_of_plots, 1, figsize=(10, 10))
-
-for i in range(number_of_plots):
-    for key, value in stem_data.items():
-        # key is the stem number
-        # value is the history of the stem 
-
-        # get the stem lenght vs time, time is the key of the dictionary value
-        time_steps = list(value.keys())
-        if i == 0:
-            val = [value[time_step]['lenght'] for time_step in time_steps]
-        else:
-            val = [value[time_step]['radius'] for time_step in time_steps]
-        
-
-        axs[i].plot(time_steps, val, label=f"{key}")
-        if i == 0:
-            axs[i].set_ylabel("Lenght [cm]")
-        else:
-            axs[i].set_ylabel("Radius [cm]")
-        
-    axs[i].grid()
-    axs[i].legend()
-        
-
-plt.tight_layout()
-plt.show()
-
-
-fig, axs = plt.subplots(number_of_plots, 1, figsize=(10, 10))
-
-for i in range(number_of_plots):
-    for key, value in SAM_data.items():
-        # key is the stem number
-        # value is the history of the stem 
-
-        # get the stem lenght vs time, time is the key of the dictionary value
-        time_steps = list(value.keys())
-        if i == 0:
-            val = [value[time_step]['time_to_next_shoot'] for time_step in time_steps]
-        else:
-            val = [value[time_step]['time_to_next_shoot'] for time_step in time_steps]
-        
-
-        axs[i].plot(time_steps, val, label=f"{key}")
-        if i == 0:
-            axs[i].set_ylabel("Lenght [cm]")
-        else:
-            axs[i].set_ylabel("Radius [cm]")
-        
-    axs[i].grid()
-    axs[i].legend()
-        
-
-plt.tight_layout()
-plt.show()
-
-fig, axs = plt.subplots(number_of_plots, 1, figsize=(10, 10))
-
-for i in range(number_of_plots):
-    for key, value in leaves_data.items():
-        # key is the stem number
-        # value is the history of the stem 
-
-        # get the stem lenght vs time, time is the key of the dictionary value
-        time_steps = list(value.keys())
-        if i == 0:
-            val = [value[time_step]['leaf_size'] for time_step in time_steps]
-        else:
-            val = [value[time_step]['z_angle'] for time_step in time_steps]
-        
-
-        axs[i].plot(time_steps, val, label=f"{key}")
-        if i == 0:
-            axs[i].set_ylabel("Lenght [cm]")
-        else:
-            axs[i].set_ylabel("Radius [cm]")
-        
-    axs[i].grid()
-    axs[i].legend()
-        
-
-plt.tight_layout()
-plt.show()
-
-
-
-
-#plotter.animatemg_folder=folder,fps=1)
+my_plant.structure.history.plot(values=["lenght","radius"], node_type="Stem")
+my_plant.structure.history.plot(values=["leaf_size"], node_type="Leaf")

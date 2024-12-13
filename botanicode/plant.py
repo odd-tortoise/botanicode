@@ -1,13 +1,13 @@
 from plantPart import Stem, Leaf, Root, SAM, RAM, Seed
 from structure import Structure
 import numpy as np
-from lightEngine import Sky
+from light import Sky
 import matplotlib.pyplot as plt
 from tuner import GrowthRegulation
 
 
 class Plant:
-    def __init__(self, reg, age=0):
+    def __init__(self, reg, age=0, timer=None):
         self.growth_regulation = reg
 
         seed = Seed()
@@ -15,9 +15,9 @@ class Plant:
 
         self.plant_height = 0
         self.age = age
+        self.timer = timer  
 
         self.leaf_z_angle_offset = 0
-       
         
         self.initialize_plant()
         
@@ -70,7 +70,7 @@ class Plant:
         self.structure.ensure_consistency()
         self.compute_plant_height()
         self.compute_real_points_for_nodes()
-        self.structure.snapshot(self.age)
+        self.probe_environment(env)
 
         # environment interactions
         #self.compute_lighting(env.sky)
@@ -357,6 +357,14 @@ class Plant:
 
         self.structure.traverse(action=compute_real_points_recursive)
 
+
+    def probe_environment(self, env):
+        def probe_recursive(node):
+            if isinstance(node, Leaf):
+                node.probe(env)
+                
+
+        self.structure.traverse(action=probe_recursive)
 
 
     def compute_auxin(self):

@@ -1,7 +1,6 @@
-
 class Soil:
-    def __init__(self):
-        self.water = 1
+    def __init__(self, moisture = 0.5):
+        self.moisture = moisture
 
-    def get_water(self, position):
-        return self.water
+    def measure_moisture(self, point):
+        return self.moisture
