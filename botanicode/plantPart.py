@@ -9,7 +9,6 @@ class Stem(StructuralPart):
         self.name = f"S{Stem.counter}"
         self.id = Stem.counter
         Stem.counter += 1
-       
         
         self.color = "green"
     
@@ -148,7 +147,10 @@ class SAM(DevicePart):
 
     def get_data(self):
         data = super().get_data()
-        data["time_to_next_shoot"] = self.time_to_next_shoot
+        part_data = {
+            "time_to_next_shoot": self.time_to_next_shoot,
+        }
+        data["part_data"] = part_data
         return data
 
 class RAM(DevicePart):
@@ -235,6 +237,9 @@ class Leaf(DevicePart):
 
     def probe(self, env):
         self.env_data = env.measure(self.position)
+
+    def send(self):
+        self.parent.device_data[self.name] = self.env_data
 
     def generate_total_points(self):
         rachid_points = [np.array([0, 0, 0])]
@@ -352,13 +357,16 @@ class Leaf(DevicePart):
     
     def get_data(self):
         data = super().get_data()
-        data["leaf_size"] = self.leaf_size
-        data["rachid_size"] = self.rachid_size
-        data["petioles_size"] = self.petioles_size
-        data["y_angle"] = self.y_angle
-        data["z_angle"] = self.z_angle
-        data["leaflets_number"] = self.leaflets_number
-       
+
+        part_data ={
+            "leaf_size": self.leaf_size,
+            "rachid_size": self.rachid_size,
+            "petioles_size": self.petioles_size,
+            "y_angle": self.y_angle,
+            "z_angle": self.z_angle,
+            "leaflets_number": self.leaflets_number,
+        }
+        data["part_data"] = part_data
         return data
     
     def update_position(self):

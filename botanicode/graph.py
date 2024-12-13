@@ -23,7 +23,6 @@ class Resources:
         self.sugar = sugar  
 
 
-
 class Part:
     def __init__(self, position = np.array([0,0,0]), age = 0):      
         
@@ -31,14 +30,13 @@ class Part:
         # position is the starting point of the leaf for the leaves
         # is always zero for the root
         # is the position of the parent + 0.1 for the stem
-
         self.name = None
         
         # this are the things that need to be consistent within the tree structure
         self.position = position 
+        self.conductance = 1
 
         self.age = age
-        self.resources = Resources()
         
         self.parent = None  
         
@@ -46,6 +44,7 @@ class Part:
         self.real_points = []
 
         self.color = "black"
+        
         
     def grow(self, dt):
         pass
@@ -57,21 +56,27 @@ class Part:
         self.real_points = [point + offset for point in self.points]
 
     def get_data(self):
-        return {
+        node_data = {
             "name": self.name,
             "position": self.position.tolist(),
             "age": self.age,
-            "resources": self.resources.get_dict(),
+            "conductance": self.conductance,
         }
+        data = {
+            "node_data": node_data,
+        }
+        return data
 
 class DevicePart(Part):
     def __init__(self, position = np.array([0,0,0]), age = 0):
         super().__init__(position, age)
 
-        self.is_generator = False
         self.conductance = 1
 
-        self.env_data = None
+        self.is_generator = False
+        
+        self.env_data = {}
+
 
     def probe(self): #from env
         pass
@@ -87,13 +92,11 @@ class DevicePart(Part):
 
     def get_data(self):
         data = super().get_data()
-        data["is_generator"] = self.is_generator
-
-        if self.env_data is not None:
-            for key in self.env_data:
-                data[key] = self.env_data[key]
-        else:
-            data["env_data"] = None
+        device_data = {
+            "is_generator": self.is_generator,
+        }
+        data["device_data"] = device_data
+        data["env_data"] = self.env_data
         return data
     
     def update_position(self):
@@ -105,11 +108,14 @@ class DevicePart(Part):
 class StructuralPart(Part):
     def __init__(self, position = np.array([0,0,0]), age = 0, lenght = None, radius = None, direction = np.array([0, 0, 1])):
         super().__init__(position, age)
+
+
         self.radius = radius
         self.lenght = lenght
         self.direction = direction
-        self.conductance = 0
 
+
+        
         if lenght is not None:
             self.points = [np.array([0, 0, 0]), direction*lenght]
             self.compute_conductance()
@@ -117,6 +123,7 @@ class StructuralPart(Part):
         self.structural_children = []
         self.device_children = []
 
+                
     def grow(self, dt, new_l, new_r):
         self.age += dt
 
@@ -134,9 +141,12 @@ class StructuralPart(Part):
 
     def get_data(self):
         data = super().get_data()
-        data["lenght"] = self.lenght
-        data["radius"] = self.radius
-        data["direction"] = self.direction.tolist()
+        structural_data = {
+            "lenght": self.lenght,
+            "radius": self.radius,
+            "direction": self.direction.tolist(),
+        }
+        data["structural_data"] = structural_data
         return data
     
     def update_position(self):

@@ -12,10 +12,10 @@ class Tracker:
         if node_type not in self.data:
             self.data[node_type] = {}
 
-        if node_data["name"] not in self.data[node_type]:
-            self.data[node_type][node_data["name"]] = {}
+        if node_data["node_data"]["name"] not in self.data[node_type]:
+            self.data[node_type][node_data["node_data"]["name"]] = {}
 
-        self.data[node_type][node_data["name"]][timestamp] = node_data
+        self.data[node_type][node_data["node_data"]["name"]][timestamp] = node_data
 
     def get_data(self):
         return self.data
@@ -24,68 +24,72 @@ class Tracker:
         self.data = []
 
 
-    def plot(self, ax=None, values = ["position"], node_type = "Stem"):
+    def plot(self, ax=None, value = "node_data.position", node_types = []):
 
-        number_of_plots = len(values)
-        if ax is not None and number_of_plots != 1:
-            raise ValueError("Only one plot is allowed when passing an ax object")
-        if node_type not in self.data:
-            raise ValueError("Node type not found.")
-        if len(self.data[node_type]) == 0:
-            raise ValueError("No data found.")
-        
-        node_data = self.data[node_type]
-
-        # check if the values are in the node data
-        for value in values:
-            if value not in node_data[list(node_data.keys())[0]][0]:
-                raise ValueError(f"Value {value} not found in the node data.")
+        if not isinstance(node_types, list):
+            node_types = [node_types]
 
         if ax is None:
-            fig, axs = plt.subplots(number_of_plots, 1, figsize=(10, 10))
-            axs = np.atleast_1d(axs)  # Ensure axs is always an array
-        else:
-            axs = [ax]
+            fig, ax = plt.figure(figsize=(10, 5))
 
-        markers = ['o', "x"]
-        standard_marker = ''
-        marker_index = 0
+        attrs = value.split('.')
+        
 
+        
+        for node_type in node_types:
+            if node_type not in self.data:
+                raise ValueError(f"Node type {node_type.__name__} not found.")
+            if len(self.data[node_type]) == 0:
+                raise ValueError(f"No data found for the node type {node_type.__name__}")
+            
+            node_data = self.data[node_type] # qui dizioanrio con chiavi i nomi dei node_types
 
-        for i in range(number_of_plots):
+            markers = ['o', "x"]
+            standard_marker = ''
+            marker_index = 0
             plotted_lines = []
+           
             for key, value in node_data.items():
-                # key is the stem number
-                # value is the history of the stem 
-
-                # get the stem lenght vs time, time is the key of the dictionary value
+                # key is the name of the node
+                # value is the history of the node
                 time_steps = list(value.keys())
-                val = [value[time_step][values[i]] for time_step in time_steps]
+                extracted_values = []
+                for time, data in value.items():    
+                    # data is the dictionary with the node data per each timestamp 
+                    
+                    for attr in attrs:
+                        if isinstance(data, dict):
+                            data = data.get(attr, None)
+                        elif hasattr(data, attr):
+                            data = getattr(data, attr, None)
+                        else:
+                            raise ValueError(f"Attribute {attr} not found in node {key}")
+                    extracted_values.append(data)
                 
+                # chck for using differen markers for close lines 
                 use_marker = False
                 for line in plotted_lines:
-                    if len(line) != len(val):
+                    if len(line) != len(extracted_values):
                         continue
                     else:
-                        distance = np.linalg.norm(np.array(val) - np.array(line))
+                        distance = np.linalg.norm(np.array(extracted_values) - np.array(line))
                         if distance < 0.05:  # Threshold for considering lines as close
                             use_marker = True
                             marker_index = (marker_index + 1) % len(markers)
                             break
 
                 if use_marker:
-                    axs[i].plot(time_steps, val, label=f"{key}", marker=markers[marker_index])
+                    ax.plot(time_steps, extracted_values,label=f"{key}",marker=markers[marker_index])
                 else:
-                    axs[i].plot(time_steps, val, label=f"{key}", marker=standard_marker)
+                    ax.plot(time_steps, extracted_values,label=f"{key}", marker=standard_marker)
                 
-                plotted_lines.append(val)
+                plotted_lines.append(extracted_values)
 
-               
-                axs[i].set_ylabel(values[i])
+            
                 
-            axs[i].grid()
-            axs[i].legend()
-                
+        ax.grid()
+        ax.legend()
+                    
         if ax is None:
             plt.tight_layout()
             plt.show()
@@ -106,7 +110,7 @@ class Structure:
     def snapshot(self, timestamp):
         for node in self.G.nodes():
             node_data = node.get_data()
-            node_type = type(node).__name__
+            node_type = type(node)
             self.history.track(node_data, node_type, timestamp)
 
 
@@ -244,16 +248,16 @@ class Structure:
 
         nx.draw_networkx_edge_labels(G, pos, edge_labels=edge_labels, ax=ax)
 
-    def plot_value(self, ax = None, var=""):
+    def plot_value(self, ax = None, var="", node_types = []):
         
         G = self.G
         positions = nx.bfs_layout(G, self.seed, align='horizontal')
         
-        value_amount = self.get_node_attributes(var)
-    
+        value_amount, nodes= self.get_nodes_attribute(var=var, node_types=node_types)
+
         # Get the minimum and maximum values of the variable, ignore the None values
-        vmin = min([value for value in value_amount if value is not None])
-        vmax = max([value for value in value_amount if value is not None])
+        vmin = min(value_amount)
+        vmax = max(value_amount)
         
         # Normalize lighting values between 0 and 1
         import matplotlib.colors as mcolors
@@ -261,12 +265,13 @@ class Structure:
         cmap = plt.cm.Blues  # Choose a colormap
 
         node_colors = []
-        for value in value_amount:
-            if value is None:
-                color = "gray"
-            else: 
-                color = cmap(norm(value))
-            node_colors.append(color)
+        for node in G.nodes:
+            if node in nodes:
+                value = value_amount[nodes.index(node)]
+                node_colors.append(cmap(norm(value)))
+            else:
+                node_colors.append("gray")
+
             
             # Draw the graph
         nx.draw_networkx_nodes(
@@ -278,12 +283,9 @@ class Structure:
         # Draw the edges
         nx.draw_networkx_edges(G, positions,ax=ax, edge_color='gray', arrows=True)
 
-        labels = {} 
-        for node,value in zip(G.nodes(), value_amount):
-            if value is None:
-                labels[node] = "N"
-            else:
-                labels[node] = f"{value:.2f}"
+        labels = {}
+        for node,val in zip(nodes, value_amount):
+            labels[node] = f"{val:.2f}"
 
         nx.draw_networkx_labels(G, positions, labels, font_size=8, ax=ax)
 
@@ -292,63 +294,31 @@ class Structure:
         sm.set_array([])
         plt.colorbar(sm, ax=ax, label=var)
 
-    def get_node_attributes(self, var):
-        value_amount = []
+    def get_nodes_attribute(self, var, node_types):
+        values = []
+        nodes = []
+
+        if not isinstance(node_types, list):
+            node_types = [node_types]
 
         for node in self.G.nodes():
-            # if the node has the attribute var
-            if hasattr(node, var):
-                value_amount.append(getattr(node, var))
-            else:
-                value_amount.append(None)
+            # check if the node is of the right type
+            if len(node_types) > 0 and type(node) in node_types:
+                # Split the attribute path by dots
+                attrs = var.split('.')
+                value = node
+                for attr in attrs:
+                    if isinstance(value, dict):
+                        value = value.get(attr, None)
+                    else:
+                        value = getattr(value, attr, None)
+                    if value is None:
+                        raise ValueError(f"Attribute {var} not found in node {node.name}")
+                values.append(value)
+                nodes.append(node)
 
-        return value_amount
-    
-    def set_node_attributes(self, var, values):
-        for node,value in zip(self.G.nodes(), values):
-            if hasattr(node, var):
-                setattr(node, var, value)
-            else:
-                pass
+        return values, nodes
 
-
-    def get_laplacian(self):
-        return nx.laplacian_matrix(self.G).toarray()
-    
-    def get_laplacian_directed(self):
-        # make a copy of the graph
-        G = self.G.to_directed()
-
-        A = nx.adjacency_matrix(G).toarray()
-
-       
-        A_ltr = np.tril(A)
-        A_rtl = np.triu(A)
-
-        nodes = list(G.nodes())
-
-        G_ltr = nx.DiGraph()
-        
-        G_rtl = nx.DiGraph()
-        
-        for i in range(len(nodes)):
-            for j in range(len(nodes)):
-                if A_ltr[i,j] != 0:
-                    G_ltr.add_node(nodes[i])
-                    G_ltr.add_node(nodes[j])
-                    G_ltr.add_edge(nodes[i], nodes[j], weight=A_ltr[i,j])
-                if A_rtl[i,j] != 0:
-                    G_rtl.add_node(nodes[i])
-                    G_rtl.add_node(nodes[j])
-                    G_rtl.add_edge(nodes[i], nodes[j], weight=A_rtl[i,j])
-
-        
-
-        # get the laplacian matrix
-        L_rtl = nx.laplacian_matrix(G_rtl).toarray()
-        L_ltr = nx.laplacian_matrix(G_ltr).toarray()
-        return A_rtl,L_rtl, A_ltr, L_ltr
-    
 
 
 if __name__ == "__main__":

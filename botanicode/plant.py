@@ -71,139 +71,22 @@ class Plant:
         self.compute_plant_height()
         self.compute_real_points_for_nodes()
         self.probe_environment(env)
+        #self.device_communication()
 
-        # environment interactions
-        #self.compute_lighting(env.sky)
-        #self.compute_water(env.soil)
-
-        # plant processes
-        #self.compute_directions()
-        #self.compute_auxin()
-        #self.compute_sugar()
-
-    def log(self, logger=None):
-        
+    def log(self, logger=None):        
         def log(node):
             message = str(node)
             logger.warning(message)
-
 
         self.structure.traverse(action=log)
 
     def grow(self, dt):
 
-        """ 
-        k_e = 0
-        k_s = 0
-        k_w = 0
-        K = 0
-
-        def elongation_rate(S, W):
-            return np.ones_like(S)  # Simplified model
-            return k_e * S * W / (K + S + W)
-
-
-        L = self.structure.get_laplacian()
-        A_rtl, L_rtl, A_ltr, L_ltr= self.structure.get_laplacian_directed()
-
-        # contrario?! :O
-
-        def water_dynamic(t, W):
-            T = - L @ W  - k_w*elongation_rate(S, W)
-            return T
-        
-        def auxin_dynamic(t, A):
-            T = -L @ A
-            return T
-        
-        def sugar_dynamic(t, S):
-            return - L @ S - k_s * elongation_rate(S, W)
-
-        
-
-
-        t_span = [0, dt]
-
-        W = self.structure.get_nutrients("water")
-        A = self.structure.get_nutrients("auxin")
-        S = self.structure.get_nutrients("sugar")
-
-        from scipy.integrate import solve_ivp
-        sol_w = solve_ivp(water_dynamic, t_span, W, t_eval=[dt])
-        sol_a = solve_ivp(auxin_dynamic, t_span, A, t_eval=[dt])
-        sol_s = solve_ivp(sugar_dynamic, t_span, S, t_eval=[dt])
-
-        self.structure.set_nutrients(nutrients=sol_w.y[:, -1], nutrient_name="water")
-        self.structure.set_nutrients(nutrients=sol_a.y[:, -1], nutrient_name="auxin")
-        self.structure.set_nutrients(nutrients=sol_s.y[:, -1], nutrient_name="sugar")
-
-        elongation_rate = elongation_rate(sol_s.y[:, -1], sol_w.y[:, -1])
-        elongation = elongation_rate * dt  # Simplified integration
-
-        self.structure.set_nutrients(nutrients=elongation, nutrient_name="elongation_rate")
-                                     
-
-        # recursive function to grow the plant
-        def grow_recursive(node):
-            node.grow(dt)
-
-        def eleongate_recursive(node):
-            if isinstance(node, SAM):
-                if node.parent.get_length() > self.growth_regulation.length_to_shoot:
-                    # Add a new stem with leaves based on the growth regulation leaf arrangement
-                    if self.growth_regulation.leaf_arrangement == "opposite":
-                        stem, leaves, sam = self.gen_prolongation(node, 2, 0)
-                    elif self.growth_regulation.leaf_arrangement == "decussate":
-                        if node.parent.leaf_children[0].z_angle == 0:
-                            z_angle_offset = np.pi/2
-                        else:
-                            z_angle_offset = 0
-                        stem, leaves, sam = self.gen_prolongation(node, 2, z_angle_offset)
-                    elif self.growth_regulation.leaf_arrangement == "alternate":
-
-                        previous_angle = node.parent.leaf_children[0].z_angle
-                        
-                        if self.growth_regulation.leaf_z_angle_alternate_offset is None:
-                            raise ValueError("Leaf z angle alternate offset must be set for alternate leaf arrangement.")
-                       
-                        z_angle_offset = previous_angle + self.growth_regulation.leaf_z_angle_alternate_offset[0]
-                        # make sure the angle is between 0 and 2pi
-                        z_angle_offset = z_angle_offset % (2 * np.pi)
-
-                        stem, leaves, sam = self.gen_prolongation(node, 1, z_angle_offset)
-                        
-                    else:
-                        raise ValueError("Invalid leaf arrangement.")
-
-                    self.prolongate(node, stem, leaves, sam)
-                    #self.structure.G.remove_edge(node.parent, node)
-                    self.structure.G.remove_node(node)
-                    node.parent.sam = None
-
-        def branch_recursive(node):
-            if isinstance(node, Leaf):
-                if node.auxin < 0.12 and node.auxin > 0:
-                    print(f"Branching on leaf: {node.name}")
-
-                    stem, leaves, sam = self.gen_prolongation(node, 2, 0)
-                    self.prolongate(node, stem, leaves, sam)
-
-                    # delete the leaf
-                    self.structure.G.remove_edge(node.parent, node)
-                    self.structure.G.remove_node(node)
-                    node.parent.leaf_children.remove(node)
-       
-        self.structure.traverse(action=grow_recursive)
-        self.structure.traverse(action=eleongate_recursive)
-        #self.structure.traverse(action=branch_recursive)
-
-        """
-
         # get the current length of the structural elements
 
-        current_length = self.structure.get_node_attributes("lenght")
-        current_radius = self.structure.get_node_attributes("radius")
-        current_size = self.structure.get_node_attributes("leaf_size")
+        current_length, nodes_lenght = self.structure.get_nodes_attribute(var = "lenght", node_types=[Stem, Root])
+        current_radius, nodes_radius = self.structure.get_nodes_attribute("radius", node_types=[Stem, Root])
+        current_size, nodes_size = self.structure.get_nodes_attribute("leaf_size", node_types=Leaf)
 
         # remove the None values
         current_length = np.array([l for l in current_length if l is not None])
@@ -214,6 +97,7 @@ class Plant:
         k = self.growth_regulation.growth_data["k_internodes"]
         l_max = self.growth_regulation.growth_data["internode_lenght_max"]
         r_max = self.growth_regulation.growth_data["internode_radius_max"]
+
 
         k_leaf = self.growth_regulation.growth_data["k_leaves"]
         s_max = self.growth_regulation.growth_data["leaves_size_max"]
@@ -226,16 +110,12 @@ class Plant:
 
 
         # update the lenght of the structural elements
-        counter_stems = 0
-        counter_leaves = 0
-        for node in self.structure.G.nodes:
-            if isinstance(node, Stem) or isinstance(node, Root):
-                node.grow(dt, new_length[counter_stems], new_radius[counter_stems])
-                counter_stems += 1
-            elif isinstance(node, Leaf):
-                node.grow(dt, new_size[counter_leaves], new_rachid_size= new_size[counter_leaves]/2, new_petioles_size= new_petioles_size)
-                counter_leaves += 1
-
+        for node,new_len,new_r in zip(nodes_lenght, new_length, new_radius):
+            node.grow(dt, new_len, new_r)
+           
+        for node,new_s in zip(nodes_size, new_size):
+            node.grow(dt, new_s, new_rachid_size= new_s/2, new_petioles_size= new_petioles_size)
+            
         self.age+=dt
 
         SAM_nodes = [node for node in self.structure.G.nodes if isinstance(node, SAM)]
@@ -254,7 +134,6 @@ class Plant:
         stem = Stem(position=np.array([0, 0, 0]), direction=np.array([0, 0, 1]), age = 1, 
                     lenght = self.growth_regulation.new_stem_lenght,
                     radius = self.growth_regulation.new_stem_radius)
-    
         
 
         if self.growth_regulation.leaf_arrangement == "alternate":
@@ -269,8 +148,6 @@ class Plant:
             self.leaf_z_angle_offset = 0
         else:
             raise ValueError("Invalid leaf arrangement.")
-        
-        
         
         leaves = []
         for i in range(self.growth_regulation.leaves_number):
@@ -295,8 +172,6 @@ class Plant:
         if ax is None:
             fig = plt.figure()
             ax = fig.add_subplot(111, projection='3d')
-
-
         
         def plot_node(node):
             if isinstance(node, Leaf):
@@ -357,7 +232,6 @@ class Plant:
 
         self.structure.traverse(action=compute_real_points_recursive)
 
-
     def probe_environment(self, env):
         def probe_recursive(node):
             if isinstance(node, Leaf):
@@ -366,37 +240,10 @@ class Plant:
 
         self.structure.traverse(action=probe_recursive)
 
+    def device_communication(self):
+        def device_communication_recursive(node):
+            if isinstance(node, Leaf):
+                node.send()
 
-    def compute_auxin(self):
-        def compute_auxin_recursive(node):
-            node.produce_auxin()
-        
-        self.structure.traverse_leaves(action=compute_auxin_recursive)
-
-    def compute_water(self, soil):
-        def compute_water_recursive(node):
-            if isinstance(node, Root):
-                node.resources.water = self.plant_height
-
-        self.structure.traverse(action=compute_water_recursive)
-
-    def compute_lighting(self, sky):
-        def compute_lighting_recursive(node):  
-            distance = sky.compute_distance(node.position)
-            node.lighting = 1 / (distance)
-            
-        self.structure.traverse_leaves(action=compute_lighting_recursive)
-
-    def compute_sugar(self):
-        def compute_sugar_recursive(node):
-            node.produce_sugar()
-
-        self.structure.traverse_leaves(action=compute_sugar_recursive)
-
-    def compute_directions(self):
-        def compute_directions_recursive(node):
-           if not isinstance(node, Root) and not isinstance(node, SAM):
-             node.compute_direction()
-
-        self.structure.traverse_stems(action=compute_directions_recursive)
+        self.structure.traverse(action=device_communication_recursive)
         
