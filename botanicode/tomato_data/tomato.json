@@ -1,0 +1,41 @@
+{
+  "general": {
+    "common_name": "Tomato",
+    "scientific_name": "Solanum lycopersicum"
+  },
+  "phylotaxis": {
+    "leaflets_number": 5,
+    "leaf_arrangement": "alternate",
+    "angle": 144 
+  },
+  "leaves_paramters":{
+    "leaves_number": 2,
+    "new_leaf_size": 1,
+    "new_petioles_size": 0.2,
+    "leaf_y_angle": 0.75
+  },
+  "stem_parameters": {
+    "new_stem_lenght": 1,
+    "new_stem_radius": 0.1
+  },
+  "root_parameters": {
+    "new_root_lenght": 1,
+    "new_root_radius": 0.1
+  },
+  "growth_data":{
+    "internode_lenght_max": 6,
+    "internode_radius_max": 1,
+    "k_internodes": 0.2,
+    "leaves_size_max": 10,
+    "k_leaves": 0.1,
+    "internode_appereace_rate": 3 
+  },
+  "initial_data":{
+    "initial_stem_lenght": 3,
+    "initial_stem_radius": 0.1,
+    "initial_leaf_number": 2,
+    "initial_leaflets_number": 1,
+    "initial_root_lenght": 1,
+    "initial_root_radius": 0.1
+  }
+}
