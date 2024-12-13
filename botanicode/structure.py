@@ -24,8 +24,11 @@ class Tracker:
         self.data = []
 
 
-    def plot(self, values = ["position"], node_type = "Stem"):
+    def plot(self, ax=None, values = ["position"], node_type = "Stem"):
+
         number_of_plots = len(values)
+        if ax is not None and number_of_plots != 1:
+            raise ValueError("Only one plot is allowed when passing an ax object")
         if node_type not in self.data:
             raise ValueError("Node type not found.")
         if len(self.data[node_type]) == 0:
@@ -38,8 +41,11 @@ class Tracker:
             if value not in node_data[list(node_data.keys())[0]][0]:
                 raise ValueError(f"Value {value} not found in the node data.")
 
-        fig, axs = plt.subplots(number_of_plots, 1, figsize=(10, 10))
-        axs = np.atleast_1d(axs)  # Ensure axs is always an array
+        if ax is None:
+            fig, axs = plt.subplots(number_of_plots, 1, figsize=(10, 10))
+            axs = np.atleast_1d(axs)  # Ensure axs is always an array
+        else:
+            axs = [ax]
 
         markers = ['o', "x"]
         standard_marker = ''
@@ -80,9 +86,9 @@ class Tracker:
             axs[i].grid()
             axs[i].legend()
                 
-
-        plt.tight_layout()
-        plt.show()
+        if ax is None:
+            plt.tight_layout()
+            plt.show()
 
 class Structure:
     def __init__(self, seed=None):

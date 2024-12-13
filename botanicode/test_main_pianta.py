@@ -38,15 +38,14 @@ air = Air(temperature=20, water_concentration=0.5)
 
 env = Environment(sky=sky, soil=soil, air=air)
 
-plotter_graph_objects = [my_plant.structure]*4
 plotter_graph_methods = [lambda ax: my_plant.structure.plot(ax=ax, pos= True),
                          lambda ax: my_plant.structure.plot_value(ax=ax, var="lenght"),
                          lambda ax: my_plant.structure.plot_value(ax=ax, var="leaf_size"),
                          lambda ax: my_plant.structure.plot_value(ax=ax, var="radius"),]
-plotter_graph_3d = [False]*4
-plotter_grafo = Plotter(objects_to_plot=plotter_graph_objects, plot_methods=plotter_graph_methods, plot_3ds=plotter_graph_3d, ncols=2, dpi=500, figsize=(15,8))
 
-plotter_struttura = Plotter(objects_to_plot=[my_plant], plot_methods=[None], plot_3ds=[True], ncols=1, dpi=500, figsize=(15,8))
+plotter_grafo = Plotter(plot_methods=plotter_graph_methods, ncols=2, dpi=500, figsize=(15,8))
+
+plotter_struttura = Plotter(plot_methods=[lambda ax: my_plant.plot(ax=ax)], plot_3ds=[True], ncols=1, dpi=500, figsize=(15,8))
 
 
 
@@ -94,5 +93,7 @@ logger.info("Growth simulation completed.")
 plotter_struttura.plot()
 
 
-my_plant.structure.history.plot(values=["lenght","radius"], node_type="Stem")
-my_plant.structure.history.plot(values=["leaf_size"], node_type="Leaf")
+plotter_history = Plotter(plot_methods=[lambda ax: my_plant.structure.history.plot(ax = ax, values=["lenght"], node_type="Stem"),
+                                        lambda ax: my_plant.structure.history.plot(ax = ax, values=["radius"], node_type="Stem")],ncols=1, dpi=500, figsize=(15,8))
+
+plotter_history.plot()
