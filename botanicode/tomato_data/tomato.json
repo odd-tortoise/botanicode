@@ -28,7 +28,8 @@
     "k_internodes": 0.2,
     "leaves_size_max": 10,
     "k_leaves": 0.1,
-    "internode_appereace_rate": 3 
+    "internode_appereace_rate": 3,
+    "plant_height_max": 100
   },
   "initial_data":{
     "initial_stem_lenght": 3,
