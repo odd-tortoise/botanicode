@@ -44,7 +44,7 @@ plotter_graph_methods = [lambda ax: my_plant.structure.plot(ax=ax, pos= True),
                          lambda ax: my_plant.structure.plot_value(ax=ax, var="leaf_size", node_types=Leaf),
                          lambda ax: my_plant.structure.plot_value(ax=ax, var="radius", node_types=Stem),
                          lambda ax: my_plant.structure.plot_value(ax=ax, var="env_data.temperature", node_types=Leaf),
-                         lambda ax: my_plant.structure.plot_value(ax=ax, var="env_data.light",node_types=Leaf),]
+                         lambda ax: my_plant.structure.plot_value(ax=ax, var="device_data.temperature.val",node_types=Stem),]
 
 plotter_grafo = Plotter(plot_methods=plotter_graph_methods, ncols=2, dpi=500, figsize=(15,8))
 
@@ -98,6 +98,7 @@ plotter_grafo.plot()
 
 
 plotter_history = Plotter(plot_methods=[lambda ax: my_plant.structure.history.plot(ax = ax, value="structural_data.lenght", node_types=[Stem,Root]),
-                                        lambda ax: my_plant.structure.history.plot(ax = ax, value="structural_data.radius", node_types=Stem)],ncols=1, dpi=500, figsize=(15,8))
+                                        lambda ax: my_plant.structure.history.plot(ax = ax, value="structural_data.radius", node_types=Stem),
+                                        lambda ax: my_plant.structure.history.plot(ax = ax, value="device_data.temperature.val", node_types=Stem),],ncols=1, dpi=500, figsize=(15,8))
 
 plotter_history.plot()

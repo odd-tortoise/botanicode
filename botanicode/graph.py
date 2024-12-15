@@ -84,11 +84,6 @@ class DevicePart(Part):
     def emit(self): # to env
         pass
 
-    def send(self): # to structure
-        pass
-
-    def grab(self): # from structure
-        pass
 
     def get_data(self):
         data = super().get_data()
@@ -122,6 +117,7 @@ class StructuralPart(Part):
 
         self.structural_children = []
         self.device_children = []
+        self.device_data = {}
 
                 
     def grow(self, dt, new_l, new_r):
@@ -147,8 +143,26 @@ class StructuralPart(Part):
             "direction": self.direction.tolist(),
         }
         data["structural_data"] = structural_data
+        data["device_data"] = self.device_data
         return data
     
     def update_position(self):
         self.position = self.parent.position + self.points[-1]
+
+
+    def grab(self): # read data from devices
+        # reset the data
+        self.device_data = {}
+        for device in self.device_children:
+            for key, value in device.env_data.items():
+                # key is the name of the data es "temperature"
+                # value is the value of the data read from the device "device"
+                if key in self.device_data:
+                    self.device_data[key]["val"].append(value)
+                    self.device_data[key]["device"].append(device)
+                else:
+                    self.device_data[key] = {"val": [value], "device": [device]}
+
+    def send(self): # send data to devices
+        pass
   

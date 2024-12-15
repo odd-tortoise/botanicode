@@ -71,7 +71,7 @@ class Plant:
         self.compute_plant_height()
         self.compute_real_points_for_nodes()
         self.probe_environment(env)
-        #self.device_communication()
+       
 
     def log(self, logger=None):        
         def log(node):
@@ -236,14 +236,13 @@ class Plant:
         def probe_recursive(node):
             if isinstance(node, Leaf):
                 node.probe(env)
+
+        def transfer_to_structure(node):
+            if isinstance(node, Stem):
+                node.grab()
                 
 
         self.structure.traverse(action=probe_recursive)
+        self.structure.traverse(action=transfer_to_structure)
 
-    def device_communication(self):
-        def device_communication_recursive(node):
-            if isinstance(node, Leaf):
-                node.send()
 
-        self.structure.traverse(action=device_communication_recursive)
-        

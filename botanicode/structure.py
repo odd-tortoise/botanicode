@@ -89,6 +89,8 @@ class Tracker:
                 
         ax.grid()
         ax.legend()
+        ax.set_xlabel("Time")
+        ax.set_ylabel(value)
                     
         if ax is None:
             plt.tight_layout()
@@ -255,44 +257,65 @@ class Structure:
         
         value_amount, nodes= self.get_nodes_attribute(var=var, node_types=node_types)
 
-        # Get the minimum and maximum values of the variable, ignore the None values
-        vmin = min(value_amount)
-        vmax = max(value_amount)
-        
-        # Normalize lighting values between 0 and 1
-        import matplotlib.colors as mcolors
-        norm = mcolors.Normalize(vmin=vmin, vmax=vmax)
-        cmap = plt.cm.Blues  # Choose a colormap
+        # check if is list of list 
+        if isinstance(value_amount[0], list):
+            # simplly draw the graph
+            nx.draw_networkx_nodes(
+                self.G, 
+                pos=positions, 
+                node_color="gray", 
+                ax=ax
+            )
+            # Draw the edges
+            nx.draw_networkx_edges(G, positions,ax=ax, edge_color='gray', arrows=True)
 
-        node_colors = []
-        for node in G.nodes:
-            if node in nodes:
-                value = value_amount[nodes.index(node)]
-                node_colors.append(cmap(norm(value)))
-            else:
-                node_colors.append("gray")
+            labels = {}
+            for node,val in zip(nodes, value_amount):
+                labels[node] = f"{val}"
+            nx.draw_networkx_labels(G, positions, labels, font_size=8, ax=ax
+            )   
+
+            plt.ylabel(var)
+        else:
+
+            # Get the minimum and maximum values of the variable, ignore the None values
+            vmin = min(value_amount)
+            vmax = max(value_amount)
+            
+            # Normalize lighting values between 0 and 1
+            import matplotlib.colors as mcolors
+            norm = mcolors.Normalize(vmin=vmin, vmax=vmax)
+            cmap = plt.cm.Blues  # Choose a colormap
+
+            node_colors = []
+            for node in G.nodes:
+                if node in nodes:
+                    value = value_amount[nodes.index(node)]
+                    node_colors.append(cmap(norm(value)))
+                else:
+                    node_colors.append("gray")
 
             
             # Draw the graph
-        nx.draw_networkx_nodes(
-            self.G, 
-            pos=positions, 
-            node_color=node_colors, 
-            ax=ax
-        )
-        # Draw the edges
-        nx.draw_networkx_edges(G, positions,ax=ax, edge_color='gray', arrows=True)
+            nx.draw_networkx_nodes(
+                self.G, 
+                pos=positions, 
+                node_color=node_colors, 
+                ax=ax
+            )
+            # Draw the edges
+            nx.draw_networkx_edges(G, positions,ax=ax, edge_color='gray', arrows=True)
 
-        labels = {}
-        for node,val in zip(nodes, value_amount):
-            labels[node] = f"{val:.2f}"
+            labels = {}
+            for node,val in zip(nodes, value_amount):
+                labels[node] = f"{val:.2f}"
 
-        nx.draw_networkx_labels(G, positions, labels, font_size=8, ax=ax)
+            nx.draw_networkx_labels(G, positions, labels, font_size=8, ax=ax)
 
-        # colorbar
-        sm = plt.cm.ScalarMappable(cmap=cmap, norm=norm)
-        sm.set_array([])
-        plt.colorbar(sm, ax=ax, label=var)
+            # colorbar
+            sm = plt.cm.ScalarMappable(cmap=cmap, norm=norm)
+            sm.set_array([])
+            plt.colorbar(sm, ax=ax, label=var)
 
     def get_nodes_attribute(self, var, node_types):
         values = []
