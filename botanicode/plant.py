@@ -40,6 +40,7 @@ class Plant:
                         rachid_size=0,
                         petioles_size=self.growth_regulation.new_petioles_size,
                         id = i)
+            leaf.bending_rate = self.growth_regulation.leaf_bending_rate
             leaves.append(leaf)
 
         sam = SAM(stem.position)
@@ -116,6 +117,7 @@ class Plant:
         for node,new_s in zip(nodes_size, new_size):
             node.grow(dt, new_s, new_rachid_size= new_s/2, new_petioles_size= new_petioles_size)
             
+            
         self.age+=dt
 
         SAM_nodes = [node for node in self.structure.G.nodes if isinstance(node, SAM)]
@@ -160,6 +162,7 @@ class Plant:
                         rachid_size=self.growth_regulation.new_rachid_size,
                         petioles_size=self.growth_regulation.new_petioles_size,
                         id = i)
+            leaf.bending_rate = self.growth_regulation.leaf_bending_rate
             leaves.append(leaf)
 
         sam = SAM(stem.position)
@@ -188,7 +191,7 @@ class Plant:
                     leaf = np.array(leaf)
                     if leaf.size > 0:
                         ax.plot(leaf[:, 0], leaf[:, 1], leaf[:, 2],
-                                color=node.color, label='Leaf Skeleton', linewidth=2, marker='o')
+                                color=node.color, label='Leaf Skeleton', linewidth=2, marker='o',markersize=2)
                         ax.plot([leaf[0, 0], leaf[-1, 0]], [leaf[0, 1], leaf[-1, 1]], [leaf[0, 2], leaf[-1, 2]], color=node.color, linewidth=2)
                 
                 

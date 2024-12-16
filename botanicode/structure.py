@@ -90,7 +90,7 @@ class Tracker:
         ax.grid()
         ax.legend()
         ax.set_xlabel("Time")
-        ax.set_ylabel(value)
+        ax.set_ylabel(".".join(attrs))
                     
         if ax is None:
             plt.tight_layout()

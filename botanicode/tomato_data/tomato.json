@@ -4,7 +4,7 @@
     "scientific_name": "Solanum lycopersicum"
   },
   "phylotaxis": {
-    "leaflets_number": 5,
+    "leaflets_number": 7,
     "leaf_arrangement": "alternate",
     "angle": 144 
   },
@@ -12,7 +12,8 @@
     "leaves_number": 1,
     "new_leaf_size": 1,
     "new_petioles_size": 0.2,
-    "leaf_y_angle": 0.75
+    "leaf_y_angle": 0.75,
+    "leaf_bending_rate": 0.5
   },
   "stem_parameters": {
     "new_stem_lenght": 1,

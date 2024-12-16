@@ -33,6 +33,7 @@ class GrowthRegulation:
         self.new_petioles_size = data['leaves_paramters']['new_petioles_size']
         self.new_rachid_size = self.new_leaf_size
         self.leaf_y_angle = data['leaves_paramters']['leaf_y_angle']
+        self.leaf_bending_rate = data['leaves_paramters']['leaf_bending_rate']
 
         # stem data
         self.new_stem_lenght = data['stem_parameters']['new_stem_lenght']

@@ -209,6 +209,8 @@ class Leaf(DevicePart):
 
         self.z_angle = z_angle
         self.y_angle = y_angle
+
+        self.bending_rate = 1
       
     
         if leaf_function is None:
@@ -255,8 +257,8 @@ class Leaf(DevicePart):
             
             if leaves_to_plot >= 2:
                
-                leaf_points_up = self.generate_leaf_points(angle = np.pi/2)
-                leaf_points_down = self.generate_leaf_points(angle = -np.pi/2)
+                leaf_points_up = self.generate_leaf_points(angle_with_z = np.pi/2, angle_wiht_y = 0.4)
+                leaf_points_down = self.generate_leaf_points(angle_with_z = -np.pi/2, angle_wiht_y = 0.4)
 
                 petiole_up = np.array([0,self.petioles_size,0])
                 petiole_down = np.array([0, -self.petioles_size,0])
@@ -273,13 +275,15 @@ class Leaf(DevicePart):
             if leaves_to_plot == 1:
                 # add the leaves on the sides
                  # add the leaf on the tip 
-                leaf_point = self.generate_leaf_points(angle = 0)
+                leaf_point = self.generate_leaf_points(angle_with_z = 0)
                 petiole = np.array([self.petioles_size,0,0])
                 # translate the leaf points to the tip of the rachid
                 leaf_point = [point + rachid_point + petiole for point in leaf_point]
 
                 leaves_points.append(leaf_point)
                 leaves_to_plot -= 1
+
+            y_angle -= self.bending_rate*y_angle
 
                 
         # rotate the rachid points
@@ -301,7 +305,7 @@ class Leaf(DevicePart):
         self.leaves_points = rotated_leaves
         self.rachid_points = rotated_rachid
   
-    def generate_leaf_points(self,angle = 0,n_points=11):
+    def generate_leaf_points(self,angle_with_z = 0,angle_wiht_y = 0,n_points=11):
 
         temp_points = []
         angles = np.linspace(0, 2*np.pi, n_points)
@@ -309,14 +313,20 @@ class Leaf(DevicePart):
             point = self.leaf_function(theta, self.leaf_size)
             temp_points.append(point)
 
-        z_rotation_angle = angle
+        y_rotation_angle = angle_wiht_y
+
+        rot_y = np.array([[np.cos(y_rotation_angle), 0, np.sin(y_rotation_angle)],
+                        [0, 1, 0],
+                        [-np.sin(y_rotation_angle), 0, np.cos(y_rotation_angle)]])
+
+        z_rotation_angle = angle_with_z
 
         rot_z = np.array([[np.cos(z_rotation_angle), -np.sin(z_rotation_angle), 0],  
                         [np.sin(z_rotation_angle), np.cos(z_rotation_angle), 0],
                         [0, 0, 1]])
         
-        
-        points = [np.dot(rot_z,point) for point in temp_points]   
+        points = [np.dot(rot_y,point) for point in temp_points]
+        points = [np.dot(rot_z,point) for point in points]   
 
         return points
         
