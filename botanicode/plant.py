@@ -1,5 +1,6 @@
-from plantPart import Stem, Leaf, Root, SAM, RAM, Seed
-from structure import Structure
+from botanical_nodes import Stem, Leaf, Root, SAM, RAM, Seed, LeafShape
+from general_nodes import StructuralShape, DeviceShape
+from graph import Structure
 import numpy as np
 from light import Sky
 import matplotlib.pyplot as plt
@@ -25,22 +26,25 @@ class Plant:
     def initialize_plant(self):
         # Create the initial plant structure
         # assume initial age of the stem to be 1 
-        stem = Stem(position=np.array([0, 0, 0]), direction=np.array([0, 0, 1]), age = 1, 
-                    lenght = self.growth_regulation.initial_stem_lenght,
-                    radius = self.growth_regulation.initial_stem_radius)
-        
+
+        stem_shape = StructuralShape(lenght = self.growth_regulation.initial_stem_lenght,
+                                     radius = self.growth_regulation.initial_stem_radius,
+                                     direction = np.array([0, 0, 1]))
+        stem = Stem(position=np.array([0, 0, 0]), age = 1, shape=stem_shape)
+
+        leaf_shape = LeafShape(size = self.growth_regulation.new_leaf_size,
+                               leaf_function= None, # use the default leaf function
+                               rachid_size= 0,
+                               petioles_size= self.growth_regulation.new_petioles_size)
         leaves = []
         for i in range(self.growth_regulation.initial_leaf_number):
             z_angle = 2 * np.pi * i / self.growth_regulation.initial_leaf_number
             y_angle = self.growth_regulation.leaf_y_angle
 
-            leaf = Leaf(position=stem.position, age = 1, z_angle=z_angle, y_angle=y_angle, 
-                        leaf_size=self.growth_regulation.new_leaf_size, 
+            leaf = Leaf(position=stem.position, age = 1, z_angle=z_angle, y_angle=y_angle, y_bending_rate=self.growth_regulation.leaf_bending_rate,
                         leaflets_number=self.growth_regulation.initial_leaflets_number,
-                        rachid_size=0,
-                        petioles_size=self.growth_regulation.new_petioles_size,
+                        shape=leaf_shape,
                         id = i)
-            leaf.bending_rate = self.growth_regulation.leaf_bending_rate
             leaves.append(leaf)
 
         sam = SAM(stem.position)
@@ -49,14 +53,14 @@ class Plant:
 
         
         # add the root 
-        root = Root(position=np.array([0, 0, 0]), direction=np.array([0, 0, -1]), age = 1, 
-                    lenght = self.growth_regulation.initial_root_lenght,
-                    radius = self.growth_regulation.initial_root_radius)
+        root_shape = StructuralShape(lenght = self.growth_regulation.initial_root_lenght,
+                                        radius = self.growth_regulation.initial_root_radius,
+                                        direction = np.array([0, 0, -1]))
+        root = Root(position=np.array([0, 0, 0]), age = 1, shape=root_shape)
         
         ram = RAM(root.position)
 
         self.structure.shoot(self.structure.seed, {"structure": root, "generator": ram})
-
         self.structure.ensure_consistency()
         self.compute_plant_height()
 
@@ -85,9 +89,9 @@ class Plant:
 
         # get the current length of the structural elements
 
-        current_length, nodes_lenght = self.structure.get_nodes_attribute(var = "lenght", node_types=[Stem, Root])
-        current_radius, nodes_radius = self.structure.get_nodes_attribute("radius", node_types=[Stem, Root])
-        current_size, nodes_size = self.structure.get_nodes_attribute("leaf_size", node_types=Leaf)
+        current_length, nodes_lenght = self.structure.get_nodes_attribute(var = "shape.lenght", node_types=[Stem, Root])
+        current_radius, nodes_radius = self.structure.get_nodes_attribute("shape.radius", node_types=[Stem, Root])
+        current_size, nodes_size = self.structure.get_nodes_attribute("shape.size", node_types=Leaf)
 
         # remove the None values
         current_length = np.array([l for l in current_length if l is not None])
@@ -112,10 +116,12 @@ class Plant:
 
         # update the lenght of the structural elements
         for node,new_len,new_r in zip(nodes_lenght, new_length, new_radius):
-            node.grow(dt, new_len, new_r)
+            new_shape = StructuralShape(lenght = new_len, radius = new_r, direction = node.shape.direction)
+            node.grow(dt, new_shape)
            
         for node,new_s in zip(nodes_size, new_size):
-            node.grow(dt, new_s, new_rachid_size= new_s/2, new_petioles_size= new_petioles_size)
+            new_shape = LeafShape(size = new_s, leaf_function= node.shape.leaf_function, rachid_size= new_s/2, petioles_size= new_petioles_size)
+            node.grow(dt, new_shape)
             
             
         self.age+=dt
@@ -133,9 +139,11 @@ class Plant:
         if not isinstance(node, SAM):
             raise ValueError("Cannot shoot from a non-SAM node.")
         
-        stem = Stem(position=np.array([0, 0, 0]), direction=np.array([0, 0, 1]), age = 1, 
-                    lenght = self.growth_regulation.new_stem_lenght,
-                    radius = self.growth_regulation.new_stem_radius)
+        stem_shape = StructuralShape(lenght = self.growth_regulation.new_stem_lenght,
+                                        radius = self.growth_regulation.new_stem_radius,
+                                        direction = np.array([0, 0, 1]))
+        
+        stem = Stem(position=np.array([0, 0, 0]), age = 1, shape=stem_shape)
         
 
         if self.growth_regulation.leaf_arrangement == "alternate":
@@ -152,17 +160,19 @@ class Plant:
             raise ValueError("Invalid leaf arrangement.")
         
         leaves = []
+        leaf_shape = LeafShape(size = self.growth_regulation.new_leaf_size,
+                                 leaf_function= None, # use the default leaf function
+                                 rachid_size= self.growth_regulation.new_rachid_size,
+                                 petioles_size= self.growth_regulation.new_petioles_size)
         for i in range(self.growth_regulation.leaves_number):
             z_angle = 2 * np.pi * i / self.growth_regulation.leaves_number + self.leaf_z_angle_offset
             y_angle = self.growth_regulation.leaf_y_angle
 
-            leaf = Leaf(position=stem.position, age = 1, z_angle=z_angle, y_angle=y_angle, 
-                        leaf_size=self.growth_regulation.new_leaf_size, 
+            leaf = Leaf(position=stem.position, age = 1, z_angle=z_angle, y_angle=y_angle, y_bending_rate=self.growth_regulation.leaf_bending_rate,
                         leaflets_number=self.growth_regulation.leaflets_number,
-                        rachid_size=self.growth_regulation.new_rachid_size,
-                        petioles_size=self.growth_regulation.new_petioles_size,
+                        shape=leaf_shape,
                         id = i)
-            leaf.bending_rate = self.growth_regulation.leaf_bending_rate
+    
             leaves.append(leaf)
 
         sam = SAM(stem.position)

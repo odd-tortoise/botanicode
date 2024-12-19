@@ -1,11 +1,12 @@
 import numpy as np
-from graph import StructuralPart, DevicePart, Resources
+from general_nodes import StructuralPart, DevicePart, DeviceShape, StructuralShape, Part
+from dataclasses import dataclass
 
 class Stem(StructuralPart):
     counter = 0
 
-    def __init__(self, position = np.array([0,0,0]), age = 0, lenght = None, radius = None, direction = np.array([0, 0, 1])):
-        super().__init__(position, age, lenght, radius, direction)
+    def __init__(self, position = np.array([0,0,0]), age = 0, shape = None):
+        super().__init__(position, age, shape)
         self.name = f"S{Stem.counter}"
         self.id = Stem.counter
         Stem.counter += 1
@@ -13,7 +14,7 @@ class Stem(StructuralPart):
         self.color = "green"
     
     def compute_direction(self):
-        self.direction = np.array([0, 0, 1])
+        self.shape.direction = np.array([0, 0, 1])
         return
     
     def is_apical(self):
@@ -30,9 +31,7 @@ class Stem(StructuralPart):
     Position                : {np.round(self.position, 2).tolist()}
     Age                     : {self.age:.2f} units
 
-    lenght                  : {self.lenght:.2f} units
-    Radius                  : {self.radius:.2f} units
-    Direction               : {np.round(self.direction, 2).tolist()}
+    Shape                  : {str(self.shape)}
     
     Parent                  : {self.parent.name}
     
@@ -40,21 +39,19 @@ class Stem(StructuralPart):
     Device Cihldren         : {", ".join([child.name for child in self.device_children])}
     Number of Devices       : {len(self.device_children)}
     SAM                     : {self.is_apical()}
-    
-    Points                  : {np.round(self.points, 2).tolist()}
-    Real Points             : {np.round(self.real_points, 2).tolist()}
     """
         return message
 
 # class Rootlings(DevicePart): ....
 
-class Seed(StructuralPart):
+class Seed(Part):
     def __init__(self):
         super().__init__(position=np.array([0,0,0]), age = 0)
         self.color = "darkgray"
         self.name = "Seed"
 
         self.points = [np.array([0, 0, 0])]
+        self.structural_children = []
         
     def __str__(self):
         message = f"""
@@ -67,18 +64,23 @@ class Seed(StructuralPart):
     def update_position(self):
         self.position = np.array([0,0,0])  
 
-    def grow(self, dt):
-        pass
+    def generate_points(self):
+        self.points = [np.array([0, 0, 0])]
 
+    def grow(self, dt):
+        super().grow(dt, new_shape=None)
+        
     def compute_conductance(self):
-        pass
+        return 0
+    
+
 
 
 class Root(StructuralPart):
     counter = 0
 
-    def __init__(self, position = np.array([0,0,0]), age = 0, lenght = None, radius = None, direction = np.array([0, 0, -1])):
-        super().__init__(position, age, lenght, radius, direction)
+    def __init__(self, position = np.array([0,0,0]), age = 0, shape = StructuralShape(lenght=0, radius=0, direction=np.array([0, 0, -1]))):
+        super().__init__(position, age, shape=shape)
         self.name = f"R{Root.counter}"
         self.id = Root.counter
         Root.counter += 1
@@ -86,7 +88,7 @@ class Root(StructuralPart):
         self.color = "brown"
     
     def compute_direction(self):
-        self.direction = np.array([0, 0, -1])
+        self.shape.direction = np.array([0, 0, -1])
         return
     
     def is_apical(self):
@@ -103,9 +105,7 @@ class Root(StructuralPart):
     Position                : {np.round(self.position, 2).tolist()}
     Age                     : {self.age:.2f} units
 
-    lenght                  : {self.lenght:.2f} units
-    Radius                  : {self.radius:.2f} units
-    Direction               : {np.round(self.direction, 2).tolist()}
+    Shape                  : {str(self.shape)}
     
     Parent                  : {self.parent.name}
     
@@ -119,7 +119,7 @@ class Root(StructuralPart):
 class SAM(DevicePart):
     
     def __init__(self, position = np.array([0,0,0]), age = 0):
-        super().__init__(position = position,age=age)
+        super().__init__(position = position,age=age, shape= DeviceShape(size=0.1))
         
         if self.parent is not None:
             self.name = f"SAM{self.parent.id}"
@@ -127,7 +127,7 @@ class SAM(DevicePart):
             self.name = f"SAM"
         self.is_generator = True
 
-        self.points = [np.array([0, 0, 0]), np.array([0, 0, 0.1])]
+        
         self.color = "lightblue"
 
         self.time_to_next_shoot = 0
@@ -152,11 +152,14 @@ class SAM(DevicePart):
         }
         data["part_data"] = part_data
         return data
+    
+    def compute_points(self):
+        self.points = [np.array([0, 0, 0]), np.array([0, 0, 0.1])]
 
 class RAM(DevicePart):
     
     def __init__(self, position= np.array([0,0,0]), age=0):
-        super().__init__(position=position,age=age)
+        super().__init__(position=position,age=age, shape= DeviceShape(size=0.1))
         
         if self.parent is not None:
             self.name = f"RAM{self.parent.id}"
@@ -164,8 +167,6 @@ class RAM(DevicePart):
             self.name = f"RAM"
         
         self.is_generator = True
-
-        self.points = [np.array([0, 0, 0]), np.array([0, 0, -0.1])]
 
         self.color = "red"
        
@@ -181,10 +182,23 @@ class RAM(DevicePart):
     Real Points             : {np.round(self.real_points, 2).tolist()}
     """
         return message
-       
+    
+    def compute_points(self):
+        self.points = [np.array([0, 0, 0]), np.array([0, 0, -0.1])]
+
+
+@dataclass
+class LeafShape(DeviceShape):
+    size: float
+    leaf_function: callable
+    rachid_size: float
+    petioles_size: float
+    
 class Leaf(DevicePart):
-    def __init__(self,position = np.array([0,0,0]), age=0, id = 0, y_angle = 0, z_angle = 0, leaflets_number = 1, leaf_function = None, leaf_size = 0, rachid_size = 0, petioles_size = 0):
-        super().__init__(position, age=age)
+
+
+    def __init__(self,position = np.array([0,0,0]), age=0, id = 0, y_angle = 0, z_angle = 0, y_bending_rate = 1, leaflets_number = 1, shape : LeafShape = None):
+        super().__init__(position, age=age, shape=shape)
 
         self.id = id
         if self.parent is not None:
@@ -195,14 +209,10 @@ class Leaf(DevicePart):
         self.color = "orange"
         self.rachid_color = "purple"
 
-        # as of now the leaf and petioles are 1D, no radius/arch
-        self.leaf_size = leaf_size
-        self.petioles_size = petioles_size # is the size of a petiole
+        
 
         if leaflets_number == 1:
-            self.rachid_size = 0
-        else:
-            self.rachid_size = rachid_size # is the size of the rachid block
+            self.shape.rachid_size = 0 # this is the size of the rachid block
 
 
         self.leaflets_number = leaflets_number
@@ -210,10 +220,10 @@ class Leaf(DevicePart):
         self.z_angle = z_angle
         self.y_angle = y_angle
 
-        self.bending_rate = 1
+        self.y_bending_rate = y_bending_rate
       
     
-        if leaf_function is None:
+        if self.shape.leaf_function is None:
             def leaf_function_standard(angle, t):
                 t = t/5
                 def gieles(theta, m, n1, n2, n3, a, b):
@@ -227,15 +237,13 @@ class Leaf(DevicePart):
 
                 return np.array([x, y, 0])
 
-            self.leaf_function = leaf_function_standard
-        else:
-            self.leaf_function = leaf_function
+            self.shape.leaf_function = leaf_function_standard
         
+
         # paramter for the light of each leaflet
         self.leaflets_positions = [self.position] * self.leaflets_number
         
-        self.generate_total_points()
-
+        self.generate_points()
 
     def probe(self, env):
         self.env_data = env.measure(self.position)
@@ -243,7 +251,7 @@ class Leaf(DevicePart):
     def send(self):
         self.parent.device_data[self.name] = self.env_data
 
-    def generate_total_points(self):
+    def generate_points(self):
         rachid_points = [np.array([0, 0, 0])]
         leaves_points = []
 
@@ -252,7 +260,7 @@ class Leaf(DevicePart):
 
         while leaves_to_plot > 0:
             #add rachid point
-            rachid_point = rachid_points[-1] + self.rachid_size * np.array([np.cos(y_angle),0, np.sin(y_angle)])
+            rachid_point = rachid_points[-1] + self.shape.rachid_size * np.array([np.cos(y_angle),0, np.sin(y_angle)])
             rachid_points.append(rachid_point)
             
             if leaves_to_plot >= 2:
@@ -260,8 +268,8 @@ class Leaf(DevicePart):
                 leaf_points_up = self.generate_leaf_points(angle_with_z = np.pi/2, angle_wiht_y = 0.4)
                 leaf_points_down = self.generate_leaf_points(angle_with_z = -np.pi/2, angle_wiht_y = 0.4)
 
-                petiole_up = np.array([0,self.petioles_size,0])
-                petiole_down = np.array([0, -self.petioles_size,0])
+                petiole_up = np.array([0,self.shape.petioles_size,0])
+                petiole_down = np.array([0, -self.shape.petioles_size,0])
 
                 # translate the leaf points to the tip of the rachid
                 leaf_points_up = [point + rachid_point + petiole_up for point in leaf_points_up]
@@ -276,14 +284,14 @@ class Leaf(DevicePart):
                 # add the leaves on the sides
                  # add the leaf on the tip 
                 leaf_point = self.generate_leaf_points(angle_with_z = 0)
-                petiole = np.array([self.petioles_size,0,0])
+                petiole = np.array([self.shape.petioles_size,0,0])
                 # translate the leaf points to the tip of the rachid
                 leaf_point = [point + rachid_point + petiole for point in leaf_point]
 
                 leaves_points.append(leaf_point)
                 leaves_to_plot -= 1
 
-            y_angle -= self.bending_rate*y_angle
+            y_angle -= self.y_bending_rate*y_angle
 
                 
         # rotate the rachid points
@@ -310,7 +318,7 @@ class Leaf(DevicePart):
         temp_points = []
         angles = np.linspace(0, 2*np.pi, n_points)
         for theta in angles:
-            point = self.leaf_function(theta, self.leaf_size)
+            point = self.shape.leaf_function(theta, self.shape.size)
             temp_points.append(point)
 
         y_rotation_angle = angle_wiht_y
@@ -330,13 +338,13 @@ class Leaf(DevicePart):
 
         return points
         
-    def grow(self, dt, new_leaf_size, new_rachid_size,new_petioles_size):
+    def grow(self, dt, new_shape = None):
         self.age += dt
-        self.leaf_size = new_leaf_size
-        self.rachid_size = new_rachid_size if self.leaflets_number > 1 else 0
-        self.petioles_size = new_petioles_size
+        
+        if new_shape is not None:
+            self.shape = new_shape
+            self.generate_points()
 
-        self.generate_total_points()
 
     def __str__(self):
         message = f"""
@@ -345,16 +353,14 @@ class Leaf(DevicePart):
     Position                : {np.round(self.position, 2).tolist()}
     Age                     : {self.age:.2f} units
     Parent                  : {self.parent.name}
-    Leaf size               : {self.leaf_size:.2f} units
-    Rachid size             : {self.rachid_size:.2f} units
-    Petioles size           : {self.petioles_size:.2f} units
+    Shape                   : {str(self.shape)} 
 
     Y angle                 : {self.y_angle:.2f} units
     Z angle                 : {self.z_angle:.2f} units
     """
         return message
 
-    def compute_real_points(self, offset=np.array([0, 0, 0])):
+    def compute_real_points(self, offset = np.array([0, 0, 0])):
         # override the compute_real_points method
         # in the leaves we have 2 lists, one for the rachid and one for the leaves, leaves are a list of list 
 
@@ -365,13 +371,11 @@ class Leaf(DevicePart):
     def get_real_points(self):
         return self.real_points,self.real_rachid_points
     
+        
     def get_data(self):
         data = super().get_data()
 
         part_data ={
-            "leaf_size": self.leaf_size,
-            "rachid_size": self.rachid_size,
-            "petioles_size": self.petioles_size,
             "y_angle": self.y_angle,
             "z_angle": self.z_angle,
             "leaflets_number": self.leaflets_number,
@@ -380,4 +384,5 @@ class Leaf(DevicePart):
         return data
     
     def update_position(self):
-        self.position = self.parent.position + np.array([self.parent.radius * np.cos(self.z_angle), self.parent.radius * np.sin(self.z_angle),0])
+        # we assume that the leaf is attached to the parent and parent is a structural part
+        self.position = self.parent.position + np.array([self.parent.shape.radius * np.cos(self.z_angle), self.parent.shape.radius * np.sin(self.z_angle),0])
