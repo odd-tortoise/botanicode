@@ -88,39 +88,61 @@ class Plant:
     def grow(self, dt):
 
         # get the current length of the structural elements
+        stem_len, stem_nodes = self.structure.get_nodes_attribute(var = "shape.lenght", node_types=[Stem])
+        stem_rank, _ = self.structure.get_nodes_attribute("id", node_types=[Stem])
+        stem_temp, _ = self.structure.get_nodes_attribute("device_data.temperature.val", node_types=[Stem])
 
-        current_length, nodes_lenght = self.structure.get_nodes_attribute(var = "shape.lenght", node_types=[Stem, Root])
-        current_radius, nodes_radius = self.structure.get_nodes_attribute("shape.radius", node_types=[Stem, Root])
-        current_size, nodes_size = self.structure.get_nodes_attribute("shape.size", node_types=Leaf)
+        for id, el in enumerate(stem_temp):
+            #substitute with the average
+            stem_temp[id] = np.mean(el)
 
-        # remove the None values
-        current_length = np.array([l for l in current_length if l is not None])
-        current_radius = np.array([r for r in current_radius if r is not None])
-        current_size = np.array([s for s in current_size if s is not None])
+        stem_len = np.array(stem_len)
+        stem_rank = np.array(stem_rank)
+        stem_temp = np.array(stem_temp)
+
+
+        # leaf data
+        leaf_size, leaf_node = self.structure.get_nodes_attribute(var = "shape.size", node_types=[Leaf])
+        leaf_rank, _ = self.structure.get_nodes_attribute("parent_rank", node_types=[Leaf])
+
+        leaf_size = np.array(leaf_size)
+        leaf_rank = np.array(leaf_rank)
+
+    
+        l = self.growth_regulation.l_max*self.growth_regulation.stem_lenght_scaler(stem_rank, stem_temp)
+        s = self.growth_regulation.s_max*self.growth_regulation.leaf_size_scaler(leaf_rank,None)
 
         # ODE for the lenght of the structural elements
-        k = self.growth_regulation.growth_data["k_internodes"]
-        l_max = self.growth_regulation.growth_data["internode_lenght_max"]
-        r_max = self.growth_regulation.growth_data["internode_radius_max"]
+        k = self.growth_regulation.K * np.ones_like(stem_len)
 
+        der = []
 
-        k_leaf = self.growth_regulation.growth_data["k_leaves"]
-        s_max = self.growth_regulation.growth_data["leaves_size_max"]
+        for i in range(len(stem_len)):
+            coef = max(0,k[i] * (l[i] - stem_len[i]))
+            der.append(coef)
 
-        # solve the ODE
-        new_length = current_length + k * (l_max - current_length) * dt
-        new_radius = current_radius + k * (r_max - current_radius) * dt
-        new_size = current_size + k_leaf * (s_max - current_size) * dt
-        new_petioles_size = 0.1
+        
+        new_length = stem_len + np.array(der) * dt
+        new_radius = self.growth_regulation.new_stem_radius * np.ones_like(new_length) 
+
+        der = []
+        k= self.growth_regulation.K * np.ones_like(leaf_size)
+        for i in range(len(leaf_size)):
+            coef = max(0,k[i] * (s[i] - leaf_size[i]))
+            der.append(coef)
+
+        
+        new_size = leaf_size + np.array(der) * dt
+    
 
 
         # update the lenght of the structural elements
-        for node,new_len,new_r in zip(nodes_lenght, new_length, new_radius):
+        for node,new_len,new_r in zip(stem_nodes, new_length, new_radius):
             new_shape = StructuralShape(lenght = new_len, radius = new_r, direction = node.shape.direction)
             node.grow(dt, new_shape)
            
-        for node,new_s in zip(nodes_size, new_size):
-            new_shape = LeafShape(size = new_s, leaf_function= node.shape.leaf_function, rachid_size= new_s/2, petioles_size= new_petioles_size)
+        for node,new_s in zip(leaf_node, new_size):
+            new_shape = LeafShape(size = new_s, leaf_function= node.shape.leaf_function, rachid_size= new_s/2, petioles_size= self.growth_regulation.new_petioles_size )
             node.grow(dt, new_shape)
             
             
@@ -128,9 +150,16 @@ class Plant:
 
         SAM_nodes = [node for node in self.structure.G.nodes if isinstance(node, SAM)]
 
+        LAR_normal = self.growth_regulation.LAR
+
+
+        h_max = 35
+
+        LAR = LAR_normal if self.plant_height < h_max else np.inf
+
         for node in SAM_nodes:
             node.time_to_next_shoot += dt
-            if node.time_to_next_shoot >= self.growth_regulation.growth_data["internode_appereace_rate"]:
+            if node.time_to_next_shoot >= LAR:
                 self.shoot(node)
 
         
@@ -161,7 +190,7 @@ class Plant:
         
         leaves = []
         leaf_shape = LeafShape(size = self.growth_regulation.new_leaf_size,
-                                 leaf_function= None, # use the default leaf function
+                                 leaf_function= self.growth_regulation.leaf_function,
                                  rachid_size= self.growth_regulation.new_rachid_size,
                                  petioles_size= self.growth_regulation.new_petioles_size)
         for i in range(self.growth_regulation.leaves_number):

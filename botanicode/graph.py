@@ -181,6 +181,8 @@ class Structure:
                 device.parent = stuff["structure"]
                 stuff["structure"].device_children.append(device)
                 device.name = device.name[0] + str(stuff["structure"].id) + device.name[1:]
+                device.parent_rank = stuff["structure"].id
+                
 
         # add the edge between the parent and the structure
         self.G.add_edge(parent, stuff["structure"], weight=stuff["structure"].compute_conductance())
@@ -348,7 +350,7 @@ class Structure:
 
 if __name__ == "__main__":
 
-    from plantPart import Seed, Stem, Leaf, SAM, Root, RAM
+    from botanical_nodes import Seed, Stem, Leaf, SAM, Root, RAM
 
     # create a seed
     seed = Seed()

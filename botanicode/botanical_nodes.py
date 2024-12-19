@@ -201,8 +201,10 @@ class Leaf(DevicePart):
         super().__init__(position, age=age, shape=shape)
 
         self.id = id
+        self.parent_rank = 0
         if self.parent is not None:
             self.name = f"L{self.parent.id}{id}"
+            self.parent_rank = self.parent.id
         else:
             self.name = f"L{id}"
 
@@ -265,8 +267,8 @@ class Leaf(DevicePart):
             
             if leaves_to_plot >= 2:
                
-                leaf_points_up = self.generate_leaf_points(angle_with_z = np.pi/2, angle_wiht_y = 0.4)
-                leaf_points_down = self.generate_leaf_points(angle_with_z = -np.pi/2, angle_wiht_y = 0.4)
+                leaf_points_up = self.generate_leaf_points(angle_with_z = np.pi/2, angle_wiht_y = y_angle)
+                leaf_points_down = self.generate_leaf_points(angle_with_z = -np.pi/2, angle_wiht_y = y_angle)
 
                 petiole_up = np.array([0,self.shape.petioles_size,0])
                 petiole_down = np.array([0, -self.shape.petioles_size,0])
@@ -283,7 +285,7 @@ class Leaf(DevicePart):
             if leaves_to_plot == 1:
                 # add the leaves on the sides
                  # add the leaf on the tip 
-                leaf_point = self.generate_leaf_points(angle_with_z = 0)
+                leaf_point = self.generate_leaf_points(angle_with_z = 0, angle_wiht_y=- y_angle)
                 petiole = np.array([self.shape.petioles_size,0,0])
                 # translate the leaf points to the tip of the rachid
                 leaf_point = [point + rachid_point + petiole for point in leaf_point]
@@ -379,6 +381,7 @@ class Leaf(DevicePart):
             "y_angle": self.y_angle,
             "z_angle": self.z_angle,
             "leaflets_number": self.leaflets_number,
+            "parent_rank": self.parent_rank,
         }
         data["part_data"] = part_data
         return data
