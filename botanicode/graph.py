@@ -348,7 +348,7 @@ class Structure:
 
 if __name__ == "__main__":
 
-    from plantPart import Seed, Stem, Leaf, SAM, Root, RAM
+    from botanical_nodes import Seed, Stem, Leaf, SAM, Root, RAM
 
     # create a seed
     seed = Seed()
