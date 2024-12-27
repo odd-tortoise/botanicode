@@ -131,6 +131,7 @@ class SAM(DevicePart):
         self.color = "lightblue"
 
         self.time_to_next_shoot = 0
+        self.generate_points()
        
     def __str__(self):
         message = f"""
@@ -153,9 +154,10 @@ class SAM(DevicePart):
         data["part_data"] = part_data
         return data
     
-    def compute_points(self):
+    def generate_points(self):
         self.points = [np.array([0, 0, 0]), np.array([0, 0, 0.1])]
 
+    
 class RAM(DevicePart):
     
     def __init__(self, position= np.array([0,0,0]), age=0):
@@ -169,6 +171,7 @@ class RAM(DevicePart):
         self.is_generator = True
 
         self.color = "red"
+        self.generate_points()
        
     def __str__(self):
         message = f"""
@@ -183,7 +186,7 @@ class RAM(DevicePart):
     """
         return message
     
-    def compute_points(self):
+    def generate_points(self):
         self.points = [np.array([0, 0, 0]), np.array([0, 0, -0.1])]
 
 

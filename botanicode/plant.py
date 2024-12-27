@@ -118,7 +118,7 @@ class Plant:
         der = []
 
         for i in range(len(stem_len)):
-            coef = max(0,k[i] * (l[i] - stem_len[i]))
+            coef = k[i] * (l[i] - stem_len[i])
             der.append(coef)
 
         
@@ -153,7 +153,7 @@ class Plant:
         LAR_normal = self.growth_regulation.LAR
 
 
-        h_max = 35
+        h_max = 60
 
         LAR = LAR_normal if self.plant_height < h_max else np.inf
 
@@ -236,7 +236,7 @@ class Plant:
                 
             else:
                 skeleton = node.get_real_points()
-         
+                
                 skeleton = np.array(skeleton)
                 if skeleton.size > 0:  # Check if any stem nodes exist
                     ax.plot(skeleton[:, 0], skeleton[:, 1], skeleton[:, 2],

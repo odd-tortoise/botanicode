@@ -30,7 +30,7 @@ from botanical_nodes import Stem, Leaf, Root
 
 timer = SimClock(start_time=0)
 
-reg = GrowthRegulation('botanicode/tomato_data/cereal.json')
+reg = GrowthRegulation('botanicode/tomato_data/tomato.json')
 my_plant = Plant(reg, age=0, timer=timer)
 
 sky = Sky(position=np.array([0, 0, 100]))

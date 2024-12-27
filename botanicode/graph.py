@@ -357,7 +357,7 @@ if __name__ == "__main__":
     fig, ax = plt.subplots(1,4, figsize=(10,5))
 
     # create the shoot objects
-    stem = Stem(lenght=1, radius=0.1)
+    stem = Stem()
     leaf = Leaf()
     sam = SAM()
 
@@ -380,7 +380,7 @@ if __name__ == "__main__":
     # add another part on the shoot
 
     leaf2 = Leaf()
-    stem2 = Stem(lenght=2, radius=0.1)
+    stem2 = Stem()
     sam2 = SAM()
 
     structure.shoot(sam, {"structure": stem2, "generator": sam2, "devices": [leaf2]})

@@ -58,7 +58,7 @@ class GrowthRegulation:
                     r = r**(-1/n1)
                     return r
 
-                r = gieles(angle, 2,1,1,1,10*t,t)
+                r = gieles(angle, 2,1,1,1,10*t,0.5*t)
                 x = r*np.cos(angle)+t
                 y = r*np.sin(angle)
 
@@ -88,9 +88,9 @@ class GrowthRegulation:
         # COSE DA TUNARE
         self.l_max = 10
         self.s_max = 10
-        self.LAR = 3
-        optimal_rank = 7
-        alpha = 0.01
+        self.LAR = 2
+        optimal_rank = 1
+        alpha = 0.1
         
         beta = 0.01
         optimal_temp = 21
@@ -102,8 +102,8 @@ class GrowthRegulation:
         self.rank_scaler = lambda rank: scaler(alpha, optimal_rank, rank)
         self.temp_scaler = lambda temp: scaler(beta, optimal_temp, temp)
        
-        self.stem_lenght_scaler = lambda rank,temp: rank_scaler(rank) * temp_scaler(temp)
-        self.leaf_size_scaler = lambda rank,temp: rank_scaler(rank)
+        self.stem_lenght_scaler = lambda rank,temp: self.rank_scaler(rank) #* self.temp_scaler(temp)
+        self.leaf_size_scaler = lambda rank,temp: self.rank_scaler(rank)
 
     def read_csv(self,path):
         data = np.genfromtxt(path, delimiter=',', skip_header=1)
