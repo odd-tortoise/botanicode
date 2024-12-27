@@ -31,5 +31,6 @@
     "initial_leaflets_number": 1,
     "initial_root_lenght": 1,
     "initial_root_radius": 0.1
-  }
+  },
+  "growth_data_for_tuning": "botanicode/tomato_data/tuning_tomato.csv"
 }
