@@ -8,7 +8,7 @@ from tuner import GrowthRegulation
 
 
 class Plant:
-    def __init__(self, reg, age=0, timer=None):
+    def __init__(self, reg, age=0):
         self.growth_regulation = reg
 
         seed = Seed()
@@ -16,11 +16,16 @@ class Plant:
 
         self.plant_height = 0
         self.age = age
-        self.timer = timer  
+        
 
         self.leaf_z_angle_offset = 0
         
         self.initialize_plant()
+        self.structure.ensure_consistency()
+        self.compute_plant_height()
+        self.compute_real_points_for_nodes()
+
+        
         
 
     def initialize_plant(self):
@@ -186,10 +191,14 @@ class Plant:
 
     def plot(self, ax=None):
          # Plotting in 3D
-        
+
+       
+        show = False
         if ax is None:
+            
             fig = plt.figure()
             ax = fig.add_subplot(111, projection='3d')
+            show = True
         
         def plot_node(node):
             if isinstance(node, Leaf):
@@ -234,8 +243,9 @@ class Plant:
         ax.set_ylim([-size//2, size//2])
         ax.set_zlim([0, size ])
 
-        if ax is None:
+        if show:
             # Show plot
+            
             plt.show()
 
     def compute_real_points_for_nodes(self):
