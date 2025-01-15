@@ -4,33 +4,46 @@
     "scientific_name": "Solanum lycopersicum"
   },
   "phylotaxis": {
-    "leaflets_number": 7,
-    "leaf_arrangement": "alternate",
-    "angle": 144 
-  },
-  "leaves_paramters":{
-    "leaves_number": 1,
-    "new_leaf_size": 1,
-    "new_petioles_size": 0.2,
-    "leaf_y_angle": 0.75,
+    "leaflets_number": 5,
+    "leaf_arrangement": "decussate",
+    "angle": 144,
+    "y_angle": 0.75,
+    "leaf_style": "simple",
     "leaf_bending_rate": 0.5,
-    "leaf_style": "simple"
+    "leaves_number": 2
   },
-  "stem_parameters": {
-    "new_stem_lenght": 1,
-    "new_stem_radius": 0.1
+  "stem_data": {
+    "generation": {
+      "lenght": 1,
+      "radius": 0.1,
+      "stiffness": 0.1
+    },
+    "initial_state": {
+      "lenght": 4,
+      "radius": 0.3,
+      "stiffness": 0.1
+    }
   },
-  "root_parameters": {
-    "new_root_lenght": 1,
-    "new_root_radius": 0.1
+  "leaf_data": {
+    "generation": {
+      "size": 2,
+      "petioles_size": 0.5,
+      "rachid_size": 1
+    },
+    "initial_state": {
+      "size": 2,
+      "petioles_size": 0.5,
+      "rachid_size": 1
+    }
   },
-  "initial_data":{
-    "initial_stem_lenght": 3,
-    "initial_stem_radius": 0.1,
-    "initial_leaf_number": 2,
-    "initial_leaflets_number": 1,
-    "initial_root_lenght": 1,
-    "initial_root_radius": 0.1
-  },
-  "growth_data_for_tuning": "botanicode/tomato_data/tuning_tomato.csv"
+  "root_data": {
+    "generation": {
+      "lenght": 1,
+      "radius": 0.1
+    },
+    "initial_state": {
+      "lenght": 1,
+      "radius": 0.1
+    }
+  }
 }

@@ -1,6 +1,6 @@
 import json
-import logging
 
+import numpy as np
 
 class SimClock:
     def __init__(self, start_time=None, photo_period=(8,18)):
@@ -14,7 +14,7 @@ class SimClock:
         self.elapsed_time = 0
         self.start_time = start_time if start_time is not None else 0
         self.photo_period = photo_period
-        self.total_time = start_time
+        
     
         
 
@@ -26,13 +26,13 @@ class SimClock:
         """
         # Advance time
         self.elapsed_time += dt
-        self.total_time += dt
+        
 
     def get_hour(self):
         """
         Get the current hour of the day.
         """
-        return self.total_time % 24
+        return (self.start_time+ self.elapsed_time) % 24
 
     def is_day(self):
         """
@@ -58,106 +58,14 @@ class SimClock:
             "Is Day": self.is_day(),
         }
 
-import matplotlib.pyplot as plt
-import os
-import matplotlib.animation as animation
-
-
-def plotter(plot_methods, plot_3ds=None, ncols=1, figsize=(10, 10), dpi=100, save_folder=None, name= "plot", save_format='png'):
-    """
-    Generate the plot and save or show it. Helper function to group multiple plots.
-    """
-    plot_3ds = plot_3ds if plot_3ds is not None else [False] * len(plot_methods)
-    n_objects = len(plot_methods)
-    nrows = (n_objects + ncols - 1) // ncols
-
-    # Create subplots with appropriate projections
-    fig = plt.figure(figsize=figsize)
-    axes = []
-
-    for i, is_3d in enumerate(plot_3ds):
-        if is_3d:
-            ax = fig.add_subplot(nrows, ncols, i + 1, projection='3d')
-        else:
-            ax = fig.add_subplot(nrows, ncols, i + 1)
-        axes.append(ax)
-
-    # Call the plot methods
-    for ax, plot_method in zip(axes, plot_methods):
-        plot_method(ax)
-
-    plt.tight_layout()
-
-    if save_folder:
-        if not os.path.exists(save_folder):
-            os.makedirs(save_folder)
-        save_path = os.path.join(save_folder, f"{name}.{save_format}")
-        plt.savefig(save_path, dpi=dpi, format=save_format)
-
-    plt.show()
-
-def animate(img_folder, fps=1, save_name="animation.mp4", dpi=100):
-    """
-    Create an animation from a series of images.
-    """
-    file_names = sorted([os.path.join(img_folder, f) for f in os.listdir(img_folder) if f.endswith('.png')])
-
-    if not file_names:
-        raise ValueError("No images found for animation.")
-
-    # Create a figure and axis for animation
-    fig, ax = plt.subplots(dpi=dpi)
-
-    # Function to update the frame
-    def update(frame):
-        img = plt.imread(file_names[frame], format='png')
-        ax.imshow(img)
-        ax.axis('off')  # Hide the axes
-
-    # Create the animation
-    ani = animation.FuncAnimation(fig, update, frames=len(file_names), repeat=False)
-
-    save_path = os.path.join(img_folder, save_name)
-    # Save the animation as a video file
-    ani.save(save_path, fps=fps, writer='ffmpeg')
-
-    plt.close(fig)
-
-    print(f"Animation completed. Saved to {save_path}.")
-
-
-
-
 class Simulation:
-
-    logging.basicConfig(
-    filename="plant_sim.log",
-    encoding="utf-8",
-    filemode="w",
-    format="{asctime} - {levelname} - {message}",
-    style="{",
-    datefmt="%Y-%m-%d %H:%M",
-    level=logging.INFO,
-
-    )
-    logger = logging.getLogger("plant_sim")
-    
-    logger.info("Initializing simulation...")
-
 
     @classmethod
     def set_clock(cls, start_time=None, photo_period=(8,18)):
         clock = SimClock(start_time, photo_period)
-
         cls.clock = clock
-
-        cls.logger.info("Clock loaded.")
-
-    
-   
-    
-
-    def __init__(self, config_file, env, plant, tasks=None, folder="results"):
+ 
+    def __init__(self, config_file, env, plant, solver, model, tasks=None, folder="results"):
         """
         Initialize the Simulation.
         
@@ -166,25 +74,26 @@ class Simulation:
         """
         
         self.config = self.load_config(config_file)
-
-        self.delta_t = self.config["delta_t"]
-        self.steps = self.config["steps"]
+        self.max_t = self.config["max_t"]
+        self.delta_t = solver.dt
+       
+        self.solver = solver
+        self.model = model
 
         self.env = env
         self.plant = plant
 
-        self.state = {}
+        # set the clock for the plant and the environment
+        self.plant.set_clock(Simulation.clock)
+        self.env.set_clock(Simulation.clock)
 
         self.before_tasks = tasks["before"] if "before" in tasks else {}
         self.after_tasks = tasks["after"] if "after" in tasks else {}
         self.during_tasks = tasks["during"] if "during" in tasks else {}
 
         self.folder = folder
-        logging.basicConfig(
-            filename=folder+"/plant_sim.log",
-        )
-        
 
+        
     def load_config(self, config):
         """Load configuration from a file or dictionary."""
         if isinstance(config, str):  # File path
@@ -216,38 +125,64 @@ class Simulation:
             task = task_info["method"]
             args = task_info["args"] if "args" in task_info else []
             kwargs = task_info["kwargs"] if "kwargs" in task_info else {}
-            kwargs["name"] = task_name
-            if phase == "during" and step is not None:
-                task(*args, **kwargs, step=step)
-            else:
-                task(*args, **kwargs)
+            
+            task(*args, **kwargs)
 
-    def step(self, delta_t):
-        """Advance the simulation by one time step."""
-        
-        self.plant.grow(Simulation.clock, delta_t, self.env)
-        self.env.update(Simulation.clock, delta_t, self.plant)
-
-        self.clock.tick(delta_t)
-
-   
-    def run(self, steps, delta_t):
+    def run(self):
         """Run the simulation for a specified number of steps."""
         if not hasattr(self, 'clock'):
-            Simulation.logger.error("A clock must be set up before running the simulation.")
             raise ValueError("A clock must be set up before running the simulation.")
         
-        Simulation.logger.info(f"Starting simulation for {steps} steps with delta_t={delta_t}.")
-
+        Simulation.logger.info(f"Starting simulation with delta_t={self.delta_t}, max_time={self.max_t}")
+        step = 0
         self.execute_tasks("before")
+        self.plant.snapshot(timestamp = self.clock.get_elapsed_time())
         
-        for step in range(steps):
-            Simulation.logger.info(f"Step {step + 1}/{steps}")
-            self.step(delta_t)
+        while self.clock.get_elapsed_time() < self.max_t:
+            Simulation.logger.info(f"Step {step}: elapsed time={self.clock.get_elapsed_time()}")
+
+            
+            # 1) plant read the environment
+            self.plant.probe(self.env)
+
+            # 2) compute the system of differential equations
+            ret = self.plant.get_dynamic_info()
+            
+            # 3) solve the system
+            for node_type, values in ret.items():
+                nodes = np.array(values["node_obj"])
+                rhs = values["rhs"]
+                y = np.array(values["value"])
+                new_y = self.solver.integrate(
+                    rhs_function = rhs,
+                    t = self.clock.get_elapsed_time(),
+                    y = y,
+                    rhs_args = nodes)
+                
+                ret[node_type]["new_value"] = new_y
+
+
+            # 4) update the plant and environment
+            # use the solution of the system to update the plant, update also the derived variables
+            self.plant.grow(ret,self.delta_t)
+
+            # we need to probe the environment again to give the new values to the plant new parts
+            self.plant.probe(self.env)
+
+            # execute the extra tasks for the "during" phase
             self.execute_tasks("during", step=step)
 
+            # Advance the simulation by one time step
+            step += 1
+            self.clock.tick(self.delta_t)
+            self.plant.snapshot(timestamp = self.clock.get_elapsed_time())
+
+        
         self.execute_tasks("after")
         self.logger.info("Simulation completed.")
+
+        self.plant.history.save_to_file(self.folder + "/history.txt")
+        
 
 
     # fare le cose con lo state, potrebbe essere utile

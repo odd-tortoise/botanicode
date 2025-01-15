@@ -4,20 +4,19 @@ class Environment:
         self.soil = soil
         self.air = air
 
-    def measure(self,point):
-        if point[2]>0:
-            data = {
-                "light": self.sky.measure_light(point),
-                "moisture": None,
-                "temperature": self.air.measure_temperature(point),
-                "water_concentration": self.air.measure_water_concentration(point)
-            }
-        else:
-            data = {
-                "light": None,
-                "moisture": self.soil.measure_moisture(point),
-                "temperature": None,
-                "water_concentration": None
-            }
+        self.clock = None 
 
-        return data
+    def set_clock(self, clock):
+        self.clock = clock
+
+    def measure(self,point, var):
+        if var == "light":
+            return self.sky.measure_light(point)
+        elif var == "temp":
+            return self.air.measure_temperature(point)
+        elif var == "humidity":
+            return self.air.measure_water_concentration(point)
+        elif var == "water":
+            return self.soil.measure_moisture(point)
+        else:
+            raise ValueError("Variable not recognized.")
