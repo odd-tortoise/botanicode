@@ -4,8 +4,13 @@
     "scientific_name": "Solanum lycopersicum"
   },
   "growth_params": {
-    "k_stem" : 0.8,
-    "k_leaf" : 0.8
+    "base_temp": 10,
+    "l_max": 10,
+    "k_L": 0.07,
+    "r0": 0.1,
+    "a_r":0.05,
+    "s_max":10,
+    "k_S": 0.05
   },
   "phylotaxis": {
     "leaflets_number": 5,
