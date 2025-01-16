@@ -3,6 +3,10 @@
     "common_name": "Tomato",
     "scientific_name": "Solanum lycopersicum"
   },
+  "growth_params": {
+    "k_stem" : 0.8,
+    "k_leaf" : 0.8
+  },
   "phylotaxis": {
     "leaflets_number": 5,
     "leaf_arrangement": "decussate",
@@ -16,24 +20,26 @@
     "generation": {
       "lenght": 1,
       "radius": 0.1,
-      "stiffness": 0.1
+      "tt": 0
     },
     "initial_state": {
       "lenght": 4,
       "radius": 0.3,
-      "stiffness": 0.1
+      "tt": 0
     }
   },
   "leaf_data": {
     "generation": {
       "size": 2,
       "petioles_size": 0.5,
-      "rachid_size": 1
+      "rachid_size": 1,
+      "tt": 0
     },
     "initial_state": {
       "size": 2,
       "petioles_size": 0.5,
-      "rachid_size": 1
+      "rachid_size": 1,
+      "tt": 0
     }
   },
   "root_data": {

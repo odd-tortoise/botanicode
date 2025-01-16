@@ -35,7 +35,7 @@ logger.info("Initializing simulation...")
 
 
 # set a clock for all the simulations
-Simulation.set_clock(start_time=0, photo_period=(8,18))
+Simulation.set_clock(photo_period=(8,18), step="day")
 Simulation.logger = logger
 # this clock is also the one used by the plant and environment objects, single source of truth
 
@@ -44,7 +44,7 @@ folder = "results"
 
 
 ################### READ A PLANT FILE ###################
-plantfile_path = "botanicode/tomato_data/tomato.json"
+plantfile_path = "botanicode/tomato_data/tomato_2.json"
 # this will be used to initialize the blue prints and the plant object paramters
 plant_reg = PlantRegulation(plantfile_path)
 
@@ -57,11 +57,12 @@ plant_reg = PlantRegulation(plantfile_path)
 class StemState(NodeStateBlueprint):
     lenght: float
     radius: float
-    stiffness: float
+    tt: float # thermal time
 
 @dataclass
 class LeafState(NodeStateBlueprint):
     size: float
+    tt: float
     petioles_size: float
     rachid_size: float
 
@@ -104,12 +105,12 @@ ram_rules = NodeRuleBlueprint()
 root_rules = NodeRuleBlueprint()
 
 def shooting_rule(node):
-    return isinstance(node, SAM) #boolean expression to decide if to shoot or not from node 
-
+    shoot = isinstance(node, SAM) #boolean expression to decide if to shoot or not from node 
+    return shoot
 ##!!!!!!!!!
 
 # create a model object
-model = Model(model_name="empirical_time_tomato")
+model = Model(model_name="thermal_time_tomato")
 model.add_blueprint(Stem, StemState, stem_rules, CylinderShape)
 model.add_blueprint(Leaf, LeafState, leaf_rules, LeafShape)
 model.add_blueprint(SAM, SAMState, sam_rules, PointShape)
@@ -221,8 +222,9 @@ extra_tasks = {
         "plot_finale_history":{
             "method": plotter,
             "kwargs": {
-                "plot_methods": [lambda ax: plant.history.plot(variable="lenght",ax=ax, node_types=["Stem"]),],
-                "plot_3ds": [False],
+                "plot_methods": [lambda ax: plant.history.plot(variable="lenght",ax=ax, node_types=["Stem"]),
+                                 lambda ax: plant.history.plot(variable="size",ax=ax, node_types=["Leaf"]),],
+                "plot_3ds": [False,False],
                 "ncols": 1,
                 "dpi": 500,
                 "figsize": (15,8),

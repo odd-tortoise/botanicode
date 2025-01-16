@@ -12,6 +12,7 @@ class PlantRegulation:
         
         self.general = self.data.get("general", {})
         self.phylotaxis = self.data.get("phylotaxis", {})
+        self.growth_params = self.data.get("growth_params", {})
         # check that if the leaf arrangement is alternate, there is an angle
         if self.phylotaxis.get("leaf_arrangement") == "alternate":
             assert "angle" in self.phylotaxis, "Angle is required for alternate leaf arrangement"

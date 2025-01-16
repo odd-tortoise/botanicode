@@ -42,7 +42,11 @@ class NumericalIntegrator:
         :return: New state after one time step
         """
 
-        return y + self.dt * rhs_function(t, rhs_args)
+        rhs = []
+        for node in rhs_args:
+            rhs.append(rhs_function(t, node))
+
+        return y + self.dt * np.array(rhs)
 
     def backward_euler(self, rhs_function,rhs_args, t, y):
         """
