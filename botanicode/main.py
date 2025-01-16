@@ -44,7 +44,7 @@ folder = "results"
 
 
 ################### READ A PLANT FILE ###################
-plantfile_path = "botanicode/tomato_data/tomato.json"
+plantfile_path = "botanicode/tomato_data/tomato_1.json"
 # this will be used to initialize the blue prints and the plant object paramters
 plant_reg = PlantRegulation(plantfile_path)
 
@@ -57,7 +57,7 @@ plant_reg = PlantRegulation(plantfile_path)
 class StemState(NodeStateBlueprint):
     lenght: float
     radius: float
-    stiffness: float
+    
 
 @dataclass
 class LeafState(NodeStateBlueprint):
@@ -77,21 +77,30 @@ class RAMState(NodeStateBlueprint):
 class RootState(NodeStateBlueprint):
     lenght: float
     radius: float
+    
 
 # QUI SI FA IL TUNING !!
 # define the rules for each node type
+
+
 def stem_length_ode(t, node: Stem):
-    return 1
+    # questa è la RHS 
+    node.state.l_max = 4*(node.id+1)
+    return plant_reg.growth_params["k_stem"]/node.state.l_max * node.state.lenght * ( node.state.l_max - node.state.lenght)
 
 def stem_derived_rules(node):
     node.state.radius = 0.5*node.state.lenght
+    
 
 def leaf_derived_rules(node):
     node.state.rachid_size = 0.5*node.state.size
     node.state.petiole_size = 0.2*node.state.size
+    
 
 def leaf_size_ode(t, node: Leaf):
-    return 1
+    node.state.s_max = 4*(node.parent.id+1)
+    return plant_reg.growth_params["k_leaf"]/node.state.s_max * node.state.size * ( node.state.s_max -  node.state.size)
+
 
 stem_rules = NodeRuleBlueprint(dynamics={"lenght": stem_length_ode},
                                derived=stem_derived_rules,
@@ -104,7 +113,8 @@ ram_rules = NodeRuleBlueprint()
 root_rules = NodeRuleBlueprint()
 
 def shooting_rule(node):
-    return isinstance(node, SAM) #boolean expression to decide if to shoot or not from node 
+    shoot = isinstance(node, SAM) #boolean expression to decide if to shoot or not from node 
+    return shoot
 
 ##!!!!!!!!!
 
@@ -221,8 +231,9 @@ extra_tasks = {
         "plot_finale_history":{
             "method": plotter,
             "kwargs": {
-                "plot_methods": [lambda ax: plant.history.plot(variable="lenght",ax=ax, node_types=["Stem"]),],
-                "plot_3ds": [False],
+                "plot_methods": [lambda ax: plant.history.plot(variable="lenght",ax=ax, node_types=["Stem"]),
+                                 lambda ax: plant.history.plot(variable="size",ax=ax, node_types=["Leaf"]),],
+                "plot_3ds": [False,False],
                 "ncols": 1,
                 "dpi": 500,
                 "figsize": (15,8),

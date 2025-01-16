@@ -12,16 +12,18 @@
     "leaf_bending_rate": 0.5,
     "leaves_number": 2
   },
+  "growth_params": {
+    "k_stem" : 0.8,
+    "k_leaf" : 0.8
+  },
   "stem_data": {
     "generation": {
       "lenght": 1,
-      "radius": 0.1,
-      "stiffness": 0.1
+      "radius": 0.1
     },
     "initial_state": {
       "lenght": 4,
-      "radius": 0.3,
-      "stiffness": 0.1
+      "radius": 0.3
     }
   },
   "leaf_data": {
