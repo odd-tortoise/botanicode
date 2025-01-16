@@ -207,26 +207,3 @@ class PointShape(NodeShapeBlueprint):
         """
         return {"base": self.points[0]}
     
-################### Connecting Shapes ###################
-
-def connect_shapes(parent_shape: NodeShapeBlueprint, child_shape: NodeShapeBlueprint, parent_attach: str, child_attach: str, direction=np.array([0, 0, 1])):
-    """
-    Align and position a child shape to connect to a parent shape.
-
-    Args:
-        parent_shape: The parent shape object.
-        child_shape: The child shape object.
-        parent_attach: Attachment point name on the parent.
-        child_attach: Attachment point name on the child.
-        direction: Desired orientation direction for the child.
-    """
-    parent_point = parent_shape.get_attachment_point(parent_attach)
-    child_point = child_shape.get_attachment_point(child_attach)
-
-    # Compute translation to align the child to the parent
-    translation = parent_shape.orientation.apply(parent_point) + parent_shape.position - child_point
-
-    # Align orientation
-    child_shape.set_orientation(R.align_vectors([direction], [parent_point - child_point])[0])
-    child_shape.set_position(translation)
-

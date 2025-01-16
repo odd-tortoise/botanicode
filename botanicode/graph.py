@@ -9,60 +9,6 @@ class Structure:
         self.seed = seed
         self.G.add_node(seed)
 
-    """ 
-    QUESTE COSE NON DOVREBBERSO STARE QUI MA NELLA PIANTA !
-    def shoot(self, parent, stuff):
-        # shoot is a function that adds from the generators nodes
-        # to the structure
-        #if not isinstance(parent, DevicePart) or not parent.is_generator:
-        #    raise ValueError("You're not shooting from Generator node.")
-        # implement later
-
-        # add the structure to the parent parent, the generator node will be removed
-        if parent.parent is None:
-            # if the parent is the seed
-            self.join_stuff(parent, stuff)
-        else: 
-            self.join_stuff(parent.parent, stuff)
-            # remove the old generator node
-            self.G.remove_node(parent)
-            parent.parent.device_children.remove(parent)
-
-    def branch(self, parent, stuff):
-        # idelmente si dovrebbe aggiungere solo a generatori, branch
-        # permette di aggiungere alle parti strutturali
-         
-        #if isinstance(parent, GeneratorPart):
-        #    raise ValueError("Oopsie you're using a branch function from a generator node.")
-        # implement later
-
-        self.join_stuff(parent.parent, stuff)
-
-        # remove the old generator node
-        self.G.remove_node(parent)    
-    """     
-    """
-        # add the edge between the generator and the structure
-       
-        stuff["generator"].name = stuff["generator"].name + str(stuff["structure"].id)
-        
-
-        # if there are devices add them
-        if "devices" in stuff:
-            for device in stuff["devices"]:
-                if not isinstance(device, DevicePart):
-                    raise ValueError("You're not adding a device part.")
-                self.G.add_node(device)
-                self.G.add_edge(stuff["structure"], device, weight=device.compute_conductance())
-                device.parent = stuff["structure"]
-                stuff["structure"].device_children.append(device)
-                device.name = device.name[0] + str(stuff["structure"].id) + device.name[1:]
-                device.parent_rank = stuff["structure"].id
-                
-
-        """
-
-
     def add_node(self, parent, node, plug_point=None):
         # can we check if stuff is a dict with the right keys?
         # check if stuff is a dict with at least a structure and a generator

@@ -83,14 +83,14 @@ class RootState(NodeStateBlueprint):
 def stem_length_ode(t, node: Stem):
     return 1
 
-def stem_derived_rules(state):
-    state.radius = 0.5*state.lenght
+def stem_derived_rules(node):
+    node.state.radius = 0.5*node.state.lenght
 
-def leaf_derived_rules(state):
-    state.rachid_size = 0.5*state.size
-    state.petiole_size = 0.2*state.size
+def leaf_derived_rules(node):
+    node.state.rachid_size = 0.5*node.state.size
+    node.state.petiole_size = 0.2*node.state.size
 
-def leaf_size_ode(t, state: LeafState):
+def leaf_size_ode(t, node: Leaf):
     return 1
 
 stem_rules = NodeRuleBlueprint(dynamics={"lenght": stem_length_ode},
@@ -238,7 +238,7 @@ extra_tasks["during"] = {}
 
 ################### CREATE THE SIMULATION ###################
 # create a simulation object, it is the orchestrator of the simulation
-sim = Simulation(config_file="botanicode/sim_settings.json",
+sim = Simulation(config_file="botanicode/tomato_data/sim_settings.json",
                 env=env, plant=plant,
                 solver = solver,
                 model = model,

@@ -78,10 +78,14 @@ class Tracker:
         
         for node_type in node_types:
             if node_type in self.data:
+               
+                
                 for node_name, history in self.data[node_type].items():
+
                     timestamps, values = self.get_variable_over_time(node_type, node_name, variable)
                     if timestamps and values:
                         ax.plot(timestamps, values, label=f"{node_type} - {node_name}")
+                        
                         
 
         ax.grid()
@@ -111,80 +115,6 @@ class Tracker:
             print(f"Data successfully saved to {path}")
         except Exception as e:
             print(f"Error saving data to file: {e}")
-
-
-
-    def plotold(self, ax=None, value = "node_data.position", node_types = []):
-
-        if not isinstance(node_types, list):
-            node_types = [node_types]
-
-        if ax is None:
-            fig, ax = plt.figure(figsize=(10, 5))
-
-        attrs = value.split('.')
-        
-
-        
-        for node_type in node_types:
-            if node_type not in self.data:
-                raise ValueError(f"Node type {node_type.__name__} not found.")
-            if len(self.data[node_type]) == 0:
-                raise ValueError(f"No data found for the node type {node_type.__name__}")
-            
-            node_data = self.data[node_type] # qui dizioanrio con chiavi i nomi dei node_types
-
-            markers = ['o', "x"]
-            standard_marker = ''
-            marker_index = 0
-            plotted_lines = []
-           
-            for key, value in node_data.items():
-                # key is the name of the node
-                # value is the history of the node
-                time_steps = list(value.keys())
-                extracted_values = []
-                for time, data in value.items():    
-                    # data is the dictionary with the node data per each timestamp 
-                    
-                    for attr in attrs:
-                        if isinstance(data, dict):
-                            data = data.get(attr, None)
-                        elif hasattr(data, attr):
-                            data = getattr(data, attr, None)
-                        else:
-                            raise ValueError(f"Attribute {attr} not found in node {key}")
-                    extracted_values.append(data)
-                
-                # chck for using differen markers for close lines 
-                use_marker = False
-                for line in plotted_lines:
-                    if len(line) != len(extracted_values):
-                        continue
-                    else:
-                        distance = np.linalg.norm(np.array(extracted_values) - np.array(line))
-                        if distance < 0.05:  # Threshold for considering lines as close
-                            use_marker = True
-                            marker_index = (marker_index + 1) % len(markers)
-                            break
-
-                if use_marker:
-                    ax.plot(time_steps, extracted_values,label=f"{key}",marker=markers[marker_index])
-                else:
-                    ax.plot(time_steps, extracted_values,label=f"{key}", marker=standard_marker)
-                
-                plotted_lines.append(extracted_values)
-
-            
-                
-        ax.grid()
-        ax.legend()
-        ax.set_xlabel("Time")
-        ax.set_ylabel(".".join(attrs))
-                    
-        if ax is None:
-            plt.tight_layout()
-            plt.show()
 
 @dataclass
 class PlantState:
@@ -326,7 +256,6 @@ class Plant:
             
             if "new_value" in values:
                 new_value = values["new_value"]
-                
                 for node,val in zip(values["node_obj"], new_value):
                     setattr(node.state, var, val)
 
@@ -334,11 +263,11 @@ class Plant:
 
         for node_type, values in self.model.nodes_blueprint.items():
             rules = values["rules"]
-            if hasattr(rules, "derived"):
+            if hasattr(rules, "derived") and rules.derived is not None:
                 rule = rules.derived
                 for node in self.structure.G.nodes():
-                    if hasattr(node.state, key):
-                        rule(node.state)
+                    if node_type == type(node):
+                        rule(node)
 
         self.update()
 
