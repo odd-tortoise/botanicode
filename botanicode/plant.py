@@ -234,21 +234,28 @@ class Plant:
 
         self.update()
 
-    def get_dynamic_info(self):
+    def get_dynamic_info_nodes(self):
         ret = {}
         for node_type, values in self.model.nodes_blueprint.items():
             rules = values["rules"]
             if hasattr(rules, "dynamics"):
                 for key, rhs in rules.dynamics.items():
-                    ret[key+"_"+node_type.__name__] = {}
-                    ret[key+"_"+node_type.__name__]["value"]= self.structure.get_nodes_attribute(key, node_type)[0]
-                    ret[key+"_"+node_type.__name__]["node_obj"] = self.structure.get_nodes_attribute(key, node_type)[1]
-                    ret[key+"_"+node_type.__name__]["rhs"] = rhs
+                    ret[key+"_"+node_type.__name__] = {} #initialize the dict
+                    ret[key+"_"+node_type.__name__]["value"]= self.structure.get_nodes_attribute(key, node_type)[0] #list of values
+                    ret[key+"_"+node_type.__name__]["node_obj"] = self.structure.get_nodes_attribute(key, node_type)[1] #list of nodes 
+                    ret[key+"_"+node_type.__name__]["rhs"] = rhs #callable
 
-        
+        # ret is a dict 
+        # key is the variable name + node type
+        # value is list of values with the initial value of the variable for each node type
+        # node_obj is the list of nodes of the node type
+        # rhs is the ODE for the variable
+
+
+        # ret will get a new field with the new values of the variables
         return ret
-                    
-    def grow(self, ret, dt):
+    
+    def apply_node_dynamics(self, ret):
         # apply dynamic rules changes
         for key, values in ret.items():
             var = key.split("_")[0]
@@ -259,8 +266,31 @@ class Plant:
                 for node,val in zip(values["node_obj"], new_value):
                     setattr(node.state, var, val)
 
-        # apply derived rules changes
 
+    def get_dynamic_info_plant(self):
+        ret = {}
+
+        for rule in self.model.plant_dynamics:
+            ret[rule["var"]] = {}
+            ret[rule["var"]]["value"] = self.structure.get_nodes_attribute(rule["var"], rule["node_types"])[0] #list
+            ret[rule["var"]]["node_obj"] = self.structure.get_nodes_attribute(rule["var"], rule["node_types"])[1] 
+            ret[rule["var"]]["ode"] = rule["ode"]
+            
+        return ret
+
+    def apply_plant_dynamics(self, ret):
+        for key, values in ret.items():
+            var = key
+            if "new_value" in values:
+                new_value = values["new_value"]
+                for node,val in zip(values["node_obj"], new_value):
+                    setattr(node.state, var, val)
+
+
+             
+    def grow(self,dt):
+        
+        # apply derived rules changes
         for node_type, values in self.model.nodes_blueprint.items():
             rules = values["rules"]
             if hasattr(rules, "derived") and rules.derived is not None:
@@ -269,7 +299,7 @@ class Plant:
                     if node_type == type(node):
                         rule(node)
 
-        self.update()
+        self.update() #update the shapes and the positions
 
         self.age_nodes(dt)
 

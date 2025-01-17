@@ -16,11 +16,11 @@ class NumericalIntegrator:
         self.method = method
         self.dt = dt
         
-    def integrate(self, rhs_function, t, y, rhs_args):
+    def integrate(self, rhs_function, rhs_args, t, y):
         """
         Perform one integration step using the specified method.
 
-        :param rhs: The RHS function of the ODE, f(t, y)
+        :param rhs: The RHS function of the ODE
         :param t: Current time
         :param y: Current state
         :return: New state after one time step
@@ -36,17 +36,15 @@ class NumericalIntegrator:
         """
         Forward Euler method.
 
-        :param rhs: The RHS function of the ODE, f(t, y)
+        :param rhs: The RHS function of the ODE
         :param t: Current time
         :param y: Current state
         :return: New state after one time step
         """
 
-        rhs = []
-        for node in rhs_args:
-            rhs.append(rhs_function(t, node))
+        rhs = rhs_function(t, y, rhs_args)
 
-        return y + self.dt * np.array(rhs)
+        return y + self.dt * rhs
 
     def backward_euler(self, rhs_function, rhs_args, t, y):
         """
