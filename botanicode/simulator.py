@@ -3,66 +3,84 @@ import json
 import numpy as np
 
 class SimClock:
-    def __init__(self, start_time=None, photo_period=(8,18)):
+    def __init__(self, photo_period=(8, 18), step="hour"):
         """
         Initialize the simulation clock.
-        
-        :param start_time: Initial time in hours (random if None).
-        :param photo_period: Length of the daylight period in hours.
+        :param photo_period: Tuple defining the start and end of the daylight period in hours.
+        :param step: Simulation step mode, either "hour" or "day".
         """
-        # Start time is random within a 24-hour day if not provided
-        self.elapsed_time = 0
-        self.start_time = start_time if start_time is not None else 0
+        self.elapsed_time = 0  # Total elapsed time in hours always
         self.photo_period = photo_period
-        
-    
-        
+        self.step = step  # Step mode: "hour" or "day"
 
     def tick(self, dt):
         """
         Advance the clock by a given time step.
-        
-        :param dt: Time increment in HOURS.
+
+        :param dt: Time increment (in hours if step="hour", or days if step="day").
         """
-        # Advance time
-        self.elapsed_time += dt
-        
+        if self.step == "hour":
+            self.elapsed_time += dt
+        elif self.step == "day":
+            self.elapsed_time += dt * 24
+        else:
+            raise ValueError("Unsupported step mode. Use 'hour' or 'day'.")
 
     def get_hour(self):
         """
         Get the current hour of the day.
+        :return: Integer representing the current hour (0-23).
         """
-        return (self.start_time+ self.elapsed_time) % 24
+        if self.step == "hour":
+            return int(self.elapsed_time % 24)
+        else:
+            raise ValueError("Use hour step mode to get info on the current hour.")
+
+    def get_day(self):
+        """
+        Get the current day of the simulation.
+        :return: Integer representing the current day.
+        """
+        if self.step in ["hour", "day"]:
+            return int(self.elapsed_time // 24)
+        else:
+            raise ValueError("Unsupported step mode. Use 'hour' or 'day'.")
 
     def is_day(self):
         """
-        Check if it's currently day based on the photo period.
+        Check if it's currently daytime based on the photo period.
+        :return: Boolean indicating if it's currently day.
         """
-        return self.get_hour() >= self.photo_period[0] and self.get_hour() <= self.photo_period[1] 
-
+        if self.step == "hour":
+            current_hour = self.get_hour()
+            return self.photo_period[0] <= current_hour < self.photo_period[1]
+        else: 
+            raise ValueError("Use hour step mode to get info on day/night.")
 
     def get_elapsed_time(self):
         """
-        Get the elapsed_time time in hours since the simulation started.
+        Get the elapsed time in hours since the simulation started.
+        :return: Float representing the elapsed time in hours.
         """
-        return self.elapsed_time
-    
+        if self.step == "hour":
+            return self.elapsed_time
+        elif self.step == "day":
+            return self.elapsed_time / 24
 
     def summary(self):
         """
         Provide a summary of the clock's state.
+        :return: Dictionary summarizing the simulation clock's state.
         """
         return {
-            "Elapsed Time (hrs)": self.elapsed_time,
-            "Current Hour": self.get_hour(),
-            "Is Day": self.is_day(),
+            "Elapsed Time (hrs)": self.elapsed_time
         }
 
 class Simulation:
 
     @classmethod
-    def set_clock(cls, start_time=None, photo_period=(8,18)):
-        clock = SimClock(start_time, photo_period)
+    def set_clock(cls, photo_period=(8,18), step="hour"):
+        clock = SimClock(photo_period,step)
         cls.clock = clock
  
     def __init__(self, config_file, env, plant, solver, model, tasks=None, folder="results"):

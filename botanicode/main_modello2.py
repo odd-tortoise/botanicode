@@ -35,7 +35,7 @@ logger.info("Initializing simulation...")
 
 
 # set a clock for all the simulations
-Simulation.set_clock(start_time=0, photo_period=(8,18))
+Simulation.set_clock(photo_period=(8,18), step="day")
 Simulation.logger = logger
 # this clock is also the one used by the plant and environment objects, single source of truth
 
@@ -44,7 +44,7 @@ folder = "results"
 
 
 ################### READ A PLANT FILE ###################
-plantfile_path = "botanicode/tomato_data/tomato_1.json"
+plantfile_path = "botanicode/tomato_data/tomato_2.json"
 # this will be used to initialize the blue prints and the plant object paramters
 plant_reg = PlantRegulation(plantfile_path)
 
@@ -57,13 +57,14 @@ plant_reg = PlantRegulation(plantfile_path)
 class StemState(NodeStateBlueprint):
     lenght: float
     radius: float
-    
+    tt: float # thermal time
 
 @dataclass
 class LeafState(NodeStateBlueprint):
     size: float
     petioles_size: float
     rachid_size: float
+    tt: float
 
 @dataclass
 class SAMState(NodeStateBlueprint):
@@ -77,36 +78,26 @@ class RAMState(NodeStateBlueprint):
 class RootState(NodeStateBlueprint):
     lenght: float
     radius: float
-    
 
 # QUI SI FA IL TUNING !!
 # define the rules for each node type
 
 
-def stem_length_ode(t, node: Stem):
-    # questa è la RHS 
-    node.state.l_max = 4*(node.id+1)
-    return plant_reg.growth_params["k_stem"]/node.state.l_max * node.state.lenght * ( node.state.l_max - node.state.lenght)
-
 def stem_derived_rules(node):
-    node.state.radius = 0.5*node.state.lenght
+    node.state.tt = node.state.tt + max(0, node.state.temp - plant_reg.growth_params["base_temp"])  # thermal time is the sum of the daily thermal time
+    node.state.lenght = plant_reg.growth_params["l_max"]*(1-np.exp(-plant_reg.growth_params["k_L"]*node.state.tt))
+    node.state.radius = plant_reg.growth_params["r0"] * plant_reg.growth_params["a_r"]* node.state.lenght
     
-
+                                        
 def leaf_derived_rules(node):
-    node.state.rachid_size = 0.5*node.state.size
-    node.state.petiole_size = 0.2*node.state.size
-    
-
-def leaf_size_ode(t, node: Leaf):
-    node.state.s_max = 4*(node.parent.id+1)
-    return plant_reg.growth_params["k_leaf"]/node.state.s_max * node.state.size * ( node.state.s_max -  node.state.size)
-
-
-stem_rules = NodeRuleBlueprint(dynamics={"lenght": stem_length_ode},
-                               derived=stem_derived_rules,
+    node.state.tt = node.state.tt + max(0, node.state.temp - plant_reg.growth_params["base_temp"]) # thermal time is the sum of the daily thermal time
+    node.state.size = plant_reg.growth_params["s_max"]*(1-np.exp(-plant_reg.growth_params["k_S"]*node.state.tt))
+    node.state.petioles_size = 0.5 * node.state.size
+    node.state.rachid_size = 0.5 * node.state.size
+      
+stem_rules = NodeRuleBlueprint(derived=stem_derived_rules,
                                env_reading = ["temp"])
-leaf_rules = NodeRuleBlueprint(dynamics={"size": leaf_size_ode},
-                               derived= leaf_derived_rules,
+leaf_rules = NodeRuleBlueprint(derived= leaf_derived_rules,
                                env_reading = ["temp"])
 sam_rules = NodeRuleBlueprint()
 ram_rules = NodeRuleBlueprint()
@@ -115,11 +106,10 @@ root_rules = NodeRuleBlueprint()
 def shooting_rule(node):
     shoot = isinstance(node, SAM) #boolean expression to decide if to shoot or not from node 
     return shoot
-
 ##!!!!!!!!!
 
 # create a model object
-model = Model(model_name="empirical_time_tomato")
+model = Model(model_name="thermal_time_tomato")
 model.add_blueprint(Stem, StemState, stem_rules, CylinderShape)
 model.add_blueprint(Leaf, LeafState, leaf_rules, LeafShape)
 model.add_blueprint(SAM, SAMState, sam_rules, PointShape)
@@ -231,8 +221,8 @@ extra_tasks = {
         "plot_finale_history":{
             "method": plotter,
             "kwargs": {
-                "plot_methods": [lambda ax: plant.history.plot(variable="lenght",ax=ax, node_types=["Stem"]),
-                                 lambda ax: plant.history.plot(variable="size",ax=ax, node_types=["Leaf"]),],
+                "plot_methods": [lambda ax: plant.history.plot(variable="tt",ax=ax, node_types=["Stem"]),
+                                 lambda ax: plant.history.plot(variable="lenght",ax=ax, node_types=["Stem"]),],
                 "plot_3ds": [False,False],
                 "ncols": 1,
                 "dpi": 500,
