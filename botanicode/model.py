@@ -58,5 +58,12 @@ class Model:
             "shape": shape
         }
 
+        self.shooting_rule = None
+
+        self.plant_dynamics = []
+
     def add_shooting_rule(self, rule):
         self.shooting_rule = rule
+
+    def add_whole_plant_dynamic(self, var, node_types, ode):
+        self.plant_dynamics.append({"var": var, "node_types": node_types, "ode": ode})

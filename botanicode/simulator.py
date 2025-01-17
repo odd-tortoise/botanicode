@@ -145,26 +145,62 @@ class Simulation:
             # 1) plant read the environment
             self.plant.probe(self.env)
 
-            # 2) compute the system of differential equations
-            ret = self.plant.get_dynamic_info()
+            # 2) solve the system for the whole plant case , one system for each rule
+            # this loop can be modified to couple the systems
             
-            # 3) solve the system
-            for node_type, values in ret.items():
-                nodes = np.array(values["node_obj"])
-                rhs = values["rhs"]
+            # assemply the system of differential equations for the plants
+            ret_plant = self.plant.get_dynamic_info_plant()
+
+            # solve the system for the whole plant
+            for var, values in ret_plant.items(): 
+                func = values["ode"]
+                nodes = values["node_obj"]
                 y = np.array(values["value"])
+                t = self.clock.get_elapsed_time()
+
                 new_y = self.solver.integrate(
-                    rhs_function = rhs,
+                    rhs_function = func,
                     t = self.clock.get_elapsed_time(),
                     y = y,
-                    rhs_args = nodes)
+                    rhs_args = (nodes,self.plant)
+                    )
+                ret_plant[var]["new_value"] = new_y
+
+
+            # apply the new values to the plant
+            self.plant.apply_plant_dynamics(ret_plant)
+
+
+            
+            # 3) solve the system for the nodes , one system for each (node_Type,var) couple
+            # this loop can be modified to couple the systems
+
+            #compute the system of differential equations for the nodes 
+            ret_nodes = self.plant.get_dynamic_info_nodes()
+
+            for node_type, values in ret_nodes.items():
+
+                nodes = np.array(values["node_obj"])
+                func = values["rhs"]
+                y = np.array(values["value"])
+                t = self.clock.get_elapsed_time()
+
+                new_y = self.solver.integrate(
+                    rhs_function = func,
+                    rhs_args = nodes,
+                    t = t,
+                    y = y
+                    )
                 
-                ret[node_type]["new_value"] = new_y
+                ret_nodes[node_type]["new_value"] = new_y
+
+            # apply the new values to the nodes
+            self.plant.apply_node_dynamics(ret_nodes)
 
 
             # 4) update the plant and environment
-            # use the solution of the system to update the plant, update also the derived variables
-            self.plant.grow(ret,self.delta_t)
+            #update also the derived variables and shoot new parts if needed
+            self.plant.grow(self.delta_t)
 
             # we need to probe the environment again to give the new values to the plant new parts
             self.plant.probe(self.env)

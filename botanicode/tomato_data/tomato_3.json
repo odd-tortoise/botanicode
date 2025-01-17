@@ -12,28 +12,33 @@
     "leaf_bending_rate": 0.5,
     "leaves_number": 2
   },
+  "growth_params":{
+
+  },
   "stem_data": {
     "generation": {
       "lenght": 1,
       "radius": 0.1,
-      "stiffness": 0.1
+      "water": 0
     },
     "initial_state": {
       "lenght": 4,
       "radius": 0.3,
-      "stiffness": 0.1
+      "water": 10
     }
   },
   "leaf_data": {
     "generation": {
       "size": 2,
       "petioles_size": 0.5,
-      "rachid_size": 1
+      "rachid_size": 1,
+      "water": 0
     },
     "initial_state": {
       "size": 2,
       "petioles_size": 0.5,
-      "rachid_size": 1
+      "rachid_size": 1,
+      "water": 0
     }
   },
   "root_data": {
