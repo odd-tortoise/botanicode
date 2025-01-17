@@ -3,15 +3,6 @@
     "common_name": "Tomato",
     "scientific_name": "Solanum lycopersicum"
   },
-  "growth_params": {
-    "base_temp": 10,
-    "l_max": 10,
-    "k_L": 0.07,
-    "r0": 0.1,
-    "a_r":0.05,
-    "s_max":10,
-    "k_S": 0.05
-  },
   "phylotaxis": {
     "leaflets_number": 5,
     "leaf_arrangement": "decussate",
@@ -21,41 +12,18 @@
     "leaf_bending_rate": 0.5,
     "leaves_number": 2
   },
-<<<<<<<< HEAD:botanicode/tomato_data/tomato_1.json
-  "growth_params": {
-    "k_stem" : 0.8,
-    "k_leaf" : 0.8
-========
   "growth_params":{
-
->>>>>>>> modello3:botanicode/tomato_data/tomato_3.json
   },
   "stem_data": {
     "generation": {
       "lenght": 1,
-<<<<<<<< HEAD:botanicode/tomato_data/tomato_1.json
-      "radius": 0.1
-    },
-    "initial_state": {
-      "lenght": 4,
-      "radius": 0.3
-========
       "radius": 0.1,
-<<<<<<<< HEAD:botanicode/tomato_data/tomato_1.json
-      "tt": 0
-========
       "water": 0
->>>>>>>> modello3:botanicode/tomato_data/tomato_3.json
     },
     "initial_state": {
       "lenght": 4,
       "radius": 0.3,
-<<<<<<<< HEAD:botanicode/tomato_data/tomato_1.json
-      "tt": 0
->>>>>>>> modello2:botanicode/tomato_data/tomato_2.json
-========
-      "water": 10
->>>>>>>> modello3:botanicode/tomato_data/tomato_3.json
+      "water": 0
     }
   },
   "leaf_data": {
@@ -63,21 +31,13 @@
       "size": 2,
       "petioles_size": 0.5,
       "rachid_size": 1,
-<<<<<<<< HEAD:botanicode/tomato_data/tomato_1.json
-      "tt": 0
-========
       "water": 0
->>>>>>>> modello3:botanicode/tomato_data/tomato_3.json
     },
     "initial_state": {
       "size": 2,
       "petioles_size": 0.5,
       "rachid_size": 1,
-<<<<<<<< HEAD:botanicode/tomato_data/tomato_1.json
-      "tt": 0
-========
       "water": 0
->>>>>>>> modello3:botanicode/tomato_data/tomato_3.json
     }
   },
   "root_data": {

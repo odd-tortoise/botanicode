@@ -1,5 +1,7 @@
 import numpy as np
+from typing import List
 from dataclasses import dataclass
+import networkx as nx
 
 from simulator import SimClock, Simulation
 
@@ -35,7 +37,7 @@ logger.info("Initializing simulation...")
 
 
 # set a clock for all the simulations
-Simulation.set_clock(start_time=0, photo_period=(8,18))
+Simulation.set_clock(photo_period=(8,18), step="hour")
 Simulation.logger = logger
 # this clock is also the one used by the plant and environment objects, single source of truth
 
@@ -83,10 +85,14 @@ class RootState(NodeStateBlueprint):
 # define the rules for each node type
 
 
-def stem_length_ode(t, node: Stem):
+def stem_length_ode(t, y, nodes: list[Stem]):
     # questa è la RHS 
-    node.state.l_max = 4*(node.id+1)
-    return plant_reg.growth_params["k_stem"]/node.state.l_max * node.state.lenght * ( node.state.l_max - node.state.lenght)
+    rhs = []
+    for node in nodes:
+        node.state.l_max = 4*(node.id+1)
+        rhs.append(plant_reg.growth_params["k_stem"]/node.state.l_max * node.state.lenght * ( node.state.l_max - node.state.lenght))
+
+    return np.array(rhs)
 
 def stem_derived_rules(node):
     node.state.radius = 0.5*node.state.lenght
@@ -97,9 +103,14 @@ def leaf_derived_rules(node):
     node.state.petiole_size = 0.2*node.state.size
     
 
-def leaf_size_ode(t, node: Leaf):
-    node.state.s_max = 4*(node.parent.id+1)
-    return plant_reg.growth_params["k_leaf"]/node.state.s_max * node.state.size * ( node.state.s_max -  node.state.size)
+def leaf_size_ode(t,y, nodes: List[Leaf]):
+    rhs = []
+    for node in nodes:
+
+        node.state.s_max = 4*(node.parent.id+1)
+        rhs.append(plant_reg.growth_params["k_leaf"]/node.state.s_max * node.state.size * ( node.state.s_max -  node.state.size))
+
+    return np.array(rhs)
 
 
 stem_rules = NodeRuleBlueprint(dynamics={"lenght": stem_length_ode},

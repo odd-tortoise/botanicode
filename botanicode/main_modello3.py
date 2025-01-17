@@ -37,7 +37,7 @@ logger.info("Initializing simulation...")
 
 
 # set a clock for all the simulations
-Simulation.set_clock(start_time=0, photo_period=(8,18))
+Simulation.set_clock(photo_period=(8,18),step="hour")
 Simulation.logger = logger
 # this clock is also the one used by the plant and environment objects, single source of truth
 

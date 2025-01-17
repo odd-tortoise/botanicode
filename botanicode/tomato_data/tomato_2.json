@@ -21,20 +21,9 @@
     "leaf_bending_rate": 0.5,
     "leaves_number": 2
   },
-  "growth_params": {
-    "k_stem" : 0.8,
-    "k_leaf" : 0.8
-  },
   "stem_data": {
     "generation": {
       "lenght": 1,
-<<<<<<<< HEAD:botanicode/tomato_data/tomato_1.json
-      "radius": 0.1
-    },
-    "initial_state": {
-      "lenght": 4,
-      "radius": 0.3
-========
       "radius": 0.1,
       "tt": 0
     },
@@ -42,7 +31,6 @@
       "lenght": 4,
       "radius": 0.3,
       "tt": 0
->>>>>>>> modello2:botanicode/tomato_data/tomato_2.json
     }
   },
   "leaf_data": {
