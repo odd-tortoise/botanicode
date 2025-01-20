@@ -4,6 +4,7 @@ import matplotlib.animation as animation
 
 import numpy as np
 from scipy.optimize import fsolve  # For solving implicit equations
+from scipy.integrate import solve_ivp  # For solving ODEs  
 
 class NumericalIntegrator:
     def __init__(self, method="forward_euler", dt=0.01):
@@ -44,6 +45,8 @@ class NumericalIntegrator:
 
         rhs = rhs_function(t, y, rhs_args)
 
+        #sol = solve_ivp(rhs_function, [t, t + self.dt], y, args=rhs_args, method='RK45', t_eval = [t + self.dt])
+        #return sol.y[:,0]
         return y + self.dt * rhs
 
     def backward_euler(self, rhs_function, rhs_args, t, y):

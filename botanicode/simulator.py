@@ -218,11 +218,8 @@ class Simulation:
 
             # 4) update the plant and environment
             #update also the derived variables and shoot new parts if needed
-            self.plant.grow(self.delta_t)
-
-            # we need to probe the environment again to give the new values to the plant new parts
-            self.plant.probe(self.env)
-
+            self.plant.grow(self.delta_t,self.env)
+            
             # execute the extra tasks for the "during" phase
             self.execute_tasks("during", step=step)
 

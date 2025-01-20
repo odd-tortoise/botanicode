@@ -56,6 +56,21 @@ plant_reg = PlantRegulation(plantfile_path)
 # define the state variables for each node type
 
 @dataclass
+class PlantState:
+    plant_height : float = 0
+    age: float = 0
+    tt: float = 0
+
+def plant_derived_rules(plant):
+    plant.state.plant_height = plant.compute_plant_height()
+    plant.state.age = plant.state.age + 1
+
+    temps = plant.structure.get_nodes_attribute("temp", [Leaf, Stem])[0]
+    avg_temp = np.mean(temps)
+    plant.state.tt = plant.state.tt + max(0, avg_temp - plant_reg.growth_params["base_temp"])
+
+
+@dataclass
 class StemState(NodeStateBlueprint):
     lenght: float
     radius: float
@@ -84,7 +99,6 @@ class RootState(NodeStateBlueprint):
 # QUI SI FA IL TUNING !!
 # define the rules for each node type
 
-
 def stem_derived_rules(node):
     node.state.tt = node.state.tt + max(0, node.state.temp - plant_reg.growth_params["base_temp"])  # thermal time is the sum of the daily thermal time
     node.state.lenght = plant_reg.growth_params["l_max"]*(1-np.exp(-plant_reg.growth_params["k_L"]*node.state.tt))
@@ -108,6 +122,7 @@ root_rules = NodeRuleBlueprint()
 def shooting_rule(node):
     shoot = isinstance(node, SAM) #boolean expression to decide if to shoot or not from node 
     return shoot
+
 ##!!!!!!!!!
 
 # create a model object
@@ -119,6 +134,8 @@ model.add_blueprint(RAM, RAMState, ram_rules, PointShape)
 model.add_blueprint(Root, RootState, root_rules, CylinderShape)
 
 model.add_shooting_rule(shooting_rule)
+model.add_plant_state(PlantState)
+model.add_plant_rules(plant_derived_rules)
 
 
 ################### CREATE AN ENVIRONMENT #############

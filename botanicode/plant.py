@@ -34,6 +34,15 @@ class Tracker:
             self.data[node_type][node_name] = []
 
         self.data[node_type][node_name].append([timestamp, node_data])
+    
+    def snap_plant(self, timestamp, plant):
+        plant_data = copy.deepcopy(plant.state.__dict__)
+        if "Plant" not in self.data:
+            self.data["Plant"] = {
+                "Plant": []
+            }
+        self.data["Plant"]["Plant"].append([timestamp, plant_data])
+
 
     def get_variable_over_time(self, node_type, node_name, variable):
         """
@@ -116,10 +125,6 @@ class Tracker:
         except Exception as e:
             print(f"Error saving data to file: {e}")
 
-@dataclass
-class PlantState:
-    plant_height: float
-    age: float
 
 class Plant:
     def __init__(self, reg, model):
@@ -140,7 +145,7 @@ class Plant:
         seed = Seed()
         self.structure = Structure(seed=seed)
 
-        self.plant_state = PlantState(plant_height=0, age=0)
+        self.state = model.plant_state()
 
         self.history = Tracker()
 
@@ -172,7 +177,8 @@ class Plant:
         for node in self.structure.G.nodes():
             self.history.snapshot(timestamp, node)
  
-            #self.history.track(node_data,node_name, node_type, timestamp)
+           
+        self.history.snap_plant(timestamp, self)
 
     def make_leaves(self):
         leaves_states = [self.LeafStuff["state"](**self.growth_regulation.get_leaf_data()["initial_state"]) for i in range(self.phylotaxy_data["leaves_number"])]
@@ -234,6 +240,7 @@ class Plant:
 
         self.update()
 
+
     def get_dynamic_info_nodes(self):
         ret = {}
         for node_type, values in self.model.nodes_blueprint.items():
@@ -288,7 +295,7 @@ class Plant:
 
 
              
-    def grow(self,dt):
+    def grow(self,dt,env):
         
         # apply derived rules changes
         for node_type, values in self.model.nodes_blueprint.items():
@@ -300,13 +307,18 @@ class Plant:
                         rule(node)
 
         self.update() #update the shapes and the positions
-
         self.age_nodes(dt)
-
-
         list_to_shoot = [ node for node in self.structure.G.nodes() if self.model.shooting_rule(node)]
         for node in list_to_shoot:
             self.shoot(node)
+
+        # probe the environment for the new nodes
+
+        self.probe(env)
+
+        self.model.plant_rules(self)
+        
+
 
     def age_nodes(self, dt):
         def age_node(node):
@@ -317,7 +329,6 @@ class Plant:
     def update(self):
         self.update_shapes()
         self.update_positions_and_realpoints()
-        self.compute_plant_height()
 
     def update_shapes(self):
         def update_shape(node):
@@ -335,11 +346,12 @@ class Plant:
         self.structure.traverse(action=update_position)
 
     def compute_plant_height(self):
-        def compute_plant_height_recursive(node):
-            if node.shape.position[2] > self.plant_state.plant_height:
-                self.plant_state.plant_height = node.shape.position[2]
+        max = 0
+        for node in self.structure.G.nodes():
+            if node.shape.position[2] > max:
+                max = node.shape.position[2]
+        return max
 
-        self.structure.traverse(action=compute_plant_height_recursive)
         
     def log(self, logger):        
         message = str(self.plant_state)
@@ -418,7 +430,7 @@ class Plant:
         ax.set_ylabel('Y Position')
         ax.set_zlabel('Z Position')
                 
-        size = int(self.plant_state.plant_height) + 1
+        size = int(self.state.plant_height) + 1
         size = size if size%2== 0 else size + 2 - size % 2
         
         ax.set_xlim([-size//2, size//2])

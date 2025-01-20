@@ -67,3 +67,9 @@ class Model:
 
     def add_whole_plant_dynamic(self, var, node_types, ode):
         self.plant_dynamics.append({"var": var, "node_types": node_types, "ode": ode})
+
+    def add_plant_state(self, state):
+        self.plant_state = state
+
+    def add_plant_rules(self, rules):
+        self.plant_rules = rules
