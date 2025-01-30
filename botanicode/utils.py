@@ -66,9 +66,6 @@ class NumericalIntegrator:
         y_next = fsolve(implicit_eq, y)  # Use y as the initial guess
         return y_next
 
-
-
-
 # utility functions for plotting and animating the simulation
 def plotter(plot_methods, plot_3ds=None, ncols=1, figsize=(10, 10), dpi=100, save_folder=None, name= "plot", save_format='png'):
     """
@@ -131,3 +128,32 @@ def animate(img_folder, fps=1, save_name="animation.mp4", dpi=100):
     plt.close(fig)
 
     print(f"Animation completed. Saved to {save_path}.")
+
+
+class Dataset:
+    def __init__(self):
+        self.data = {}
+
+        self.create_data()
+
+    
+    def create_data(self):
+        n_internodes = 8
+        T_max = 60
+
+        internode_length_max = lambda i: 5+(i-4)**2
+        
+        # Create some dummy data
+        for i in range(n_internodes):
+            # each internode has a sigmoidal growth curve
+            self.data[i] = []
+            for t in range(i,T_max):
+                self.data[i].append(internode_length_max(i) / (1 + np.exp(-0.5 *t + T_max / 4) ) +1) 
+
+            
+
+    def plot(self):
+        for key, value in self.data.items():
+            plt.plot(value, label=key, marker='o')
+        plt.legend()
+        plt.show()

@@ -1,6 +1,8 @@
 import json
+from scipy.optimize import minimize
 
 import numpy as np
+from botanical_nodes import Stem, Leaf, Root, SAM, RAM
 
 class SimClock:
     def __init__(self, photo_period=(8, 18), step="hour"):
@@ -77,13 +79,8 @@ class SimClock:
         }
 
 class Simulation:
-
-    @classmethod
-    def set_clock(cls, photo_period=(8,18), step="hour"):
-        clock = SimClock(photo_period,step)
-        cls.clock = clock
  
-    def __init__(self, config_file, env, plant, solver, model, tasks=None, folder="results"):
+    def __init__(self, plant, model, clock : SimClock, env):
         """
         Initialize the Simulation.
         
@@ -91,25 +88,19 @@ class Simulation:
         :param clock: SimClock object to use for the simulation.
         """
         
-        self.config = self.load_config(config_file)
-        self.max_t = self.config["max_t"]
-        self.delta_t = solver.dt
-       
-        self.solver = solver
+        
         self.model = model
-
         self.env = env
         self.plant = plant
+        self.clock = clock
 
-        # set the clock for the plant and the environment
-        self.plant.set_clock(Simulation.clock)
-        self.env.set_clock(Simulation.clock)
 
-        self.before_tasks = tasks["before"] if "before" in tasks else {}
-        self.after_tasks = tasks["after"] if "after" in tasks else {}
-        self.during_tasks = tasks["during"] if "during" in tasks else {}
 
-        self.folder = folder
+        #self.before_tasks = tasks["before"] if "before" in tasks else {}
+        #self.after_tasks = tasks["after"] if "after" in tasks else {}
+        #self.during_tasks = tasks["during"] if "during" in tasks else {}
+
+        #self.folder = folder
 
         
     def load_config(self, config):
@@ -146,8 +137,8 @@ class Simulation:
             
             task(*args, **kwargs)
 
-    def run(self):
-        """Run the simulation for a specified number of steps."""
+    def run(self, max_t, delta_t):
+        """Run the simulation for a specified number of steps.
         if not hasattr(self, 'clock'):
             raise ValueError("A clock must be set up before running the simulation.")
         
@@ -237,3 +228,98 @@ class Simulation:
 
 
     # fare le cose con lo state, potrebbe essere utile
+    """
+        import matplotlib.pyplot as plt
+
+        self.plant.snapshot(timestamp = self.clock.get_elapsed_time())
+        while(self.clock.elapsed_time < max_t):
+            self.plant.probe(self.env, self.model.env_reads,self.clock.elapsed_time)
+
+            for rule in self.model.node_rules:
+                self.plant.apply_rule(rule)
+
+            self.plant.grow(delta_t,self.env,self.model,self.clock.elapsed_time)
+            self.clock.tick(delta_t)
+            self.plant.snapshot(timestamp = self.clock.get_elapsed_time())
+
+
+        
+
+    def reset_simulation(self):
+        """
+        Reset the simulation to the initial state.
+        """
+        self.plant.reset()
+        self.clock.elapsed_time = 0
+
+
+    def tune(self, dataset, max_t, delta_t):
+        """
+        Tune the parameters of the model using the provided dataset.
+        """
+        # Extract trainable parameters from all rules
+
+        import matplotlib.pyplot as plt
+        initial_params = self.model.get_trainable_params()
+
+        def loss_fn(params):
+            """
+            Loss function for optimization.
+            """
+            
+            self.model.set_trainable_params(params)  # Update parameters
+            total_loss = 0
+
+            # Evaluate the model
+            # questo dorebbe essre un loop su tutti i dati-env
+            self.reset_simulation()  # Reset plant to initial state
+            self.run(max_t=max_t, delta_t=delta_t)
+
+            print(params)
+
+            for key, value in dataset.data.items():
+                # key is the internode number
+                # value is the list of lengths vs time
+                target = value
+                timestamps,simulated_lengths = self.plant.history.get_variable_over_time("Stem","S"+str(key+1),"length")
+                
+                # compute the loss considering the lengths of the internodes at the same time
+                # pad the simulated lengths with zeros
+
+                total_loss += np.sum((np.array(target) - np.array(simulated_lengths))**2)
+
+                if key==0:
+                    plt.plot(timestamps,simulated_lengths,label="S"+str(key+1))
+                    plt.plot(range(len(value)),value,label="S"+str(key+1)+"_target")
+                    plt.show()
+
+                
+
+
+            print(total_loss)
+            return total_loss
+
+        # Optimize parameters (e.g., using gradient descent or Scipy optimization)
+        result = minimize(loss_fn, initial_params, method="L-BFGS-B")
+        self.model.set_trainable_params(result.x)
+
+        print("Optimization completed.")
+
+        # Run the simulation with the tuned parameters
+        self.reset_simulation()
+        self.run(max_t=max_t, delta_t=delta_t)
+
+        # Plot the results
+        for key, value in dataset.data.items():
+            # key is the internode number
+            # value is the list of lengths vs time
+            timestamps,simulated_lengths = self.plant.history.get_variable_over_time("Stem","S"+str(key+1),"length")
+            plt.plot(timestamps,simulated_lengths,label="S"+str(key+1))
+            plt.plot(range(len(value)),value,label="S"+str(key+1)+"_target")
+
+        plt.legend()
+        plt.show()
+
+
+
+

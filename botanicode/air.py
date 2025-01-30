@@ -1,10 +1,10 @@
 class Air:
-    def __init__(self, temperature, water_concentration):
+    def __init__(self, temperature, humidity):
         self.temperature = temperature
-        self.water_concentration = water_concentration
+        self.humidity = humidity
 
-    def measure_temperature(self, point):
+    def measure_temperature(self, point,t):
         return self.temperature + 0.5*point[2]
     
-    def measure_water_concentration(self, point):
-        return self.water_concentration
+    def measure_humidity(self, point,t):
+        return self.humidity

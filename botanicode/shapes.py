@@ -3,16 +3,16 @@ import numpy as np
 from scipy.spatial.transform import Rotation as R
 from dataclasses import dataclass
 
-class NodeShapeBlueprint:
-    def __init__(self, state: Any):
+
+class NodeShape:
+    def __init__(self, shape_info: dict):
         self.points: List[np.ndarray] = []  # Local points in the shape's coordinate system
         self.real_points: List[np.ndarray] = []  # Global points in 3D space
-        self.state = state
+        self.shape_info = shape_info
         self.position = np.array([0, 0, 0])  # Global position of the shape
-        self.orientation = R.identity()  # Orientation as a rotation object
 
-        self.plug_points = {}
-        
+
+
     def generate_real_points(self):
         """
         Transform local points into global 3D points using the shape's position and orientation.
@@ -21,25 +21,24 @@ class NodeShapeBlueprint:
             point + self.position for point in self.points
         ]
 
-    def generate_points(self, **kwargs):
+    def generate_points(self, state , n_points: int = 10):
         """Generate the shape's local points. To be implemented by subclasses."""
         pass
 
 
-class CylinderShape(NodeShapeBlueprint):
-    def __init__(self, state: Any, direction=np.array([0, 0, 1])):
-        super().__init__(state)
-        self.direction = direction
-        self.generate_points()
-        
+class CylinderShape(NodeShape):
 
-    def generate_points(self, n_points: int = 10):
+    def __init__(self, state: Any, shape_info: dict):
+        super().__init__(shape_info)
+        self.generate_points(state)
+        
+    def generate_points(self, state , n_points: int = 10):
         """
         Generate local points for a cylinder along the given direction.
         """
         # Points along the cylinder axis
         axis_points = [
-           self.direction * i * self.state.lenght / n_points for i in range(n_points + 1)
+           self.shape_info["direction"] * i * state.length / n_points for i in range(n_points + 1)
         ]
         
         self.points = axis_points
@@ -54,54 +53,31 @@ class CylinderShape(NodeShapeBlueprint):
     
 
 
-class LeafShape(NodeShapeBlueprint):
-    @dataclass 
-    class PetiolesState:
-        lenght: float
-        radius: float
-        stiffness: float
+class LeafShape(NodeShape):
 
-    
-    def __init__(self, state: Any, additional_info: dict, z_angle = 0):
-        super().__init__(state)
-        self.additional_info = additional_info
-        self.z_angle = z_angle
-        self.generate_points()
+    def __init__(self, state: Any, shape_info: dict):
+        super().__init__(shape_info)
+        self.generate_points(state)
         
-
-
-    @property
-    def size(self):
-        return self.state.size
-    
-    @property
-    def petioles_size(self):
-        return self.state.petioles_size
-    
-    @property
-    def rachid_size(self):
-        return self.state.rachid_size
-
-    
-    def generate_points(self):
+    def generate_points(self, state, n_points: int = 10):
         rachid_points = [np.array([0, 0, 0])]
         leaves_points = []
 
-        y_angle = self.additional_info["y_angle"]
-        leaves_to_plot = self.additional_info["leaflets_number"]
+        y_angle = self.shape_info["y_angle"]
+        leaves_to_plot = self.shape_info["leaflets_number"]
 
         while leaves_to_plot > 0:
             #add rachid point
-            rachid_point = rachid_points[-1] + self.rachid_size * np.array([np.cos(y_angle),0, np.sin(y_angle)])
+            rachid_point = rachid_points[-1] + state.rachid_size * np.array([np.cos(y_angle),0, np.sin(y_angle)])
             rachid_points.append(rachid_point)
             
             if leaves_to_plot >= 2:
                
-                leaf_points_up = self.generate_leaf_points(angle_with_z = np.pi/2, angle_wiht_y = y_angle)
-                leaf_points_down = self.generate_leaf_points(angle_with_z = -np.pi/2, angle_wiht_y = y_angle)
+                leaf_points_up = self.generate_leaf_points(state=state,angle_with_z = np.pi/2, angle_wiht_y = y_angle)
+                leaf_points_down = self.generate_leaf_points(state=state,angle_with_z = -np.pi/2, angle_wiht_y = y_angle)
 
-                petiole_up = np.array([0,self.petioles_size,0])
-                petiole_down = np.array([0, -self.petioles_size,0])
+                petiole_up = np.array([0,state.petioles_size,0])
+                petiole_down = np.array([0, -state.petioles_size,0])
 
                 # translate the leaf points to the tip of the rachid
                 leaf_points_up = [point + rachid_point + petiole_up for point in leaf_points_up]
@@ -115,19 +91,19 @@ class LeafShape(NodeShapeBlueprint):
             if leaves_to_plot == 1:
                 # add the leaves on the sides
                  # add the leaf on the tip 
-                leaf_point = self.generate_leaf_points(angle_with_z = 0, angle_wiht_y=- y_angle)
-                petiole = np.array([self.petioles_size,0,0])
+                leaf_point = self.generate_leaf_points(state=state,angle_with_z = 0, angle_wiht_y=- y_angle)
+                petiole = np.array([state.petioles_size,0,0])
                 # translate the leaf points to the tip of the rachid
                 leaf_point = [point + rachid_point + petiole for point in leaf_point]
 
                 leaves_points.append(leaf_point)
                 leaves_to_plot -= 1
 
-            y_angle -= self.additional_info["leaf_bending_rate"]*y_angle
+            y_angle -= self.shape_info["leaf_bending_rate"]*y_angle
 
                 
         # rotate the rachid points
-        z_rotation_angle = self.z_angle
+        z_rotation_angle = self.shape_info["z_angle"]
 
         rot_z = np.array([[np.cos(z_rotation_angle), -np.sin(z_rotation_angle), 0],  
                         [np.sin(z_rotation_angle), np.cos(z_rotation_angle), 0],
@@ -146,12 +122,12 @@ class LeafShape(NodeShapeBlueprint):
         self.rachid_points = rotated_rachid
         
   
-    def generate_leaf_points(self,angle_with_z = 0,angle_wiht_y = 0,n_points=11):
+    def generate_leaf_points(self,state,angle_with_z = 0,angle_wiht_y = 0,n_points=11):
 
         temp_points = []
         angles = np.linspace(0, 2*np.pi, n_points)
         for theta in angles:
-            point = self.additional_info["outline_function"](theta, self.state.size)
+            point = self.shape_info["outline_function"](theta, state.size)
             temp_points.append(point)
 
         y_rotation_angle = angle_wiht_y
@@ -192,18 +168,18 @@ class LeafShape(NodeShapeBlueprint):
         return {"base": self.real_rachid_points[0]}
 
 
-class PointShape(NodeShapeBlueprint):
-    def __init__(self, state: Any):
-        super().__init__(state)
-        self.generate_points()
+class PointShape(NodeShape):
+    def __init__(self, state: Any, shape_info: dict):
+        super().__init__(shape_info=shape_info)
+        self.generate_points(state)
         
 
-    def generate_points(self, n_points=0):
+    def generate_points(self, state, n_points=0):
         self.points = [np.array([0, 0, 0])]
        
     def compute_plug_points(self) -> dict:
         """
         Return the single point for a PointShape.
         """
-        return {"base": self.points[0]}
+        return {"base": self.real_points[0]}
     

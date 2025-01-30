@@ -2,66 +2,64 @@ from dataclasses import dataclass, field
 from typing import Dict, Callable, Any, List
 import numpy as np
 
-from shapes import NodeShapeBlueprint
 
+from typing import List, Callable
+import numpy as np
 
-class NodeStateBlueprint:
-    """Node state"""
-    def __init__(self, values):
-        for key, value in values.items():
-            setattr(self, key, value)
+class Rule:
+    def __init__(self, target_types: List[type], trainable=True, is_dynamic=False, no_params=4):
+        """Initialize the Rule class."""
+        self.target_types = target_types
+        self.trainable = trainable
+        self.is_dynamic = is_dynamic
+        self.no_params = no_params
+        self.params = np.zeros(no_params)
+        self.action = None  # Action will be set later by the user
 
-@dataclass
-class NodeRuleBlueprint:
-    """Rule for updating a nodes variables. They can act on the state or on the shape."""
-    # this is for the ODEs
-    dynamics:  Dict[str, Callable[[float, NodeStateBlueprint], Any]] = field(default_factory=dict)
+    def set_action(self, action: Callable):
+        """Allow the user to set their custom action (apply function)."""
+        self.action = action
 
-    # this is for the derived variables, other relationships
-    derived: Callable[[NodeStateBlueprint], Any] = None
-
-    env_reading: List[str] = field(default_factory=list)
-
-    init_rules: Dict[str, Any] = field(default_factory=dict)
-
-    # qui anche le regole che agiscono sull'intero nodo -> bending, branching
+    def apply(self, nodes: List[type]):
+        """Apply the custom action to the nodes."""
+        if self.action:
+            return self.action(nodes, self.params)
+        else:
+            raise ValueError("Action is not defined. Use set_action() to define it.")
 
 
 
 class Model:
-    def __init__(self, model_name):
+    def __init__(self, model_name) -> None:
         self.model_name = model_name if model_name else "default_model"
-        self.shooting_rule = None
-        self.nodes_blueprint = {}
         
+        self.plant_rules = []
+        self.node_rules = []
+        self.env_reads = {}
         
-    def add_blueprint(self, nodetype, state: NodeStateBlueprint, rules: NodeRuleBlueprint, shape: NodeShapeBlueprint):
-        """
-        Add a blueprint for a node type, linking its state structure and rules.
+    def add_node_rule(self, rule):
+        self.node_rules.append(rule)
 
-        Args:
-            name (str): The unique name of the node blueprint (e.g., "Stem", "Leaf").
-            state (NodeState): The template state for nodes of this type.
-            rules (Rule): The rules that define how the node's state evolves.
 
-        Raises:
-            ValueError: If a blueprint with the same name already exists.
-        """
-        if nodetype in self.nodes_blueprint:
-            raise ValueError(f"A blueprint for the type '{nodetype.__name__}' already exists.")
-
-        # check that inside the state shape variables there are all the variables needed by the shape
-
-        self.nodes_blueprint[nodetype] = {
-            "state": state,
-            "rules": rules,
-            "shape": shape
-        }
-
-        self.shooting_rule = None
-
-        self.plant_dynamics = []
-
+    def get_trainable_params(self):
+        """Return the trainable parameters of the model as one np.array."""
+        trainable_params = []
+        for rule in self.node_rules:
+            if rule.trainable:
+                trainable_params.append(rule.params)
+        return np.concatenate(trainable_params)
+    
+    def set_trainable_params(self, params):
+        """Set the trainable parameters of the model from a np.array, divide based on the rule no_params."""
+        start = 0
+        for rule in self.node_rules:
+            if rule.trainable:
+                end = start + rule.no_params
+                rule.params = params[start:end]
+                start = end
+                
+        
+  
     def add_shooting_rule(self, rule):
         self.shooting_rule = rule
 

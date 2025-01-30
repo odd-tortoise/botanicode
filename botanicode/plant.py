@@ -1,15 +1,15 @@
-from botanical_nodes import Stem, Leaf, Root, SAM, RAM, Seed
-from graph import Structure
-import numpy as np
-from light import Sky
-import matplotlib.pyplot as plt
+from botanical_nodes import Stem, Leaf, Root, SAM, RAM
+from botanical_nodes import NodeState, NodeFactory, Part
 from plant_reg import PlantRegulation
-from dataclasses import dataclass, field
-from collections import defaultdict
-from typing import Dict, List, Any
-import json
-import copy
+from graph import Structure
 
+
+import numpy as np
+import matplotlib.pyplot as plt
+
+from dataclasses import dataclass, field
+from typing import Dict, List, Any
+import copy
 
 class Tracker:
     def __init__(self):
@@ -36,7 +36,7 @@ class Tracker:
         self.data[node_type][node_name].append([timestamp, node_data])
     
     def snap_plant(self, timestamp, plant):
-        plant_data = copy.deepcopy(plant.state.__dict__)
+        plant_data = copy.deepcopy(plant.plant_state.__dict__)
         if "Plant" not in self.data:
             self.data["Plant"] = {
                 "Plant": []
@@ -125,27 +125,16 @@ class Tracker:
         except Exception as e:
             print(f"Error saving data to file: {e}")
 
+@dataclass
+class PlantState:
+    plant_height : float = 0
 
 class Plant:
-    def __init__(self, reg, model):
+    def __init__(self, reg : PlantRegulation, node_factory : NodeFactory, plant_state : PlantState):
+
         self.growth_regulation = reg
-        self.clock = None
-        self.model = model
-
-        # check that model and growth reg have all the need params
-        #... to be done
-
-        #unpack the model
-        self.StemStuff = model.nodes_blueprint[Stem]
-        self.LeafStuff = model.nodes_blueprint[Leaf]
-        self.RootStuff = model.nodes_blueprint[Root]
-        self.SAMStuff = model.nodes_blueprint[SAM]
-        self.RAMStuff = model.nodes_blueprint[RAM]
-
-        seed = Seed()
-        self.structure = Structure(seed=seed)
-
-        self.state = model.plant_state()
+        self.plant_state = plant_state
+        self.node_factory = node_factory
 
         self.history = Tracker()
 
@@ -155,23 +144,29 @@ class Plant:
         
         self.initialize_plant()
      
-    def probe(self, env):
+    def reset(self):
+        for node_type in self.node_factory.node_blueprints.keys():
+            node_type.counter = 0
+        self.__init__(self.growth_regulation, self.node_factory, self.plant_state)
+        self.plant_state.reset()
+
+        
+            
+     
+    def probe(self, env, reads,t):
         def probe_recursive(node):
             # get the rules to probe the env
-            if type(node) not in self.model.nodes_blueprint:
+            if type(node) not in reads:
                 return
             
-            vars_to_read = self.model.nodes_blueprint[type(node)]["rules"].env_reading 
+            vars_to_read = reads[type(node)]
             # this is a list of things to read from the env
 
             for env_var in vars_to_read:
-                value = env.measure(node.shape.position,env_var)
+                value = env.measure(node.shape.position,env_var,t)
                 setattr(node.state, env_var, value)
 
         self.structure.traverse(action=probe_recursive)
-
-    def set_clock(self, clock):
-        self.clock = clock
 
     def snapshot(self, timestamp):
         for node in self.structure.G.nodes():
@@ -181,7 +176,6 @@ class Plant:
         self.history.snap_plant(timestamp, self)
 
     def make_leaves(self):
-        leaves_states = [self.LeafStuff["state"](**self.growth_regulation.get_leaf_data()["initial_state"]) for i in range(self.phylotaxy_data["leaves_number"])]
         if self.phylotaxy_data["leaf_arrangement"] == "alternate":
             self.leaf_z_angle_offset+=self.phylotaxy_data["angle"]
             self.leaf_z_angle_offset = self.leaf_z_angle_offset % (2 * np.pi)
@@ -196,10 +190,16 @@ class Plant:
             raise ValueError("Invalid leaf arrangement.")
         
         leaves = []
-        for i,state in enumerate(leaves_states):
+        for i in range(self.phylotaxy_data["leaves_number"]):
             z_angle = 2 * np.pi * i / self.phylotaxy_data["leaves_number"] + self.leaf_z_angle_offset
-            shape = self.LeafStuff["shape"](state, self.phylotaxy_data, z_angle)
-            leaves.append(Leaf(state=state, shape=shape, id = i))
+            shape_variations = {"z_angle": z_angle,
+                                "id": i,
+                                "leaflets_number": self.phylotaxy_data["leaflets_number"],
+                                "y_angle": self.phylotaxy_data["y_angle"],
+                                "outline_function": self.phylotaxy_data["outline_function"],
+                                "leaf_bending_rate": self.phylotaxy_data["leaf_bending_rate"],}
+
+            leaves.append(self.node_factory.create(Leaf, shape_variations=shape_variations))
 
         return leaves
 
@@ -207,30 +207,17 @@ class Plant:
         # Create the initial plant structure
         # assume initial age of the stem to be 1 
 
-        stem_state = self.StemStuff["state"](**self.growth_regulation.get_stem_data()["initial_state"])
-        stem_shape = self.StemStuff["shape"](stem_state, direction = np.array([0, 0, 1]))
-        stem = Stem(state=stem_state, shape=stem_shape)
-
-
-        sam_state = self.SAMStuff["state"]()
-        sam_shape = self.SAMStuff["shape"](sam_state)
-        sam = SAM(state=sam_state, shape=sam_shape)
-
-        ram_state = self.RAMStuff["state"]()
-        ram_shape = self.RAMStuff["shape"](ram_state)
-        ram = RAM(state=ram_state, shape=ram_shape)
-
-        root_state = self.RootStuff["state"](**self.growth_regulation.get_root_data()["initial_state"])
-        root_shape = self.RootStuff["shape"](root_state,direction = np.array([0, 0, -1]))
-        root = Root(state=root_state, shape=root_shape)
-
-        
+        # qui mettere le regole per inizializzare la pianta in maniera diversa come "variations"
+        stem = self.node_factory.create(Stem)
+        sam = self.node_factory.create(SAM)
+        ram = self.node_factory.create(RAM)
+        root = self.node_factory.create(Root)
         leaves = self.make_leaves()
-        
 
-        self.structure.add_node(self.structure.seed, stem, "base")
+        self.structure = Structure(seed=stem)
+
         self.structure.add_node(stem, sam, "tip")
-        sam.name =  sam.name[2] + str(stem.id) + sam.name[2:]
+        sam.name =  sam.name[:2] + str(stem.id)
         self.structure.add_node(self.structure.seed, root, "base")
         self.structure.add_node(root, ram, "tip")
 
@@ -238,8 +225,23 @@ class Plant:
             self.structure.add_node(stem, leaf, "tip")
             leaf.name = leaf.name[0] + str(stem.id) + leaf.name[1:]
 
+
+
         self.update()
 
+    def apply_rule(self,rule):
+
+        # rule has the types of the nodes that it applies to
+
+        # extract the nodes of the type of the rule
+
+        nodes_obj = []
+        for node_type in rule.target_types:
+            for node in self.structure.G.nodes():
+                if type(node) == node_type:
+                    nodes_obj.append(node)
+
+        rule.apply(nodes_obj)
 
     def get_dynamic_info_nodes(self):
         ret = {}
@@ -273,7 +275,6 @@ class Plant:
                 for node,val in zip(values["node_obj"], new_value):
                     setattr(node.state, var, val)
 
-
     def get_dynamic_info_plant(self):
         ret = {}
 
@@ -292,34 +293,26 @@ class Plant:
                 new_value = values["new_value"]
                 for node,val in zip(values["node_obj"], new_value):
                     setattr(node.state, var, val)
-
-
              
-    def grow(self,dt,env):
+    def grow(self,dt,env,model,t):
         
         # apply derived rules changes
-        for node_type, values in self.model.nodes_blueprint.items():
-            rules = values["rules"]
-            if hasattr(rules, "derived") and rules.derived is not None:
-                rule = rules.derived
-                for node in self.structure.G.nodes():
-                    if node_type == type(node):
-                        rule(node)
+        
 
         self.update() #update the shapes and the positions
         self.age_nodes(dt)
-        list_to_shoot = [ node for node in self.structure.G.nodes() if self.model.shooting_rule(node)]
+        list_to_shoot = model.shooting_rule(self)
+        
         for node in list_to_shoot:
             self.shoot(node)
+            self.plant_state.internodes_no += 1
 
         # probe the environment for the new nodes
 
-        self.probe(env)
+        self.probe(env,model.env_reads,t)
 
-        self.model.plant_rules(self)
+        #self.model.plant_rules(self)
         
-
-
     def age_nodes(self, dt):
         def age_node(node):
             node.state.age += dt
@@ -332,7 +325,7 @@ class Plant:
 
     def update_shapes(self):
         def update_shape(node):
-            node.shape.generate_points()
+            node.shape.generate_points(node.state)
 
         self.structure.traverse(action=update_shape)
 
@@ -351,8 +344,7 @@ class Plant:
             if node.shape.position[2] > max:
                 max = node.shape.position[2]
         return max
-
-        
+  
     def log(self, logger):        
         message = str(self.plant_state)
         logger.warning(message) 
@@ -360,19 +352,12 @@ class Plant:
     def shoot(self, node): # this is basically a FACTORY!! 
         # idea for the future: use a factory pattern in the C++ implementation
         
-        stem_state = self.StemStuff["state"](**self.growth_regulation.get_stem_data()["generation"])
-        stem_shape = self.StemStuff["shape"](stem_state, direction = np.array([0, 0, 1]))
-        stem = Stem(state=stem_state, shape=stem_shape)
-
-
-        sam_state = self.SAMStuff["state"]()
-        sam_shape = self.SAMStuff["shape"](sam_state)
-        sam = SAM(state=sam_state, shape=sam_shape)
+        stem = self.node_factory.create(Stem)
+        sam = self.node_factory.create(SAM)
         sam.name = sam.name[2] + str(stem.id) + sam.name[2:]
 
-        
         leaves = self.make_leaves()
-        
+    
         if isinstance(node, SAM):
             self.structure.add_node(node.parent, stem, "tip")
             self.structure.remove_node(node)
@@ -430,7 +415,7 @@ class Plant:
         ax.set_ylabel('Y Position')
         ax.set_zlabel('Z Position')
                 
-        size = int(self.state.plant_height) + 1
+        size = int(self.plant_state.plant_height) + 1
         size = size if size%2== 0 else size + 2 - size % 2
         
         ax.set_xlim([-size//2, size//2])
