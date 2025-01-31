@@ -43,7 +43,6 @@ class Tracker:
             }
         self.data["Plant"]["Plant"].append([timestamp, plant_data])
 
-
     def get_variable_over_time(self, node_type, node_name, variable):
         """
         Extracts timestamps and variable values for a specific node type and node name.
@@ -128,6 +127,8 @@ class Tracker:
 @dataclass
 class PlantState:
     plant_height : float = 0
+    def reset(self):
+        self.__init__()
 
 class Plant:
     def __init__(self, reg : PlantRegulation, node_factory : NodeFactory, plant_state : PlantState):
@@ -148,10 +149,7 @@ class Plant:
         for node_type in self.node_factory.node_blueprints.keys():
             node_type.counter = 0
         self.__init__(self.growth_regulation, self.node_factory, self.plant_state)
-        self.plant_state.reset()
-
-        
-            
+        self.plant_state.reset()    
      
     def probe(self, env, reads,t):
         def probe_recursive(node):
@@ -230,74 +228,32 @@ class Plant:
         self.update()
 
     def apply_rule(self,rule):
+        rule.action(self, rule.params)
 
-        # rule has the types of the nodes that it applies to
+    def apply_dynamic_rule(self,rule,t,solver):
+        y = []
+        for node_type in rule.types:
+            nodes = [node for node in self.structure.G.nodes() if isinstance(node, node_type)]
+            y.append([ getattr(node.state, rule.var) for node in nodes])
 
-        # extract the nodes of the type of the rule
-
-        nodes_obj = []
-        for node_type in rule.target_types:
-            for node in self.structure.G.nodes():
-                if type(node) == node_type:
-                    nodes_obj.append(node)
-
-        rule.apply(nodes_obj)
-
-    def get_dynamic_info_nodes(self):
-        ret = {}
-        for node_type, values in self.model.nodes_blueprint.items():
-            rules = values["rules"]
-            if hasattr(rules, "dynamics"):
-                for key, rhs in rules.dynamics.items():
-                    ret[key+"_"+node_type.__name__] = {} #initialize the dict
-                    ret[key+"_"+node_type.__name__]["value"]= self.structure.get_nodes_attribute(key, node_type)[0] #list of values
-                    ret[key+"_"+node_type.__name__]["node_obj"] = self.structure.get_nodes_attribute(key, node_type)[1] #list of nodes 
-                    ret[key+"_"+node_type.__name__]["rhs"] = rhs #callable
-
-        # ret is a dict 
-        # key is the variable name + node type
-        # value is list of values with the initial value of the variable for each node type
-        # node_obj is the list of nodes of the node type
-        # rhs is the ODE for the variable
-
-
-        # ret will get a new field with the new values of the variables
-        return ret
+        y = np.array(y).flatten()
     
-    def apply_node_dynamics(self, ret):
-        # apply dynamic rules changes
-        for key, values in ret.items():
-            var = key.split("_")[0]
-            node_type = key.split("_")[1]
-            
-            if "new_value" in values:
-                new_value = values["new_value"]
-                for node,val in zip(values["node_obj"], new_value):
-                    setattr(node.state, var, val)
+        new_y = solver.integrate(
+            rhs_function = rule.action,
+            plant = self,
+            params = rule.params,
+            t = t,
+            y = y
+            )
 
-    def get_dynamic_info_plant(self):
-        ret = {}
+        for i, node_type in enumerate(rule.types):
+            nodes = [node for node in self.structure.G.nodes() if isinstance(node, node_type)]
+            for j, node in enumerate(nodes):
+                setattr(node.state, rule.var, new_y[i*len(nodes) + j])
 
-        for rule in self.model.plant_dynamics:
-            ret[rule["var"]] = {}
-            ret[rule["var"]]["value"] = self.structure.get_nodes_attribute(rule["var"], rule["node_types"])[0] #list
-            ret[rule["var"]]["node_obj"] = self.structure.get_nodes_attribute(rule["var"], rule["node_types"])[1] 
-            ret[rule["var"]]["ode"] = rule["ode"]
-            
-        return ret
-
-    def apply_plant_dynamics(self, ret):
-        for key, values in ret.items():
-            var = key
-            if "new_value" in values:
-                new_value = values["new_value"]
-                for node,val in zip(values["node_obj"], new_value):
-                    setattr(node.state, var, val)
-             
     def grow(self,dt,env,model,t):
         
         # apply derived rules changes
-        
 
         self.update() #update the shapes and the positions
         self.age_nodes(dt)
@@ -305,7 +261,6 @@ class Plant:
         
         for node in list_to_shoot:
             self.shoot(node)
-            self.plant_state.internodes_no += 1
 
         # probe the environment for the new nodes
 
@@ -322,6 +277,7 @@ class Plant:
     def update(self):
         self.update_shapes()
         self.update_positions_and_realpoints()
+        self.plant_state.plant_height = self.compute_plant_height()
 
     def update_shapes(self):
         def update_shape(node):
@@ -389,7 +345,7 @@ class Plant:
                 rachid_skeleton = np.array(rachid_skeleton)
                 if rachid_skeleton.size > 0:
                     ax.plot(rachid_skeleton[:, 0], rachid_skeleton[:, 1], rachid_skeleton[:, 2],
-                            color=node.rachid_color, label='Rachid Skeleton', linewidth=2, marker='o')
+                            color=node.rachid_color, label='Rachid Skeleton', linewidth=2)
                     
                 # plot the leaves 
                 for leaf in leaf_skeletons:
@@ -404,7 +360,7 @@ class Plant:
                 skeleton = np.array(skeleton)
                 if skeleton.size > 0:  # Check if any stem nodes exist
                     ax.plot(skeleton[:, 0], skeleton[:, 1], skeleton[:, 2],
-                            color=node.color, linewidth=2, marker='o')
+                            color=node.color, linewidth=2)
                     
                     
         # Recursively traverse each child node  

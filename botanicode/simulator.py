@@ -3,6 +3,8 @@ from scipy.optimize import minimize
 
 import numpy as np
 from botanical_nodes import Stem, Leaf, Root, SAM, RAM
+from env import Environment
+from utils import NumericalIntegrator
 
 class SimClock:
     def __init__(self, photo_period=(8, 18), step="hour"):
@@ -80,7 +82,7 @@ class SimClock:
 
 class Simulation:
  
-    def __init__(self, plant, model, clock : SimClock, env):
+    def __init__(self, plant, model, clock : SimClock, env: Environment, solver : NumericalIntegrator):
         """
         Initialize the Simulation.
         
@@ -93,6 +95,7 @@ class Simulation:
         self.env = env
         self.plant = plant
         self.clock = clock
+        self.solver = solver
 
 
 
@@ -230,17 +233,23 @@ class Simulation:
     # fare le cose con lo state, potrebbe essere utile
     """
         import matplotlib.pyplot as plt
-
         self.plant.snapshot(timestamp = self.clock.get_elapsed_time())
         while(self.clock.elapsed_time < max_t):
             self.plant.probe(self.env, self.model.env_reads,self.clock.elapsed_time)
 
-            for rule in self.model.node_rules:
+            # apply the rules plant-level
+            for rule in self.model.dynamic_rules:
+                self.plant.apply_dynamic_rule(rule,self.clock.elapsed_time,self.solver)
+
+            for rule in self.model.rules:
                 self.plant.apply_rule(rule)
 
             self.plant.grow(delta_t,self.env,self.model,self.clock.elapsed_time)
             self.clock.tick(delta_t)
             self.plant.snapshot(timestamp = self.clock.get_elapsed_time())
+
+            self.plant.plot()
+            plt.show()
 
 
         
@@ -275,8 +284,6 @@ class Simulation:
             self.reset_simulation()  # Reset plant to initial state
             self.run(max_t=max_t, delta_t=delta_t)
 
-            print(params)
-
             for key, value in dataset.data.items():
                 # key is the internode number
                 # value is the list of lengths vs time
@@ -302,24 +309,5 @@ class Simulation:
         # Optimize parameters (e.g., using gradient descent or Scipy optimization)
         result = minimize(loss_fn, initial_params, method="L-BFGS-B")
         self.model.set_trainable_params(result.x)
-
-        print("Optimization completed.")
-
-        # Run the simulation with the tuned parameters
-        self.reset_simulation()
-        self.run(max_t=max_t, delta_t=delta_t)
-
-        # Plot the results
-        for key, value in dataset.data.items():
-            # key is the internode number
-            # value is the list of lengths vs time
-            timestamps,simulated_lengths = self.plant.history.get_variable_over_time("Stem","S"+str(key+1),"length")
-            plt.plot(timestamps,simulated_lengths,label="S"+str(key+1))
-            plt.plot(range(len(value)),value,label="S"+str(key+1)+"_target")
-
-        plt.legend()
-        plt.show()
-
-
 
 

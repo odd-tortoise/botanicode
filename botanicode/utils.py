@@ -7,7 +7,7 @@ from scipy.optimize import fsolve  # For solving implicit equations
 from scipy.integrate import solve_ivp  # For solving ODEs  
 
 class NumericalIntegrator:
-    def __init__(self, method="forward_euler", dt=0.01):
+    def __init__(self, method="forward_euler"):
         """
         Initialize the numerical integrator.
 
@@ -15,9 +15,17 @@ class NumericalIntegrator:
         :param dt: Time step size
         """
         self.method = method
+        self.dt = None
+
+    def set_dt(self, dt):
+        """
+        Set the time step size.
+
+        :param dt: Time step size
+        """
         self.dt = dt
         
-    def integrate(self, rhs_function, rhs_args, t, y):
+    def integrate(self, rhs_function, plant, params, t, y):
         """
         Perform one integration step using the specified method.
 
@@ -27,13 +35,13 @@ class NumericalIntegrator:
         :return: New state after one time step
         """
         if self.method == "forward_euler":
-            return self.forward_euler(rhs_function,rhs_args, t, y)
+            return self.forward_euler(rhs_function,plant,params, t, y)
         elif self.method == "backward_euler":
-            return self.backward_euler(rhs_function,rhs_args, t, y)
+            return self.backward_euler(rhs_function,plant,params, t, y)
         else:
             raise ValueError("Unsupported method: {}".format(self.method))
 
-    def forward_euler(self, rhs_function,rhs_args, t, y):
+    def forward_euler(self, rhs_function,plant, params, t, y):
         """
         Forward Euler method.
 
@@ -43,13 +51,13 @@ class NumericalIntegrator:
         :return: New state after one time step
         """
 
-        rhs = rhs_function(t, y, rhs_args)
+        #rhs = rhs_function(t, y, plant, params)
 
-        #sol = solve_ivp(rhs_function, [t, t + self.dt], y, args=rhs_args, method='RK45', t_eval = [t + self.dt])
-        #return sol.y[:,0]
+        sol = solve_ivp(rhs_function, [t, t + self.dt], y, args=(plant,params), method='RK45', t_eval = [t + self.dt])
+        return sol.y[:,0]
         return y + self.dt * rhs
 
-    def backward_euler(self, rhs_function, rhs_args, t, y):
+    def backward_euler(self, rhs_function,plant, params, t, y):
         """
         Backward Euler method.
 
