@@ -73,7 +73,6 @@ class NumericalIntegrator:
         # Solve the implicit equation using a root-finding method
         y_next = fsolve(implicit_eq, y)  # Use y as the initial guess
         return y_next
-
 # utility functions for plotting and animating the simulation
 def plotter(plot_methods, plot_3ds=None, ncols=1, figsize=(10, 10), dpi=100, save_folder=None, name= "plot", save_format='png'):
     """
@@ -147,7 +146,7 @@ class Dataset:
     
     def create_data(self):
         n_internodes = 8
-        T_max = 60
+        T_max = 20
 
         internode_length_max = lambda i: 5+(i-4)**2
         

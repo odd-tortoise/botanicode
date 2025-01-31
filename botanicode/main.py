@@ -3,7 +3,6 @@ from typing import List
 from dataclasses import dataclass
 import networkx as nx
 
-
 from env import Environment
 from botanical_nodes import NodeFactory, NodeState
 from botanical_nodes import Stem, Leaf, Root, SAM, RAM
@@ -23,7 +22,6 @@ result_folder = "results"
 env_setting_file = "botanicode/settings_file/env_setting.json"
 
 
-
 # create a clock
 clock = SimClock(photo_period=(8,18),step="hour")
 
@@ -40,6 +38,7 @@ node_factory = NodeFactory()
 class StemState(NodeState):
     length: float = 1.0
     age: int = 0
+    water: float = 0.0
 
 @dataclass
 class LeafState(NodeState):
@@ -47,6 +46,7 @@ class LeafState(NodeState):
     petioles_size: float = 0.1
     rachid_size: float = 0.1
     age: int = 0
+    water : float = 0.0
 
 @dataclass
 class RootState(NodeState):
@@ -93,7 +93,9 @@ def stem_length_rule(plant : Plant, params : np.array):
     nodes = [node for node in plant.structure.G.nodes() if isinstance(node, Stem)]
     for node in nodes:
         #logistic growth
-        node.state.length = (5 + (node.id -1  - 4)**2 ) / (1 + np.exp(-params[0] * (node.state.age - params[1]))) 
+        node.state.length = (5 + (node.id -1  - 4)**2 ) / (1 + np.exp(-params[0] * (node.state.age - params[1])))
+        if node.id == 0:
+            node.state.water = 10 
 stem_rule.set_action(stem_length_rule)
 
 # create a dynamic rule for the leaves
@@ -116,6 +118,24 @@ def plant_rule_action(plant : Plant, params : np.array):
     plant.plant_state.internodes_no = len([node for node in plant.structure.G.nodes() if isinstance(node, Stem)])
 plant_rule.set_action(plant_rule_action)
 
+water_dynamic = Rule(trainable = False, is_dynamic = True, no_params = 0)
+def water_diffusion(t, y, plant: Plant, params : np.array):
+    graph = plant.structure.G
+
+    # extract the subgraph of the plant made by the nodes of interest
+    subgraph = graph.subgraph([node for node in graph.nodes() if isinstance(node, Stem) or isinstance(node, Leaf)])
+
+
+    L = nx.laplacian_matrix(subgraph).todense() 
+
+    
+
+    rhs = - (L @ y)
+    return np.array(rhs)
+water_dynamic.set_action(water_diffusion, "water",[Stem,Leaf])
+
+
+
 
 # create a rule for shooting
 def shoots_if_rule(plant : Plant):
@@ -126,23 +146,14 @@ def shoots_if_rule(plant : Plant):
             
     return list_to_shoot
 
-# create a rule for the branch
-def branch_if_rule(plant : Plant):
-    list_to_branch = []
-    for node in plant.structure.G.nodes():
-        if isinstance(node, Leaf) and node.state.age > 10:
-            list_to_branch.append(node)
-            
-    return list_to_branch
-
 
 # create a model to store the rules
 model = Model("tomato")
 model.add_rule(stem_rule)
 model.add_dynamic_rule(leaf_rule)
+model.add_rule(plant_rule)
+model.add_dynamic_rule(water_dynamic)
 model.add_shooting_rule(shoots_if_rule)
-model.add_branching_rule(branch_if_rule)
-
 
 env_reads = { 
                 Stem: ["temp"],
@@ -157,9 +168,10 @@ sim = Simulation(plant, model, clock, env, ni)
 
 ni.set_dt(1)
 
-sim.run(5,1)
-sim.reset_simulation()
-sim.run(6,1)
+sim.run(40,1)
+
+#sim.reset_simulation()
+#sim.run(6,1)
 
 
 # create a dataset
@@ -168,6 +180,6 @@ data = Dataset()
 
 
 # tune the paramters
-#sim.tune(data, 60,1)
+#sim.tune(data, 20,1)
 
 

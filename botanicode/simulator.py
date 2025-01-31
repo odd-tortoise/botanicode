@@ -248,9 +248,6 @@ class Simulation:
             self.clock.tick(delta_t)
             self.plant.snapshot(timestamp = self.clock.get_elapsed_time())
 
-            self.plant.plot()
-            plt.show()
-
 
         
 
@@ -294,13 +291,6 @@ class Simulation:
                 # pad the simulated lengths with zeros
 
                 total_loss += np.sum((np.array(target) - np.array(simulated_lengths))**2)
-
-                if key==0:
-                    plt.plot(timestamps,simulated_lengths,label="S"+str(key+1))
-                    plt.plot(range(len(value)),value,label="S"+str(key+1)+"_target")
-                    plt.show()
-
-                
 
 
             print(total_loss)

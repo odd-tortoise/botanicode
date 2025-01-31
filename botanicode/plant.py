@@ -236,7 +236,9 @@ class Plant:
             nodes = [node for node in self.structure.G.nodes() if isinstance(node, node_type)]
             y.append([ getattr(node.state, rule.var) for node in nodes])
 
-        y = np.array(y).flatten()
+        # concatenate the lists
+        y = [item for sublist in y for item in sublist]
+        y = np.array(y)
     
         new_y = solver.integrate(
             rhs_function = rule.action,
@@ -245,11 +247,14 @@ class Plant:
             t = t,
             y = y
             )
-
+        
+        
+        current = 0
         for i, node_type in enumerate(rule.types):
             nodes = [node for node in self.structure.G.nodes() if isinstance(node, node_type)]
-            for j, node in enumerate(nodes):
-                setattr(node.state, rule.var, new_y[i*len(nodes) + j])
+            for node in nodes:
+                setattr(node.state, rule.var, new_y[current])
+                current += 1
 
     def grow(self,dt,env,model,t):
         
