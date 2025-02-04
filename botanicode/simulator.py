@@ -232,7 +232,7 @@ class Simulation:
 
     # fare le cose con lo state, potrebbe essere utile
     """
-        import matplotlib.pyplot as plt
+        
         self.plant.snapshot(timestamp = self.clock.get_elapsed_time())
         while(self.clock.elapsed_time < max_t):
             self.plant.probe(self.env, self.model.env_reads,self.clock.elapsed_time)
@@ -247,6 +247,8 @@ class Simulation:
             self.plant.grow(delta_t,self.env,self.model,self.clock.elapsed_time)
             self.clock.tick(delta_t)
             self.plant.snapshot(timestamp = self.clock.get_elapsed_time())
+
+        self.plant.history.save_to_file("botanicode/single_run_files/history.txt")
 
 
         

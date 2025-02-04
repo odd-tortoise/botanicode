@@ -6,7 +6,7 @@
         "moisture": 0.5
     },
     "air":{
-        "temperature": 25,
+        "temperature": 22,
         "humidity": 0.5
     }
 }

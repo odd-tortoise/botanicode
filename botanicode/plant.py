@@ -36,7 +36,7 @@ class Tracker:
         self.data[node_type][node_name].append([timestamp, node_data])
     
     def snap_plant(self, timestamp, plant):
-        plant_data = copy.deepcopy(plant.plant_state.__dict__)
+        plant_data = copy.deepcopy(plant.state.__dict__)
         if "Plant" not in self.data:
             self.data["Plant"] = {
                 "Plant": []
@@ -134,7 +134,7 @@ class Plant:
     def __init__(self, reg : PlantRegulation, node_factory : NodeFactory, plant_state : PlantState):
 
         self.growth_regulation = reg
-        self.plant_state = plant_state
+        self.state = plant_state
         self.node_factory = node_factory
 
         self.history = Tracker()
@@ -148,8 +148,8 @@ class Plant:
     def reset(self):
         for node_type in self.node_factory.node_blueprints.keys():
             node_type.counter = 0
-        self.__init__(self.growth_regulation, self.node_factory, self.plant_state)
-        self.plant_state.reset()    
+        self.__init__(self.growth_regulation, self.node_factory, self.state)
+        self.state.reset()    
      
     def probe(self, env, reads,t):
         def probe_recursive(node):
@@ -260,8 +260,10 @@ class Plant:
         self.age_nodes(dt)
         list_to_shoot = model.shooting_rule(self)
         
-        for node in list_to_shoot:
-            self.shoot(node)
+        for node, shoots in list_to_shoot:
+            current_node = node
+            for _ in range(shoots):
+                current_node = self.shoot(current_node)
 
         # probe the environment for the new nodes
 
@@ -278,7 +280,7 @@ class Plant:
     def update(self):
         self.update_shapes()
         self.update_positions_and_realpoints()
-        self.plant_state.plant_height = self.compute_plant_height()
+        self.state.plant_height = self.compute_plant_height()
 
     def update_shapes(self):
         def update_shape(node):
@@ -303,7 +305,7 @@ class Plant:
         return max
   
     def log(self, logger):        
-        message = str(self.plant_state)
+        message = str(self.state)
         logger.warning(message) 
   
     def shoot(self, node): # this is basically a FACTORY!! 
@@ -327,6 +329,7 @@ class Plant:
             leaf.name = leaf.name[0] + str(stem.id) + leaf.name[1:]
 
         self.update()
+        return sam
     
     def plot(self, ax=None):
          # Plotting in 3D
@@ -372,7 +375,7 @@ class Plant:
         ax.set_ylabel('Y Position')
         ax.set_zlabel('Z Position')
                 
-        size = int(self.plant_state.plant_height) + 1
+        size = int(self.state.plant_height) + 1
         size = size if size%2== 0 else size + 2 - size % 2
         
         ax.set_xlim([-size//2, size//2])
