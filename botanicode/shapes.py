@@ -5,13 +5,11 @@ from dataclasses import dataclass
 
 
 class NodeShape:
-    def __init__(self, shape_info: dict):
+    required_state_variables = []
+    def __init__(self):
         self.points: List[np.ndarray] = []  # Local points in the shape's coordinate system
         self.real_points: List[np.ndarray] = []  # Global points in 3D space
-        self.shape_info = shape_info
         self.position = np.array([0, 0, 0])  # Global position of the shape
-
-
 
     def generate_real_points(self):
         """
@@ -27,9 +25,10 @@ class NodeShape:
 
 
 class CylinderShape(NodeShape):
+    required_state_variables = ["length", "direction", "radius"]
 
-    def __init__(self, state: Any, shape_info: dict):
-        super().__init__(shape_info)
+    def __init__(self, state: Any):
+        super().__init__()
         self.generate_points(state)
         
     def generate_points(self, state , n_points: int = 10):
@@ -38,7 +37,7 @@ class CylinderShape(NodeShape):
         """
         # Points along the cylinder axis
         axis_points = [
-           self.shape_info["direction"] * i * state.length / n_points for i in range(n_points + 1)
+           state.direction * i * state.length / n_points for i in range(n_points + 1)
         ]
         
         self.points = axis_points
@@ -54,17 +53,18 @@ class CylinderShape(NodeShape):
 
 
 class LeafShape(NodeShape):
+    required_state_variables = ["size", "petioles_size", "rachid_size", "leaflets_number", "leaf_bending_rate", "outline_function", "y_angle", "z_angle"]
 
-    def __init__(self, state: Any, shape_info: dict):
-        super().__init__(shape_info)
+    def __init__(self, state: Any):
+        super().__init__()
         self.generate_points(state)
         
     def generate_points(self, state, n_points: int = 10):
         rachid_points = [np.array([0, 0, 0])]
         leaves_points = []
 
-        y_angle = self.shape_info["y_angle"]
-        leaves_to_plot = self.shape_info["leaflets_number"]
+        y_angle = state.y_angle
+        leaves_to_plot = state.leaflets_number
 
         while leaves_to_plot > 0:
             #add rachid point
@@ -99,11 +99,11 @@ class LeafShape(NodeShape):
                 leaves_points.append(leaf_point)
                 leaves_to_plot -= 1
 
-            y_angle -= self.shape_info["leaf_bending_rate"]*y_angle
+            y_angle -= state.leaf_bending_rate*state.y_angle
 
                 
         # rotate the rachid points
-        z_rotation_angle = self.shape_info["z_angle"]
+        z_rotation_angle = state.z_angle
 
         rot_z = np.array([[np.cos(z_rotation_angle), -np.sin(z_rotation_angle), 0],  
                         [np.sin(z_rotation_angle), np.cos(z_rotation_angle), 0],
@@ -127,7 +127,7 @@ class LeafShape(NodeShape):
         temp_points = []
         angles = np.linspace(0, 2*np.pi, n_points)
         for theta in angles:
-            point = self.shape_info["outline_function"](theta, state.size)
+            point = state.outline_function(theta, state.size)
             temp_points.append(point)
 
         y_rotation_angle = angle_wiht_y
@@ -169,8 +169,8 @@ class LeafShape(NodeShape):
 
 
 class PointShape(NodeShape):
-    def __init__(self, state: Any, shape_info: dict):
-        super().__init__(shape_info=shape_info)
+    def __init__(self, state: Any):
+        super().__init__()
         self.generate_points(state)
         
 

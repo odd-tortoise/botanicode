@@ -28,7 +28,7 @@ class Environment:
         with open(json_file) as f:
             data = json.load(f)
         
-        self.sky = Sky(np.array(data["sky"]["position"]))
+        self.sky = Sky(data["sky"]["PAR"])
         self.soil = Soil(data["soil"]["moisture"])
         self.air = Air(data["air"]["temperature"],data["air"]["humidity"])
 

@@ -1,6 +1,6 @@
 {
     "sky":{
-        "position": [0, 0, 0]
+        "PAR": 750
     },
     "soil":{
         "moisture": 0.5

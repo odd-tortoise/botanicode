@@ -1,9 +1,9 @@
 import numpy as np
 
 class Sky:
-    def __init__(self, position):
-        self.position = position
+    def __init__(self, par):
+        self.par = par
 
     def measure_light(self, point,t):
-        return np.linalg.norm(self.position - point)
+        return self.par
     

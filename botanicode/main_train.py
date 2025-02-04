@@ -1,6 +1,6 @@
 import numpy as np
 from typing import List
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 import networkx as nx
 
 from env import Environment
@@ -17,9 +17,10 @@ from utils import Dataset,NumericalIntegrator
 
 
 
-result_folder = "results_main"
+result_folder = "results"
 
-env_setting_file = "botanicode/single_run_files/env_setting.json"
+env_setting_file = "botanicode/settings_file/env_setting.json"
+
 
 # create a clock
 clock = SimClock(photo_period=(8,18),step="hour")
@@ -27,12 +28,8 @@ clock = SimClock(photo_period=(8,18),step="hour")
 #create environment
 env = Environment().set_env(env_setting_file)
 
-# create a numerical integrator for the ODEs 
+# create a solver 
 ni = NumericalIntegrator("forward_euler")
-
-# create a plant regulation file
-plant_regulation_file = "botanicode/single_run_files/tomato.json"
-plant_reg = PlantRegulation(plant_regulation_file)
 
 # create a factory for the nodes
 node_factory = NodeFactory()
@@ -40,33 +37,21 @@ node_factory = NodeFactory()
 @dataclass
 class StemState(NodeState):
     length: float = 1.0
-    radius: float = 0.1
     age: int = 0
     water: float = 0.0
-    direction: np.ndarray =  field(default_factory=lambda: np.array([0, 0, 1]))
 
 @dataclass
 class LeafState(NodeState):
     size: float = 1.0
     petioles_size: float = 0.1
-    rachid_size: float = 1
+    rachid_size: float = 0.1
     age: int = 0
     water : float = 0.0
-    leaflets_number: int = plant_reg.phylotaxis["leaflets_number"]
-    leaf_bending_rate: float = plant_reg.phylotaxis["leaf_bending_rate"]
-    outline_function: callable = plant_reg.phylotaxis["outline_function"]
-    y_angle: float = plant_reg.phylotaxis["y_angle"]
-    z_angle: float = 0
-
-
-
 
 @dataclass
 class RootState(NodeState):
     length: float = 1.0
-    radius: float = 0.1 
     age: int = 0
-    direction: np.ndarray = field(default_factory=lambda: np.array([0, 0, -1]))
 
 @dataclass
 class SAMState(NodeState):
@@ -83,6 +68,11 @@ node_factory.add_blueprint(Root, RootState, CylinderShape)
 node_factory.add_blueprint(SAM, SAMState, PointShape)
 node_factory.add_blueprint(RAM, RAMState, PointShape)
 
+node_factory.read_blueprint_file("botanicode/settings_file/node_blueprints.json")
+
+# create a plant regulation file
+plant_regulation_file = "botanicode/settings_file/tomato_1.json"
+plant_reg = PlantRegulation(plant_regulation_file)
 
 # create a plant state
 @dataclass
@@ -96,25 +86,17 @@ state = PlantState()
 # create a plant
 plant = Plant(reg = plant_reg, node_factory = node_factory, plant_state = state)
 
+
 # create a rule for the stems
-stem_rule = Rule( trainable = False, is_dynamic = False, no_params = 0)
+stem_rule = Rule( trainable = True, is_dynamic = False, no_params = 2)
 def stem_length_rule(plant : Plant, params : np.array):
     nodes = [node for node in plant.structure.G.nodes() if isinstance(node, Stem)]
     for node in nodes:
         #logistic growth
-        node.state.length = (5 + (node.id -1  - 4)**2 ) / (1 + np.exp(-0.5 * (node.state.age)))
+        node.state.length = (5 + (node.id -1  - 4)**2 ) / (1 + np.exp(-params[0] * (node.state.age - params[1])))
         if node.id == 0:
             node.state.water = 10 
 stem_rule.set_action(stem_length_rule)
-
-
-rachid_rule = Rule( trainable = False, is_dynamic = False, no_params = 0)
-def leaf_rachid_rule(plant : Plant, params : np.array):
-    nodes = [node for node in plant.structure.G.nodes() if isinstance(node, Leaf)]
-    for node in nodes:
-        #logistic growth
-        node.state.rachid_size = 0.3*node.state.size
-rachid_rule.set_action(leaf_rachid_rule)
 
 # create a dynamic rule for the leaves
 leaf_rule = Rule(trainable = False, is_dynamic = True, no_params = 0)
@@ -153,6 +135,8 @@ def water_diffusion(t, y, plant: Plant, params : np.array):
 water_dynamic.set_action(water_diffusion, "water",[Stem,Leaf])
 
 
+
+
 # create a rule for shooting
 def shoots_if_rule(plant : Plant):
     list_to_shoot = []
@@ -168,7 +152,6 @@ model = Model("tomato")
 model.add_rule(stem_rule)
 model.add_dynamic_rule(leaf_rule)
 model.add_rule(plant_rule)
-model.add_rule(rachid_rule)
 model.add_dynamic_rule(water_dynamic)
 model.add_shooting_rule(shoots_if_rule)
 
@@ -181,15 +164,22 @@ model.env_reads = env_reads
 
 
 # create a simulation
-
-dt = 1
-max_time = 40
 sim = Simulation(plant, model, clock, env, ni)
 
-ni.set_dt(dt)
-sim.run(max_t=max_time,delta_t=dt)
+ni.set_dt(1)
 
-plant.plot()
-import matplotlib.pyplot as plt
-plt.show()
+sim.run(40,1)
+
+#sim.reset_simulation()
+#sim.run(6,1)
+
+
+# create a dataset
+from utils import Dataset
+data = Dataset()
+
+
+# tune the paramters
+#sim.tune(data, 20,1)
+
 

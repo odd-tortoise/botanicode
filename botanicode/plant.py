@@ -183,21 +183,17 @@ class Plant:
             else:
                 self.leaf_z_angle_offset = 0
         elif self.phylotaxy_data["leaf_arrangement"] == "opposite":
-            self.leaf_z_angle_offset = 0
+            self.leaf_z_angle_offset = self.node_factory.node_blueprints[Leaf]["state"].z_angle
         else:
             raise ValueError("Invalid leaf arrangement.")
         
         leaves = []
         for i in range(self.phylotaxy_data["leaves_number"]):
             z_angle = 2 * np.pi * i / self.phylotaxy_data["leaves_number"] + self.leaf_z_angle_offset
-            shape_variations = {"z_angle": z_angle,
-                                "id": i,
-                                "leaflets_number": self.phylotaxy_data["leaflets_number"],
-                                "y_angle": self.phylotaxy_data["y_angle"],
-                                "outline_function": self.phylotaxy_data["outline_function"],
-                                "leaf_bending_rate": self.phylotaxy_data["leaf_bending_rate"],}
 
-            leaves.append(self.node_factory.create(Leaf, shape_variations=shape_variations))
+            leaves.append(self.node_factory.create(Leaf))
+            leaves[-1].id = i
+            leaves[-1].state.z_angle = z_angle
 
         return leaves
 
