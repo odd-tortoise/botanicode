@@ -26,7 +26,7 @@ class Tracker:
         
         node_data = copy.deepcopy(node.state.__dict__)
         node_name = node.name
-        node_type = type(node).__name__
+        node_type = type(node)
         
         if node_type not in self.data:
             self.data[node_type] = {}
@@ -42,68 +42,6 @@ class Tracker:
                 "Plant": []
             }
         self.data["Plant"]["Plant"].append([timestamp, plant_data])
-
-    def get_variable_over_time(self, node_type, node_name, variable):
-        """
-        Extracts timestamps and variable values for a specific node type and node name.
-
-        Args:
-            node_type (str): The type of node.
-            node_name (str): The name of the node.
-            variable (str): The variable to extract.
-
-        Returns:
-            tuple: A tuple of (timestamps, values).
-        """
-        if node_type not in self.data or node_name not in self.data[node_type]:
-            print(f"Warning: Node type '{node_type}' or node name '{node_name}' not found in data.")
-            return [], []
-
-        timestamps = []
-        values = []
-        for snapshot in self.data[node_type][node_name]:
-            timestamps.append(snapshot[0])
-            values.append(snapshot[1].get(variable, None))
-        return timestamps, values
-
-    def plot(self, variable, ax=None, node_types = []):
-        """
-        Plots the specified variable for the given node types.
-
-        Args:
-            node_types (list of str): List of node types to include in the plot.
-            variable (str): The variable to plot.
-
-        """
-
-        if not isinstance(node_types, list):
-            node_types = [node_types]
-
-        if ax is None:
-            fig, ax = plt.figure(figsize=(10, 5))
-        
-        
-        
-        for node_type in node_types:
-            if node_type in self.data:
-               
-                
-                for node_name, history in self.data[node_type].items():
-
-                    timestamps, values = self.get_variable_over_time(node_type, node_name, variable)
-                    if timestamps and values:
-                        ax.plot(timestamps, values, label=f"{node_type} - {node_name}")
-                        
-                        
-
-        ax.grid()
-        ax.legend()
-        ax.set_xlabel("Time")
-        ax.set_ylabel(f"{variable}")
-                    
-        if ax is None:
-            plt.tight_layout()
-            plt.show()
 
     def save_to_file(self, path):
         """
@@ -123,6 +61,114 @@ class Tracker:
             print(f"Data successfully saved to {path}")
         except Exception as e:
             print(f"Error saving data to file: {e}")
+
+    # -----------------------------
+    # Field Extraction Methods
+    # -----------------------------
+    def extract_field(self, node_type, field):
+        """
+        Extracts the given field from all snapshots of nodes of a given type.
+        
+        Args:
+            node_type (str): The type of node to extract data from.
+            field (str): The field name to extract.
+        
+        Returns:
+            dict: A dictionary where keys are node names and values are lists of tuples (timestamp, field_value).
+        """
+        result = {}
+        if node_type not in self.data:
+            print(f"No data for node type '{node_type}'.")
+            return result
+        
+        for node_name, snapshots in self.data[node_type].items():
+            field_values = []
+            for ts, state in snapshots:
+                # Only add if the field exists in the snapshot
+                if field in state:
+                    field_values.append((ts, state[field]))
+            result[node_name] = field_values
+        
+        return result
+
+    def extract_field_for_node(self, node_type, node_name, field):
+        """
+        Extracts the given field from all snapshots of a specific node.
+
+        Args:
+            node_type (str): The type of node.
+            node_name (str): The name of the node.
+            field (str): The field name to extract.
+
+        Returns:
+            list: A list of tuples (timestamp, field_value) or an empty list if not found.
+        """
+        if node_type not in self.data:
+            print(f"No data for node type '{node_type}'.")
+            return []
+        if node_name not in self.data[node_type]:
+            print(f"No data for node '{node_name}' in type '{node_type}'.")
+            return []
+
+        field_values = []
+        for ts, state in self.data[node_type][node_name]:
+            if field in state:
+                field_values.append((ts, state[field]))
+        return field_values
+
+    # -----------------------------
+    # Plotting Method
+    # -----------------------------
+    def plot_field(self, node_type, node_name, field, timestamp_converter=None):
+        """
+        Plots a given field over time for a specific node.
+
+        Args:
+            node_type (str): The type of node.
+            node_name (str): The name of the node.
+            field (str): The field to plot.
+            timestamp_converter (callable, optional): A function to convert timestamp strings
+                into numeric values (e.g., datetime conversion) if necessary.
+        """
+        # Retrieve the snapshots for the specified node
+        snapshots = None
+        if node_type in self.data and node_name in self.data[node_type]:
+            snapshots = self.data[node_type][node_name]
+        else:
+            print(f"No data found for node '{node_name}' of type '{node_type}'.")
+            return
+
+        # Extract timestamps and field values
+        timestamps = []
+        values = []
+        for ts, state in snapshots:
+            if field in state:
+                timestamps.append(ts)
+                values.append(state[field])
+        
+        if not timestamps:
+            print(f"Field '{field}' not found in snapshots for node '{node_name}'.")
+            return
+
+        # Optionally convert timestamps to a numeric format for plotting
+        if timestamp_converter is not None:
+            try:
+                timestamps = [timestamp_converter(t) for t in timestamps]
+            except Exception as e:
+                print("Error converting timestamps:", e)
+                return
+
+        plt.figure(figsize=(8, 4))
+        plt.plot(timestamps, values, marker='o', linestyle='-')
+        plt.xlabel("Time")
+        plt.ylabel(field)
+        plt.title(f"{node_type} '{node_name}' - {field} over time")
+        plt.grid(True)
+        plt.show()
+    
+    # TODO: extend these methods to take lists of nodes/types 
+    # TODO: make this class more generic to store data also for other purposes (like parameter history)
+
 
 @dataclass
 class PlantState:
@@ -196,6 +242,12 @@ class Plant:
             leaves[-1].state.z_angle = z_angle
 
         return leaves
+    
+    def attach_leaves(self, stem, leaves):
+        for leaf in leaves:
+            self.structure.add_node(stem, leaf, "tip")
+            leaf.state.rank = stem.state.rank
+            leaf.name = leaf.name[0] + str(stem.id) + str(leaf.id)
 
     def initialize_plant(self):
         # Create the initial plant structure
@@ -215,11 +267,7 @@ class Plant:
         self.structure.add_node(self.structure.seed, root, "base")
         self.structure.add_node(root, ram, "tip")
 
-        for leaf in leaves:
-            self.structure.add_node(stem, leaf, "tip")
-            leaf.name = leaf.name[0] + str(stem.id) + leaf.name[1:]
-
-
+        self.attach_leaves(stem, leaves)
 
         self.update()
 
@@ -324,10 +372,7 @@ class Plant:
             self.structure.add_node(node, stem, "tip")
         
         self.structure.add_node(stem, sam, "tip")
-        for leaf in leaves:
-            self.structure.add_node(stem, leaf, "tip")
-            leaf.name = leaf.name[0] + str(stem.id) + leaf.name[1:]
-
+        self.attach_leaves(stem, leaves)
         self.update()
         return sam
     

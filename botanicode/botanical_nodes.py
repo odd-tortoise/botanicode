@@ -41,18 +41,12 @@ class Stem(Part):
         super().__init__( state = state, shape = shape)
 
         self.name = f"S{Stem.counter}"
-        self.id = Stem.counter
+        self.id = Stem.counter 
+        self.state.rank = self.id
         Stem.counter += 1
         
         self.color = "green"
 
-    
-    def is_apical(self):
-        # check if there is a SAM object into the relational children
-        for child in self.children:
-            if isinstance(child, SAM):
-                return child
-        return False
     
 class Root(Part):
     counter = 0
@@ -96,14 +90,9 @@ class RAM(Part):
 class Leaf(Part):
     def __init__(self, shape = None, state = None, id = 0):
         super().__init__(state = state, shape = shape)
-        self.id = id
-        self.parent_rank = 0
-        if self.parent is not None:
-            self.name = f"L{self.parent.id}{id}"
-            self.parent_rank = self.parent.id
-        else:
-            self.name = f"L{id}"
-
+        self.id = 0 # in this case is the position in the same internode of wchi the leaf is attached to
+        self.state.rank = 0 
+        self.name = "L"
         self.color = "orange"
         self.rachid_color = "purple"
     

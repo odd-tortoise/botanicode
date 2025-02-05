@@ -106,7 +106,7 @@ def stem_length_rule(plant : Plant, params : np.array):
         if node.id + 1 >= 14:
             node.state.max_lenght = 10.33+ (4.5-10.33)/(1 + np.exp( (14 - 10.9)/1.7))
         else:
-            node.state.max_lenght = 10.33+ (4.5-10.33)/(1 + np.exp( (node.id +1 - 10.9)/1.7))
+            node.state.max_lenght = 10.33+ (4.5-10.33)/(1 + np.exp( (node.state.rank - 10.9)/1.7))
 
         node.state.length = node.state.max_lenght /(1+5.022*np.exp(-0.062*node.state.tt))
 stem_rule.set_action(stem_length_rule)
@@ -120,10 +120,10 @@ def leaf_size_rule(plant : Plant, params : np.array):
         node.state.tt = node.state.tt + max(0, node.state.temp - 10) # thermal time is the sum of the daily thermal time
    
         if node.id + 1 >= 8:
-            node.state.size = 21.69 + (-4.09- 21.69)/(1 + np.exp( (node.id+1 - 20.69)/48.84))
+            node.state.size = 21.69 + (-4.09- 21.69)/(1 + np.exp( (node.state.rank - 20.69)/48.84))
             node.state.petioles_size =21.30 /(1+7.387*np.exp(-0.021*node.state.tt))
         else:
-            node.state.size = 19.91 + (2.8 - 19.91)/(1 + np.exp( (node.id +1 - 58.95)/33.87))
+            node.state.size = 19.91 + (2.8 - 19.91)/(1 + np.exp( (node.state.rank - 58.95)/33.87))
             node.state.petioles_size =21.30 /(1+7.387*np.exp(-0.021*node.state.tt))
         
         node.state.rachid_size = node.state.petioles_size
@@ -185,7 +185,7 @@ model.env_reads = env_reads
 # create a simulation
 
 dt = 1
-max_time = 40
+max_time = 50
 sim = Simulation(plant, model, clock, env, ni)
 
 ni.set_dt(dt)
@@ -196,51 +196,12 @@ import matplotlib.pyplot as plt
 plt.show()
 
 
-def aftermath(plant, file, node_type):
+plant.history.plot_field(Stem,"S0", "length")
 
-        node_data = plant.history.data[node_type]
-        plant_data = plant.history.data["Plant"]
-        # è un dict con chiavi il nome del nodo 
-        # dentro ogni dict c'è una lista con timestamp + dati {}
+print(plant.history.extract_field_for_node(Stem,"S4", "rank"))
 
-        #voglio fare i plot vs thermal time
-        # in questo caso è facile perché i thermal time sono tutti uguali solo scalati
-        import matplotlib.pyplot as plt
-        fig, ax = plt.subplots(2,1)
-        thermal_time = np.array([ node_data["S0"][i][1]["tt"] for i in range(len(node_data["S0"]))])
-        pn = np.array([ plant_data["Plant"][i][1]["internodes_no"] for i in range(len(plant_data["Plant"]))])
-        exp_pn = np.array([ plant_data["Plant"][i][1]["expected_internodes_no"] for i in range(len(plant_data["Plant"]))])
-        ax[0].plot(thermal_time,pn, "k", label="pn")
-        ax[0].plot(thermal_time,exp_pn, "r", label="expected_pn")
-        ax[0].legend()
-        ax[0].grid()
-        
-        all_length = []
-        for node_name, data in node_data.items():
-            # data è una lista di dict
-            # ogni dict ha timestamp e dati
-            # devo fare un plot per ogni nodo
-            data_len = []
-            for d in data:
-                data_len.append(d[1]["length"])
+print(plant.history.extract_field_for_node(Leaf,"L41", "rank"))
 
-            all_length.append([data_len, node_name])
-
-    
-        # nodes to plot
-        nodes_to_plot = ["S3","S4","S5","S6","S8","S10","S12","S14"]
-
-
-        for data_len,names in all_length:
-            
-            # pick the len(el) elemts of thermal time
-            if names in nodes_to_plot:
-            
-                ax[1].plot(thermal_time[:len(data_len)],data_len,label=names)
-        ax[1].grid()
-        
-        ax[1].legend()
-        
-        plt.show()
-
-aftermath(plant,"botanicode/single_run_files/history.txt",Stem.__name__)
+fig,ax = plt.subplots()
+plant.structure.plot_value("rank",[Stem,Leaf],ax)
+plt.show()

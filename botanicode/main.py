@@ -44,6 +44,7 @@ class StemState(NodeState):
     age: int = 0
     water: float = 0.0
     direction: np.ndarray =  field(default_factory=lambda: np.array([0, 0, 1]))
+    tt: float = 0.0
 
 @dataclass
 class LeafState(NodeState):
@@ -57,6 +58,7 @@ class LeafState(NodeState):
     outline_function: callable = plant_reg.phylotaxis["outline_function"]
     y_angle: float = plant_reg.phylotaxis["y_angle"]
     z_angle: float = 0
+    tt: float = 0.0
 
 
 
@@ -89,6 +91,8 @@ node_factory.add_blueprint(RAM, RAMState, PointShape)
 class PlantState(PlantState):
     #it also has the plant height
     internodes_no : int = 0
+    expected_internodes_no : int = 0
+    tt : float = 0.0
     
 state = PlantState()
 
@@ -101,23 +105,29 @@ stem_rule = Rule( trainable = False, is_dynamic = False, no_params = 0)
 def stem_length_rule(plant : Plant, params : np.array):
     nodes = [node for node in plant.structure.G.nodes() if isinstance(node, Stem)]
     for node in nodes:
+        node.state.tt += max(0, node.state.temp - 10)
         #logistic growth
-        node.state.length = (5 + (node.id -1  - 4)**2 ) / (1 + np.exp(-0.5 * (node.state.age)))
+        if node.id + 1 >= 14:
+            node.state.max_lenght = 10.33+ (4.5-10.33)/(1 + np.exp( (14 - 10.9)/1.7))
+        else:
+            node.state.max_lenght = 10.33+ (4.5-10.33)/(1 + np.exp( (node.id +1 - 10.9)/1.7))
+
+        node.state.length = node.state.max_lenght /(1+5.022*np.exp(-0.062*node.state.tt))
         if node.id == 0:
             node.state.water = 10 
 stem_rule.set_action(stem_length_rule)
 
 
-rachid_rule = Rule( trainable = False, is_dynamic = False, no_params = 0)
+rachid_rule = Rule( trainable = True, is_dynamic = False, no_params = 1)
 def leaf_rachid_rule(plant : Plant, params : np.array):
     nodes = [node for node in plant.structure.G.nodes() if isinstance(node, Leaf)]
     for node in nodes:
         #logistic growth
-        node.state.rachid_size = 0.3*node.state.size
+        node.state.rachid_size = params[0]*node.state.size
 rachid_rule.set_action(leaf_rachid_rule)
 
 # create a dynamic rule for the leaves
-leaf_rule = Rule(trainable = False, is_dynamic = True, no_params = 0)
+leaf_rule = Rule(trainable = True, is_dynamic = True, no_params = 1)
 def leaf_size_rule(t,y, plant: Plant, params : np.array):
     # deve essere una funzione che restituisce il rhs dell'equazione differenziale 
     # perché viene data in pasto a ODEINT che la risolve -> t,y, args
@@ -125,15 +135,19 @@ def leaf_size_rule(t,y, plant: Plant, params : np.array):
     nodes = [node for node in plant.structure.G.nodes() if isinstance(node, Leaf)]
     for node in nodes:
         node.state.s_max = 4*(node.parent.id+1)
-        rhs.append(0.5/node.state.s_max * node.state.size * ( node.state.s_max -  node.state.size))
+        rhs.append(params[0]/node.state.s_max * node.state.size * ( node.state.s_max -  node.state.size))
 
     return np.array(rhs)
-leaf_rule.set_action(leaf_size_rule, "size",[Leaf])
+leaf_rule.set_action(leaf_size_rule, "size", [Leaf])
 
 # create a rule for the plant
 plant_rule = Rule( trainable = False, is_dynamic = False, no_params = 0)
+
 def plant_rule_action(plant : Plant, params : np.array):
-    plant.plant_state.internodes_no = len([node for node in plant.structure.G.nodes() if isinstance(node, Stem)])
+    plant.state.internodes_no = len([node for node in plant.structure.G.nodes() if isinstance(node, Stem)])
+    apical_temp = np.mean([node.state.temp for node in plant.structure.G.nodes() if isinstance(node, SAM)])
+    plant.state.tt = plant.state.tt + max(0, apical_temp - 10)
+    plant.state.expected_internodes_no = 36.61/(1+ 43.05* np.exp(-0.008*plant.state.tt))
 plant_rule.set_action(plant_rule_action)
 
 water_dynamic = Rule(trainable = False, is_dynamic = True, no_params = 0)
@@ -154,13 +168,29 @@ water_dynamic.set_action(water_diffusion, "water",[Stem,Leaf])
 
 
 # create a rule for shooting
+# create a rule for shooting
 def shoots_if_rule(plant : Plant):
-    list_to_shoot = []
-    for node in plant.structure.G.nodes():
-        if isinstance(node, SAM) and plant.plant_state.internodes_no < 3:
-            list_to_shoot.append(node)
-            
+    list_to_shoot = [] #this is a list of tuples (nodes from which to shoot, the amout of shoots to do from that node)
+
+
+    #list of sams 
+    sams = [node for node in plant.structure.G.nodes() if isinstance(node, SAM)]
+
+    #distribute the nodes to shoot on the sams equally
+    nodes_to_shoot = int(np.ceil(plant.state.expected_internodes_no - plant.state.internodes_no))
+
+    if sams:
+        shoots_per_sam = nodes_to_shoot // len(sams)
+        remaining_shoots = nodes_to_shoot % len(sams)
+
+        for sam in sams:
+            shoots = shoots_per_sam + (1 if remaining_shoots > 0 else 0)
+            if remaining_shoots > 0:
+                remaining_shoots -= 1
+            list_to_shoot.append((sam, shoots))
+
     return list_to_shoot
+
 
 
 # create a model to store the rules
@@ -183,7 +213,7 @@ model.env_reads = env_reads
 # create a simulation
 
 dt = 1
-max_time = 40
+max_time = 20
 sim = Simulation(plant, model, clock, env, ni)
 
 ni.set_dt(dt)
@@ -191,5 +221,11 @@ sim.run(max_t=max_time,delta_t=dt)
 
 plant.plot()
 import matplotlib.pyplot as plt
+plt.show()
+
+
+fig, ax = plt.subplots(2,1)
+plant.structure.plot_value("water",[Stem,Leaf],ax[0])
+plant.structure.plot(ax[1])
 plt.show()
 
