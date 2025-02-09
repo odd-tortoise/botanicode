@@ -24,7 +24,11 @@ class Tracker:
             nodes (iterable): An iterable of nodes with `name`, `state.__dict__`, and class type.
         """
         
-        node_data = copy.deepcopy(node.state.__dict__)
+        node_data_full = copy.deepcopy(node.state.__dict__)
+        # keep only the numerical values
+        node_data = {key: value for key, value in node_data_full.items() if isinstance(value, (int, float))}
+        
+        
         node_name = node.name
         node_type = type(node)
         
@@ -272,7 +276,7 @@ class Plant:
         self.update()
 
     def apply_rule(self,rule):
-        rule.action(self, rule.params)
+        rule.apply(self)
 
     def apply_dynamic_rule(self,rule,t,solver):
         y = []

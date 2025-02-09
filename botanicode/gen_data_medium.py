@@ -13,7 +13,7 @@ from plant import Plant, PlantState
 from plant_reg import PlantRegulation
 
 from model import Model, StaticRule, DynamicRule
-from utils import Dataset,NumericalIntegrator
+from utils import NumericalIntegrator
 
 
 
@@ -23,9 +23,6 @@ env_setting_file = "botanicode/single_run_files/env_setting.json"
 
 # create a clock
 clock = Clock(photo_period=(8,18),step="hour")
-
-#create environment
-env = Environment().set_env(env_setting_file)
 
 # create a numerical integrator for the ODEs 
 ni = NumericalIntegrator("forward_euler")
@@ -43,7 +40,6 @@ class StemState(NodeState):
     radius: float = 0.1
     age: int = 0
     direction: np.ndarray =  field(default_factory=lambda: np.array([0, 0, 1]))
-    tt : float = 0.0
 
 @dataclass
 class LeafState(NodeState):
@@ -56,8 +52,6 @@ class LeafState(NodeState):
     outline_function: callable = plant_reg.phylotaxis["outline_function"]
     y_angle: float = plant_reg.phylotaxis["y_angle"]
     z_angle: float = 0
-    tt : float = 0.0
-
 
 @dataclass
 class RootState(NodeState):
@@ -88,7 +82,7 @@ class PlantState(PlantState):
     #it also has the plant height
     internodes_no : int = 0
     expected_internodes_no : int = 0
-    tt : float = 0.0
+    age : float = 0.0
     
 state = PlantState()
 
@@ -96,47 +90,45 @@ state = PlantState()
 # create a plant
 plant = Plant(reg = plant_reg, node_factory = node_factory, plant_state = state)
 
-# create a rule for the evolution of the stem, based on the termal time 
-
+# create a rule for the stems
 def stem_length_rule(plant : Plant, params : np.array):
     nodes = [node for node in plant.structure.G.nodes() if isinstance(node, Stem)]
     for node in nodes:
-        node.state.tt += max(0, node.state.temp - 10)
-        #logistic growth
-        if node.id + 1 >= 14:
-            node.state.max_lenght = 10.33+ (4.5-10.33)/(1 + np.exp( (14 - 10.9)/1.7))
-        else:
-            node.state.max_lenght = 10.33+ (4.5-10.33)/(1 + np.exp( (node.state.rank - 10.9)/1.7))
+        node.state.length = (8+1.3*node.state.temp) /(1+5*np.exp(-0.06*node.state.age))
 
-        node.state.length = node.state.max_lenght /(1+5.022*np.exp(-0.062*node.state.tt))
 stem_rule = StaticRule(action=stem_length_rule)
 
 
-def leaf_size_rule(plant : Plant, params : np.array):
+def leaf_rachid_rule(plant : Plant, params : np.array ):
     nodes = [node for node in plant.structure.G.nodes() if isinstance(node, Leaf)]
     for node in nodes:
         #logistic growth
-        node.state.tt = node.state.tt + max(0, node.state.temp - 10) # thermal time is the sum of the daily thermal time
-   
-        if node.id + 1 >= 8:
-            node.state.size = 21.69 + (-4.09- 21.69)/(1 + np.exp( (node.state.rank - 20.69)/48.84))
-            node.state.petioles_size =21.30 /(1+7.387*np.exp(-0.021*node.state.tt))
-        else:
-            node.state.size = 19.91 + (2.8 - 19.91)/(1 + np.exp( (node.state.rank - 58.95)/33.87))
-            node.state.petioles_size =21.30 /(1+7.387*np.exp(-0.021*node.state.tt))
-        
-        node.state.rachid_size = node.state.petioles_size
-leaf_rule = StaticRule(action=leaf_size_rule)
+        node.state.rachid_size = 0.5*node.state.size
+rachid_rule = StaticRule(action=leaf_rachid_rule)
 
+# create a dynamic rule for the leaves
 
+def leaf_size_rule(t,y, plant: Plant, params : np.array):
+    # deve essere una funzione che restituisce il rhs dell'equazione differenziale 
+    # perché viene data in pasto a ODEINT che la risolve -> t,y, args
+    rhs = []
+    nodes = [node for node in plant.structure.G.nodes() if isinstance(node, Leaf)]
+    for node in nodes:
+        node.state.s_max = 1 +0.1*node.state.temp * (node.state.light/100) 
+        rhs.append((0.5)/node.state.s_max * node.state.size * ( node.state.s_max -  node.state.size))
+
+    return np.array(rhs)
+leaf_rule = DynamicRule(action=leaf_size_rule, var = "size", types = [Leaf])
 
 # create a rule for the plant
+
 def plant_rule_action(plant : Plant, params : np.array):
     plant.state.internodes_no = len([node for node in plant.structure.G.nodes() if isinstance(node, Stem)])
     apical_temp = np.mean([node.state.temp for node in plant.structure.G.nodes() if isinstance(node, SAM)])
-    plant.state.tt = plant.state.tt + max(0, apical_temp - 10)
-    plant.state.expected_internodes_no = 36.61/(1+ 43.05* np.exp(-0.008*plant.state.tt))
+    plant.state.age +=1
+    plant.state.expected_internodes_no = 2+plant.state.age if plant.state.age < 4 else 5
 plant_rule = StaticRule(action=plant_rule_action)
+
 
 # create a rule for shooting
 def shoots_if_rule(plant : Plant):
@@ -162,13 +154,14 @@ def shoots_if_rule(plant : Plant):
     return list_to_shoot
 
 
-
 # create a model to store the rules
 model = Model("tomato")
 model.add_rule(stem_rule)
 model.add_rule(leaf_rule)
 model.add_rule(plant_rule)
+model.add_rule(rachid_rule)
 model.add_shooting_rule(shoots_if_rule)
+
 
 env_reads = { 
                 Stem: ["temp"],
@@ -179,25 +172,43 @@ model.env_reads = env_reads
 
 
 # create a simulation
-
 dt = 1
-max_time = 50
-sim = Simulation(plant, model, clock, env, ni)
+max_time = 25
+sim = Simulation(solver=ni, folder=result_folder, model=model)
 
-ni.set_dt(dt)
-sim.run(max_t=max_time,delta_t=dt)
+env = Environment().set_env(env_setting_file)
+temperatures = [15, 20, 25]
+PARs = [500, 750, 900]
 
-plant.plot()
 import matplotlib.pyplot as plt
+import pickle
+
+# Create subplots with appropriate projections
+fig = plt.figure(figsize=(10, 10))
+axes = []
+
+
+
+for i,temp in enumerate(temperatures):
+    for j, PAR in enumerate(PARs):
+        env.air.temperature = temp
+        env.sky.par = PAR
+        plant.reset()
+        clock.elapsed_time = 0
+    
+
+        sim.run(max_t=max_time,delta_t=dt, plant=plant, clock=clock, env = env)
+        ax = fig.add_subplot(3, 3, 3*i + j+1, projection='3d')
+        plant.plot(ax=ax)
+        ax.set_title(f"Temp: {temp} PAR: {PAR}")
+
+
+        # save the plant and the env
+        with open(f"botanicode/training_files/medium/plant_{temp}_{PAR}.pkl", "wb") as f:
+            pickle.dump((env,plant.history), f)
+
+
 plt.show()
 
 
-plant.history.plot_field(Stem,"S0", "length")
 
-print(plant.history.extract_field_for_node(Stem,"S4", "rank"))
-
-print(plant.history.extract_field_for_node(Leaf,"L41", "rank"))
-
-fig,ax = plt.subplots()
-plant.structure.plot_value("rank",[Stem,Leaf],ax)
-plt.show()

@@ -3,10 +3,12 @@ from scipy.optimize import minimize
 
 import numpy as np
 from botanical_nodes import Stem, Leaf, Root, SAM, RAM
-from env import Environment
-from utils import NumericalIntegrator
 
-class SimClock:
+from model import Model
+from env import Environment
+from utils import NumericalIntegrator, BaseOptimizer, EvolutionaryOptimizer
+
+class Clock:
     def __init__(self, photo_period=(8, 18), step="hour"):
         """
         Initialize the simulation clock.
@@ -81,40 +83,23 @@ class SimClock:
         }
 
 class Simulation:
- 
-    def __init__(self, plant, model, clock : SimClock, env: Environment, solver : NumericalIntegrator):
+    def __init__(self, solver : NumericalIntegrator, folder : str, model : Model):
         """
         Initialize the Simulation.
         
         :param config: Configuration dictionary or path to configuration file.
         :param clock: SimClock object to use for the simulation.
         """
-        
-        
-        self.model = model
-        self.env = env
-        self.plant = plant
-        self.clock = clock
+
         self.solver = solver
-
-
 
         #self.before_tasks = tasks["before"] if "before" in tasks else {}
         #self.after_tasks = tasks["after"] if "after" in tasks else {}
         #self.during_tasks = tasks["during"] if "during" in tasks else {}
 
-        #self.folder = folder
+        self.folder = folder
+        self.model = model
 
-        
-    def load_config(self, config):
-        """Load configuration from a file or dictionary."""
-        if isinstance(config, str):  # File path
-            with open(config, 'r') as f:
-                return json.load(f)
-        elif isinstance(config, dict):
-            return config
-        else:
-            raise ValueError("Config must be a file path or a dictionary.")
         
     def execute_tasks(self, phase, step=None):
        
@@ -140,7 +125,7 @@ class Simulation:
             
             task(*args, **kwargs)
 
-    def run(self, max_t, delta_t):
+    
         """Run the simulation for a specified number of steps.
         if not hasattr(self, 'clock'):
             raise ValueError("A clock must be set up before running the simulation.")
@@ -232,74 +217,86 @@ class Simulation:
 
     # fare le cose con lo state, potrebbe essere utile
     """
+    
+    def run(self, max_t, delta_t, plant, env, clock):
+        self.solver.set_dt(delta_t)
         
-        self.plant.snapshot(timestamp = self.clock.get_elapsed_time())
-        while(self.clock.elapsed_time < max_t):
-            self.plant.probe(self.env, self.model.env_reads,self.clock.elapsed_time)
+        # clip the trainable parameters to the bounds
+        if self.model.get_trainable_params() is not None:
+            self.model.set_trainable_params(self.model.get_trainable_params())
+        
+        plant.snapshot(timestamp = clock.get_elapsed_time())
+        while(clock.elapsed_time < max_t):
+            plant.probe(env, self.model.env_reads,clock.elapsed_time)
 
             # apply the rules plant-level
             for rule in self.model.dynamic_rules:
-                self.plant.apply_dynamic_rule(rule,self.clock.elapsed_time,self.solver)
+                plant.apply_dynamic_rule(rule,clock.elapsed_time,self.solver)
 
-            for rule in self.model.rules:
-                self.plant.apply_rule(rule)
+            for rule in self.model.static_rules:
+                rule.apply(plant)
 
-            self.plant.grow(delta_t,self.env,self.model,self.clock.elapsed_time)
-            self.clock.tick(delta_t)
-            self.plant.snapshot(timestamp = self.clock.get_elapsed_time())
+            plant.grow(delta_t,env,self.model,clock.elapsed_time)
+            clock.tick(delta_t)
+            plant.snapshot(timestamp = clock.get_elapsed_time())
 
-        self.plant.history.save_to_file("botanicode/single_run_files/history.txt")
+        #plant.history.save_to_file(self.folder + "history.txt")
 
+    @staticmethod
+    def compute_loss_for_plant(model, history_obs, history_exp):
+        """
+        Compute the loss for one plant by summing losses from all provided loss functions.
+        We assume that model.loss_functions is a list of callable loss functions.
+        Each loss function takes (plant_obs, plant_exp) as arguments.
+        """
+        loss = []
+        for loss_function in model.loss_functions:
+            loss.append(loss_function(history_obs, history_exp))
+        return np.array(loss)
 
+    def compute_total_loss(self, plant, clock, dataset, max_t, delta_t, batch_size):
+        """
+        Compute the total loss over the dataset.
+        For each (env, plant_target) pair in the dataset, run the simulation and compute the loss.
         
-
-    def reset_simulation(self):
         """
-        Reset the simulation to the initial state.
+        total_loss = 0.0
+        losses = np.array([0.0]*len(self.model.loss_functions))
+        num_samples = batch_size
+        extracted_samples = np.random.choice(len(dataset), num_samples, replace=False)
+
+
+        for env, hist_target in [dataset[i] for i in extracted_samples]:
+            # Create a deep copy of the plant so that each simulation run is independent.
+            plant.reset()
+            clock.elapsed_time = 0
+            # Run simulation.
+            self.run(max_t, delta_t, plant, env, clock)
+            # Compute loss using the model's loss functions.
+            loss = Simulation.compute_loss_for_plant(self.model, plant.history.data, hist_target.data)
+        
+            losses+=loss
+
+        losses = losses/num_samples
+        
+        total_loss = sum(losses)
+
+        return losses, total_loss
+
+    def tune(self, plant, clock, dataset, max_t, delta_t, batch_size=4, optimizer: BaseOptimizer = None):
         """
-        self.plant.reset()
-        self.clock.elapsed_time = 0
-
-
-    def tune(self, dataset, max_t, delta_t):
+        Tune the model's parameters using the provided optimizer.
+        
+        Parameters:
+            plant, clock, dataset, max_t, delta_t, batch_size: Simulation parameters.
+            optimizer: An instance of a class that implements BaseOptimizer.
+                       If None, a default EvolutionaryOptimizer is used.
+        
+        Returns:
+            best_parameters: The optimized parameter set (in constrained space).
+            optimization_info: Additional info or history provided by the optimizer.
         """
-        Tune the parameters of the model using the provided dataset.
-        """
-        # Extract trainable parameters from all rules
-
-        import matplotlib.pyplot as plt
-        initial_params = self.model.get_trainable_params()
-
-        def loss_fn(params):
-            """
-            Loss function for optimization.
-            """
-            
-            self.model.set_trainable_params(params)  # Update parameters
-            total_loss = 0
-
-            # Evaluate the model
-            # questo dorebbe essre un loop su tutti i dati-env
-            self.reset_simulation()  # Reset plant to initial state
-            self.run(max_t=max_t, delta_t=delta_t)
-
-            for key, value in dataset.data.items():
-                # key is the internode number
-                # value is the list of lengths vs time
-                target = value
-                timestamps,simulated_lengths = self.plant.history.get_variable_over_time("Stem","S"+str(key+1),"length")
-                
-                # compute the loss considering the lengths of the internodes at the same time
-                # pad the simulated lengths with zeros
-
-                total_loss += np.sum((np.array(target) - np.array(simulated_lengths))**2)
-
-
-            print(total_loss)
-            return total_loss
-
-        # Optimize parameters (e.g., using gradient descent or Scipy optimization)
-        result = minimize(loss_fn, initial_params, method="L-BFGS-B")
-        self.model.set_trainable_params(result.x)
-
-
+        if optimizer is None:
+            optimizer = EvolutionaryOptimizer()
+        best_parameters, optimization_info = optimizer.optimize(self, plant, clock, dataset, max_t, delta_t, batch_size)
+        return best_parameters, optimization_info

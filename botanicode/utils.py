@@ -136,31 +136,74 @@ def animate(img_folder, fps=1, save_name="animation.mp4", dpi=100):
 
     print(f"Animation completed. Saved to {save_path}.")
 
+from abc import ABC, abstractmethod
 
-class Dataset:
-    def __init__(self):
-        self.data = {}
+class BaseOptimizer(ABC):
+    @abstractmethod
+    def optimize(self, simulation, plant, clock, dataset, max_t, delta_t, batch_size=4):
+        """
+        Run the optimization and return the best parameters along with any additional history/info.
+        """
+        pass
 
-        self.create_data()
 
-    
-    def create_data(self):
-        n_internodes = 8
-        T_max = 20
+import numpy as np
 
-        internode_length_max = lambda i: 5+(i-4)**2
+class EvolutionaryOptimizer(BaseOptimizer):
+    def __init__(self, max_epochs=100, pop_size=20, mutation_scale=0.1, loss_threshold=1e-3):
+        self.max_epochs = max_epochs
+        self.pop_size = pop_size
+        self.mutation_scale = mutation_scale
+        self.loss_threshold = loss_threshold
+
+    def optimize(self, simulation, plant, clock, dataset, max_t, delta_t, batch_size=4):
+        # Retrieve the current (unconstrained) parameters.
+        simulation.model.set_trainable_params(simulation.model.get_trainable_params())
+        best_params_unconstrained = simulation.model.get_trainable_params()
+        print(f"Initial parameters: {best_params_unconstrained}")   
         
-        # Create some dummy data
-        for i in range(n_internodes):
-            # each internode has a sigmoidal growth curve
-            self.data[i] = []
-            for t in range(i,T_max):
-                self.data[i].append(internode_length_max(i) / (1 + np.exp(-0.5 *t + T_max / 4) ) +1) 
+        losses, best_loss = simulation.compute_total_loss(plant, clock, dataset, max_t, delta_t, batch_size)
+        history = [(losses, best_loss)]
+        print(f"Initial total loss: {best_loss:.4f}")
 
-            
+        for epoch in range(self.max_epochs):
+            # Create a population via mutations.
+            population = [
+                best_params_unconstrained + np.random.randn(*best_params_unconstrained.shape) * self.mutation_scale
+                for _ in range(self.pop_size)
+            ]
+            candidate_losses = []
+            candidate_total_loss = []
+            candidate_params = []
+            for candidate in population:
+                simulation.model.set_trainable_params(candidate)
+                candidate_params.append(simulation.model.get_trainable_params())
+                try:
+                    losses_candidate, loss_candidate = simulation.compute_total_loss(plant, clock, dataset, max_t, delta_t, batch_size)
+                except Exception as e:
+                    print("Error during evaluation:", e)
+                    loss_candidate = np.inf
+                    losses_candidate = np.array([np.inf] * len(simulation.model.loss_functions))
+                candidate_losses.append(losses_candidate)
+                candidate_total_loss.append(loss_candidate)
 
-    def plot(self):
-        for key, value in self.data.items():
-            plt.plot(value, label=key, marker='o')
-        plt.legend()
-        plt.show()
+            best_idx = np.argmin(candidate_total_loss)
+            if candidate_total_loss[best_idx] < best_loss:
+                best_loss = candidate_total_loss[best_idx]
+                best_params_unconstrained = candidate_params[best_idx]
+                print(f"Epoch {epoch+1}: New best loss = {best_loss:.4f}, params = {best_params_unconstrained}")
+            else:
+                print(f"Epoch {epoch+1}: No improvement. Best loss remains = {best_loss:.4f}")
+
+            history.append((candidate_losses[best_idx], best_loss))
+            # Early stopping
+            if best_loss < self.loss_threshold:
+                print(f"Early stopping at epoch {epoch+1} with loss {best_loss:.4f}")
+                break
+
+            simulation.model.set_trainable_params(best_params_unconstrained)
+
+        # Final transformation before setting the parameters in the model.
+        best_parameters = simulation.model.get_trainable_params()
+        simulation.model.set_trainable_params(best_parameters)
+        return best_parameters, history

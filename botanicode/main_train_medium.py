@@ -13,23 +13,20 @@ from plant import Plant, PlantState
 from plant_reg import PlantRegulation
 
 from model import Model, StaticRule, DynamicRule
-from utils import Dataset,NumericalIntegrator
+from utils import NumericalIntegrator
 
 
 
-result_folder = "results_main/"
+result_folder = "results_main"
 
 env_setting_file = "botanicode/single_run_files/env_setting.json"
 
 # create a clock
 clock = Clock(photo_period=(8,18),step="hour")
 
-#create environment
-env = Environment().set_env(env_setting_file)
-
 # create a numerical integrator for the ODEs 
 ni = NumericalIntegrator("forward_euler")
-
+                             
 # create a plant regulation file
 plant_regulation_file = "botanicode/single_run_files/tomato.json"
 plant_reg = PlantRegulation(plant_regulation_file)
@@ -42,9 +39,7 @@ class StemState(NodeState):
     length: float = 1.0
     radius: float = 0.1
     age: int = 0
-    water: float = 0.0
     direction: np.ndarray =  field(default_factory=lambda: np.array([0, 0, 1]))
-    tt: float = 0.0
 
 @dataclass
 class LeafState(NodeState):
@@ -52,16 +47,11 @@ class LeafState(NodeState):
     petioles_size: float = 0.1
     rachid_size: float = 1
     age: int = 0
-    water : float = 0.0
     leaflets_number: int = plant_reg.phylotaxis["leaflets_number"]
     leaf_bending_rate: float = plant_reg.phylotaxis["leaf_bending_rate"]
     outline_function: callable = plant_reg.phylotaxis["outline_function"]
     y_angle: float = plant_reg.phylotaxis["y_angle"]
     z_angle: float = 0
-    tt: float = 0.0
-
-
-
 
 @dataclass
 class RootState(NodeState):
@@ -92,7 +82,7 @@ class PlantState(PlantState):
     #it also has the plant height
     internodes_no : int = 0
     expected_internodes_no : int = 0
-    tt : float = 0.0
+    age : float = 0.0
     
 state = PlantState()
 
@@ -104,25 +94,18 @@ plant = Plant(reg = plant_reg, node_factory = node_factory, plant_state = state)
 def stem_length_rule(plant : Plant, params : np.array):
     nodes = [node for node in plant.structure.G.nodes() if isinstance(node, Stem)]
     for node in nodes:
-        node.state.tt += max(0, node.state.temp - 10)
-        #logistic growth
-        if node.id + 1 >= 14:
-            node.state.max_lenght = 10.33+ (4.5-10.33)/(1 + np.exp( (14 - 10.9)/1.7))
-        else:
-            node.state.max_lenght = 10.33+ (4.5-10.33)/(1 + np.exp( (node.id +1 - 10.9)/1.7))
+        node.state.length = (10+params[0]*node.state.temp) /(1+params[1]*np.exp(-params[2]*node.state.age))
 
-        node.state.length = node.state.max_lenght /(1+5.022*np.exp(-0.062*node.state.tt))
-        if node.id == 0:
-            node.state.water = 10 
-stem_rule = StaticRule(action=stem_length_rule)
+stem_rule = StaticRule(action=stem_length_rule, trainable= True, no_params=3)
+stem_rule.set_bounds([(0, 10), (0, 10), (0,0.5)])
 
 
 def leaf_rachid_rule(plant : Plant, params : np.array ):
     nodes = [node for node in plant.structure.G.nodes() if isinstance(node, Leaf)]
     for node in nodes:
         #logistic growth
-        node.state.rachid_size = params[0]*node.state.size
-rachid_rule = StaticRule(action=leaf_rachid_rule, trainable = False, no_params = 1)
+        node.state.rachid_size = 0.5*node.state.size
+rachid_rule = StaticRule(action=leaf_rachid_rule)
 
 # create a dynamic rule for the leaves
 
@@ -132,39 +115,22 @@ def leaf_size_rule(t,y, plant: Plant, params : np.array):
     rhs = []
     nodes = [node for node in plant.structure.G.nodes() if isinstance(node, Leaf)]
     for node in nodes:
-        node.state.s_max = 4*(node.parent.id+1)
-        rhs.append(params[0]/node.state.s_max * node.state.size * ( node.state.s_max -  node.state.size))
+        node.state.s_max =  1 +params[0]*node.state.temp * (node.state.light/100) 
+        rhs.append((params[1])/node.state.s_max * node.state.size * ( node.state.s_max -  node.state.size))
 
     return np.array(rhs)
-leaf_rule = DynamicRule(action=leaf_size_rule, var = "size", types = [Leaf], trainable = False, no_params = 1)
-
+leaf_rule = DynamicRule(action=leaf_size_rule, var = "size", types = [Leaf], trainable = True, no_params = 2)
+leaf_rule.set_bounds([(0, 2), (0, 1)])
 # create a rule for the plant
 
 def plant_rule_action(plant : Plant, params : np.array):
     plant.state.internodes_no = len([node for node in plant.structure.G.nodes() if isinstance(node, Stem)])
     apical_temp = np.mean([node.state.temp for node in plant.structure.G.nodes() if isinstance(node, SAM)])
-    plant.state.tt = plant.state.tt + max(0, apical_temp - 10)
-    plant.state.expected_internodes_no = 36.61/(1+ 43.05* np.exp(-0.008*plant.state.tt))
+    plant.state.age +=1
+    plant.state.expected_internodes_no = 2+plant.state.age if plant.state.age < 4 else 5
 plant_rule = StaticRule(action=plant_rule_action)
 
 
-def water_diffusion(t, y, plant: Plant, params : np.array):
-    graph = plant.structure.G
-
-    # extract the subgraph of the plant made by the nodes of interest
-    subgraph = graph.subgraph([node for node in graph.nodes() if isinstance(node, Stem) or isinstance(node, Leaf)])
-
-
-    L = nx.laplacian_matrix(subgraph).todense() 
-
-    
-
-    rhs = - (L @ y)
-    return np.array(rhs)
-water_dynamic = DynamicRule(action=water_diffusion, var = "water", types = [Stem,Leaf], trainable = False, no_params = 0)
-
-
-# create a rule for shooting
 # create a rule for shooting
 def shoots_if_rule(plant : Plant):
     list_to_shoot = [] #this is a list of tuples (nodes from which to shoot, the amout of shoots to do from that node)
@@ -190,14 +156,104 @@ def shoots_if_rule(plant : Plant):
 
 
 
+def loss_stem(history_obs: Plant, history_exp: Plant):
+    # Retrieve the history dictionaries.
+    # Get the history dictionaries for Stem nodes.
+    stem_obs = history_obs.get(Stem, {})  # dictionary: { node_name: [ [timestamp, node_data], ... ] }
+    stem_exp = history_exp.get(Stem, {})
+
+    total_loss = 0.0
+    # Compute the union of all node names (keys) for Stem nodes.
+    node_names = set(stem_obs.keys()).union(set(stem_exp.keys()))
+
+
+
+    # For each node in the union, compare their snapshot histories.
+    for node_name in node_names:
+        snapshots_obs = stem_obs.get(node_name, [])
+        snapshots_exp = stem_exp.get(node_name, [])
+        
+        # Determine the number of snapshots to compare.
+        n_snapshots = max(len(snapshots_obs), len(snapshots_exp))
+
+        node_loss = 0.0
+        
+        # For each snapshot index, extract the length. If a snapshot is missing, default to 0.
+        for i in range(n_snapshots):
+            if i < len(snapshots_obs):
+                # Each snapshot is assumed to be [timestamp, node_data]
+                obs_length = snapshots_obs[i][1].get("length", 0)
+            else:
+                obs_length = 0
+
+            if i < len(snapshots_exp):
+                exp_length = snapshots_exp[i][1].get("length", 0)
+            else:
+                exp_length = 0
+
+            node_loss += (obs_length - exp_length) ** 2
+
+        total_loss += node_loss/n_snapshots
+
+    
+    return total_loss
+
+
+
+def loss_leaves(history_obs: Plant, history_exp: Plant):
+    # Retrieve the history dictionaries.
+    # Get the history dictionaries for Stem nodes.
+    stem_obs = history_obs.get(Leaf, {})  # dictionary: { node_name: [ [timestamp, node_data], ... ] }
+    stem_exp = history_exp.get(Leaf, {})
+
+    total_loss = 0.0
+    # Compute the union of all node names (keys) for Stem nodes.
+    node_names = set(stem_obs.keys()).union(set(stem_exp.keys()))
+
+
+
+    # For each node in the union, compare their snapshot histories.
+    for node_name in node_names:
+        snapshots_obs = stem_obs.get(node_name, [])
+        snapshots_exp = stem_exp.get(node_name, [])
+        
+        # Determine the number of snapshots to compare.
+        n_snapshots = max(len(snapshots_obs), len(snapshots_exp))
+
+        node_loss = 0.0
+        
+        # For each snapshot index, extract the length. If a snapshot is missing, default to 0.
+        for i in range(n_snapshots):
+            if i < len(snapshots_obs):
+                # Each snapshot is assumed to be [timestamp, node_data]
+                obs_length = snapshots_obs[i][1].get("size", 0)
+            else:
+                obs_length = 0
+
+            if i < len(snapshots_exp):
+                exp_length = snapshots_exp[i][1].get("size", 0)
+            else:
+                exp_length = 0
+
+            node_loss += (obs_length - exp_length) ** 2
+
+        total_loss += node_loss/n_snapshots
+
+    
+    return total_loss
+
+
+
+
 # create a model to store the rules
 model = Model("tomato")
 model.add_rule(stem_rule)
 model.add_rule(leaf_rule)
 model.add_rule(plant_rule)
 model.add_rule(rachid_rule)
-model.add_rule(water_dynamic)
 model.add_shooting_rule(shoots_if_rule)
+model.add_loss_function(loss_stem)
+model.add_loss_function(loss_leaves)
 
 env_reads = { 
                 Stem: ["temp"],
@@ -208,20 +264,29 @@ model.env_reads = env_reads
 
 
 # create a simulation
-
 dt = 1
-max_time = 20
+max_time = 25
 sim = Simulation(solver=ni, folder=result_folder, model=model)
 
-sim.run(max_t=max_time,delta_t=dt, plant=plant, env=env, clock=clock)
-
-plant.plot()
-import matplotlib.pyplot as plt
-plt.show()
 
 
-fig, ax = plt.subplots(2,1)
-plant.structure.plot_value("water",[Stem,Leaf],ax[0])
-plant.structure.plot(ax[1])
-plt.show()
+# load the dataset
 
+# read it from the folder
+
+dataset = []
+import pickle
+import os
+
+data_folder = "botanicode/training_files/medium/"
+
+for file in os.listdir(data_folder):
+    if file.endswith(".pkl"):
+        data = pickle.load(open(data_folder+file, "rb"))
+        dataset.append(data)
+
+from utils import EvolutionaryOptimizer
+optimizer = EvolutionaryOptimizer(max_epochs=50, pop_size=20, mutation_scale=0.1, loss_threshold=1e-3)
+    # optimizer = DifferentialEvolutionOptimizer(max_epochs=50, pop_size=20)  # Alternative option.
+
+best_params, opt_info = sim.tune(plant, clock, dataset, max_t=25, delta_t=1, batch_size=3, optimizer=optimizer)

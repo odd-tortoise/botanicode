@@ -13,7 +13,7 @@ from plant import Plant, PlantState
 from plant_reg import PlantRegulation
 
 from model import Model, StaticRule, DynamicRule
-from utils import Dataset,NumericalIntegrator
+from utils import NumericalIntegrator
 
 
 
@@ -23,9 +23,6 @@ env_setting_file = "botanicode/single_run_files/env_setting.json"
 
 # create a clock
 clock = Clock(photo_period=(8,18),step="hour")
-
-#create environment
-env = Environment().set_env(env_setting_file)
 
 # create a numerical integrator for the ODEs 
 ni = NumericalIntegrator("forward_euler")
@@ -43,7 +40,6 @@ class StemState(NodeState):
     radius: float = 0.1
     age: int = 0
     direction: np.ndarray =  field(default_factory=lambda: np.array([0, 0, 1]))
-    tt : float = 0.0
 
 @dataclass
 class LeafState(NodeState):
@@ -56,8 +52,6 @@ class LeafState(NodeState):
     outline_function: callable = plant_reg.phylotaxis["outline_function"]
     y_angle: float = plant_reg.phylotaxis["y_angle"]
     z_angle: float = 0
-    tt : float = 0.0
-
 
 @dataclass
 class RootState(NodeState):
@@ -88,7 +82,7 @@ class PlantState(PlantState):
     #it also has the plant height
     internodes_no : int = 0
     expected_internodes_no : int = 0
-    tt : float = 0.0
+    age : float = 0.0
     
 state = PlantState()
 
@@ -96,47 +90,46 @@ state = PlantState()
 # create a plant
 plant = Plant(reg = plant_reg, node_factory = node_factory, plant_state = state)
 
-# create a rule for the evolution of the stem, based on the termal time 
-
+# create a rule for the stems
 def stem_length_rule(plant : Plant, params : np.array):
     nodes = [node for node in plant.structure.G.nodes() if isinstance(node, Stem)]
     for node in nodes:
-        node.state.tt += max(0, node.state.temp - 10)
-        #logistic growth
-        if node.id + 1 >= 14:
-            node.state.max_lenght = 10.33+ (4.5-10.33)/(1 + np.exp( (14 - 10.9)/1.7))
-        else:
-            node.state.max_lenght = 10.33+ (4.5-10.33)/(1 + np.exp( (node.state.rank - 10.9)/1.7))
+        node.state.length = (10+params[0]*node.state.temp) /(1+params[1]*np.exp(-0.062*node.state.age))
 
-        node.state.length = node.state.max_lenght /(1+5.022*np.exp(-0.062*node.state.tt))
-stem_rule = StaticRule(action=stem_length_rule)
+stem_rule = StaticRule(action=stem_length_rule, trainable= True, no_params=2)
+stem_rule.set_bounds([(0, 10), (0, 10)])
 
 
-def leaf_size_rule(plant : Plant, params : np.array):
+def leaf_rachid_rule(plant : Plant, params : np.array ):
     nodes = [node for node in plant.structure.G.nodes() if isinstance(node, Leaf)]
     for node in nodes:
         #logistic growth
-        node.state.tt = node.state.tt + max(0, node.state.temp - 10) # thermal time is the sum of the daily thermal time
-   
-        if node.id + 1 >= 8:
-            node.state.size = 21.69 + (-4.09- 21.69)/(1 + np.exp( (node.state.rank - 20.69)/48.84))
-            node.state.petioles_size =21.30 /(1+7.387*np.exp(-0.021*node.state.tt))
-        else:
-            node.state.size = 19.91 + (2.8 - 19.91)/(1 + np.exp( (node.state.rank - 58.95)/33.87))
-            node.state.petioles_size =21.30 /(1+7.387*np.exp(-0.021*node.state.tt))
-        
-        node.state.rachid_size = node.state.petioles_size
-leaf_rule = StaticRule(action=leaf_size_rule)
+        node.state.rachid_size = 0.5*node.state.size
+rachid_rule = StaticRule(action=leaf_rachid_rule)
 
+# create a dynamic rule for the leaves
 
+def leaf_size_rule(t,y, plant: Plant, params : np.array):
+    # deve essere una funzione che restituisce il rhs dell'equazione differenziale 
+    # perché viene data in pasto a ODEINT che la risolve -> t,y, args
+    rhs = []
+    nodes = [node for node in plant.structure.G.nodes() if isinstance(node, Leaf)]
+    for node in nodes:
+        node.state.s_max = 4*(node.state.rank+1)
+        rhs.append((params[0]*node.state.temp)/node.state.s_max * node.state.size * ( node.state.s_max -  node.state.size))
 
+    return np.array(rhs)
+leaf_rule = DynamicRule(action=leaf_size_rule, var = "size", types = [Leaf], trainable = True, no_params = 1)
+leaf_rule.set_bounds([(0.02, 0.06)])
 # create a rule for the plant
+
 def plant_rule_action(plant : Plant, params : np.array):
     plant.state.internodes_no = len([node for node in plant.structure.G.nodes() if isinstance(node, Stem)])
     apical_temp = np.mean([node.state.temp for node in plant.structure.G.nodes() if isinstance(node, SAM)])
-    plant.state.tt = plant.state.tt + max(0, apical_temp - 10)
-    plant.state.expected_internodes_no = 36.61/(1+ 43.05* np.exp(-0.008*plant.state.tt))
+    plant.state.age +=1
+    plant.state.expected_internodes_no = 2+plant.state.age if plant.state.age < 4 else 5
 plant_rule = StaticRule(action=plant_rule_action)
+
 
 # create a rule for shooting
 def shoots_if_rule(plant : Plant):
@@ -163,12 +156,57 @@ def shoots_if_rule(plant : Plant):
 
 
 
+def loss(history_obs: Plant, history_exp: Plant):
+    # Retrieve the history dictionaries.
+    # Get the history dictionaries for Stem nodes.
+    stem_obs = history_obs.get(Stem, {})  # dictionary: { node_name: [ [timestamp, node_data], ... ] }
+    stem_exp = history_exp.get(Stem, {})
+
+    total_loss = 0.0
+    # Compute the union of all node names (keys) for Stem nodes.
+    node_names = set(stem_obs.keys()).union(set(stem_exp.keys()))
+
+
+
+    # For each node in the union, compare their snapshot histories.
+    for node_name in node_names:
+        snapshots_obs = stem_obs.get(node_name, [])
+        snapshots_exp = stem_exp.get(node_name, [])
+        
+        # Determine the number of snapshots to compare.
+        n_snapshots = max(len(snapshots_obs), len(snapshots_exp))
+
+        node_loss = 0.0
+        
+        # For each snapshot index, extract the length. If a snapshot is missing, default to 0.
+        for i in range(n_snapshots):
+            if i < len(snapshots_obs):
+                # Each snapshot is assumed to be [timestamp, node_data]
+                obs_length = snapshots_obs[i][1].get("length", 0)
+            else:
+                obs_length = 0
+
+            if i < len(snapshots_exp):
+                exp_length = snapshots_exp[i][1].get("length", 0)
+            else:
+                exp_length = 0
+
+            node_loss += (obs_length - exp_length) ** 2
+
+        total_loss += node_loss/n_snapshots
+
+    
+    return total_loss
+
+
 # create a model to store the rules
 model = Model("tomato")
 model.add_rule(stem_rule)
 model.add_rule(leaf_rule)
 model.add_rule(plant_rule)
+model.add_rule(rachid_rule)
 model.add_shooting_rule(shoots_if_rule)
+model.add_loss_function(loss)
 
 env_reads = { 
                 Stem: ["temp"],
@@ -179,25 +217,32 @@ model.env_reads = env_reads
 
 
 # create a simulation
-
 dt = 1
-max_time = 50
-sim = Simulation(plant, model, clock, env, ni)
-
-ni.set_dt(dt)
-sim.run(max_t=max_time,delta_t=dt)
-
-plant.plot()
-import matplotlib.pyplot as plt
-plt.show()
+max_time = 20
+sim = Simulation(solver=ni, folder=result_folder, model=model)
 
 
-plant.history.plot_field(Stem,"S0", "length")
 
-print(plant.history.extract_field_for_node(Stem,"S4", "rank"))
+# load the dataset
 
-print(plant.history.extract_field_for_node(Leaf,"L41", "rank"))
+# read it from the folder
 
-fig,ax = plt.subplots()
-plant.structure.plot_value("rank",[Stem,Leaf],ax)
-plt.show()
+dataset = []
+import pickle
+import os 
+
+data_folder = "botanicode/training_files/simple/"
+
+for file in os.listdir(data_folder):
+    if file.endswith(".pkl"):
+        data = pickle.load(open(data_folder+file, "rb"))
+        dataset.append(data)
+    
+
+
+from utils import EvolutionaryOptimizer
+optimizer = EvolutionaryOptimizer(max_epochs=50, pop_size=20, mutation_scale=0.1, loss_threshold=1e-3)
+    # optimizer = DifferentialEvolutionOptimizer(max_epochs=50, pop_size=20)  # Alternative option.
+
+best_params, opt_info = sim.tune(plant, clock, dataset, max_t=20, delta_t=1, batch_size=3, optimizer=optimizer)
+
