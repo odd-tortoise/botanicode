@@ -1,25 +1,21 @@
 import numpy as np
-from typing import List
 from dataclasses import dataclass, field
-import networkx as nx
 
-from env import Environment
+
+from env import Environment, Clock
+from env_components import *
 from botanical_nodes import NodeFactory, NodeState
 from botanical_nodes import Stem, Leaf, Root, SAM, RAM
 from shapes import CylinderShape, PointShape, LeafShape
-from simulator import Clock, Simulation
+from simulator import Simulation
 
 from plant import Plant, PlantState
 from plant_reg import PlantRegulation
 
-from model import Model, StaticRule, DynamicRule
-from utils import NumericalIntegrator
+from development_engine import DevelopmentEngine, StaticRule, DynamicRule
+from utils import NumericalIntegrator, EvolutionaryOptimizer
 
 
-
-result_folder = "results_main"
-
-env_setting_file = "botanicode/single_run_files/env_setting.json"
 
 # create a clock
 clock = Clock(photo_period=(8,18),step="hour")
@@ -38,7 +34,6 @@ node_factory = NodeFactory()
 class StemState(NodeState):
     length: float = 1.0
     radius: float = 0.1
-    age: int = 0
     direction: np.ndarray =  field(default_factory=lambda: np.array([0, 0, 1]))
 
 @dataclass
@@ -46,7 +41,6 @@ class LeafState(NodeState):
     size: float = 1.0
     petioles_size: float = 0.1
     rachid_size: float = 1
-    age: int = 0
     leaflets_number: int = plant_reg.phylotaxis["leaflets_number"]
     leaf_bending_rate: float = plant_reg.phylotaxis["leaf_bending_rate"]
     outline_function: callable = plant_reg.phylotaxis["outline_function"]
@@ -57,16 +51,15 @@ class LeafState(NodeState):
 class RootState(NodeState):
     length: float = 1.0
     radius: float = 0.1 
-    age: int = 0
     direction: np.ndarray = field(default_factory=lambda: np.array([0, 0, -1]))
 
 @dataclass
 class SAMState(NodeState):
-    age: int = 0
+    pass
 
 @dataclass
 class RAMState(NodeState):
-    age: int = 0
+    pass
 
 
 node_factory.add_blueprint(Stem, StemState, CylinderShape)
@@ -82,7 +75,6 @@ class PlantState(PlantState):
     #it also has the plant height
     internodes_no : int = 0
     expected_internodes_no : int = 0
-    age : float = 0.0
     
 state = PlantState()
 
@@ -125,8 +117,6 @@ leaf_rule.set_bounds([(0.02, 0.06)])
 
 def plant_rule_action(plant : Plant, params : np.array):
     plant.state.internodes_no = len([node for node in plant.structure.G.nodes() if isinstance(node, Stem)])
-    apical_temp = np.mean([node.state.temp for node in plant.structure.G.nodes() if isinstance(node, SAM)])
-    plant.state.age +=1
     plant.state.expected_internodes_no = 2+plant.state.age if plant.state.age < 4 else 5
 plant_rule = StaticRule(action=plant_rule_action)
 
@@ -156,17 +146,15 @@ def shoots_if_rule(plant : Plant):
 
 
 
-def loss(history_obs: Plant, history_exp: Plant):
+def loss(dict_obs: dict, dict_exp: dict):
     # Retrieve the history dictionaries.
     # Get the history dictionaries for Stem nodes.
-    stem_obs = history_obs.get(Stem, {})  # dictionary: { node_name: [ [timestamp, node_data], ... ] }
-    stem_exp = history_exp.get(Stem, {})
+    stem_obs = dict_obs["Nodes"].get(Stem, {})
+    stem_exp = dict_exp["Nodes"].get(Stem, {})
 
     total_loss = 0.0
     # Compute the union of all node names (keys) for Stem nodes.
     node_names = set(stem_obs.keys()).union(set(stem_exp.keys()))
-
-
 
     # For each node in the union, compare their snapshot histories.
     for node_name in node_names:
@@ -200,7 +188,7 @@ def loss(history_obs: Plant, history_exp: Plant):
 
 
 # create a model to store the rules
-model = Model("tomato")
+model = DevelopmentEngine("tomato")
 model.add_rule(stem_rule)
 model.add_rule(leaf_rule)
 model.add_rule(plant_rule)
@@ -219,14 +207,9 @@ model.env_reads = env_reads
 # create a simulation
 dt = 1
 max_time = 20
-sim = Simulation(solver=ni, folder=result_folder, model=model)
+sim = Simulation(solver=ni)
 
-
-
-# load the dataset
-
-# read it from the folder
-
+# load the dataset, read it from the folder
 dataset = []
 import pickle
 import os 
@@ -234,15 +217,64 @@ import os
 data_folder = "botanicode/training_files/simple/"
 
 for file in os.listdir(data_folder):
-    if file.endswith(".pkl"):
+    if file.endswith(".pkl") and "data" in file:
         data = pickle.load(open(data_folder+file, "rb"))
-        dataset.append(data)
+        dataset.append([data[0], data[1].data]) #data[0] is the env, data[1] is the history, data[1].data is the dictionary of the history
+
+
+optimizer = EvolutionaryOptimizer(max_epochs=2, pop_size=30, mutation_scale=0.1, loss_threshold=1e-3)
+
+best_params, opt_info = sim.tune(plant, clock, dataset, max_t=20, delta_t=1, batch_size=3, dev_eng=model,optimizer=optimizer, folder="botanicode/training_files/simple/results/")
+
+
+print("Best parameters found:", best_params)
+
+
+# run a simulation with the best parameters
+
+model.set_trainable_params(best_params)
+
+import pickle
+import matplotlib.pyplot as plt
+
+for file in os.listdir(data_folder):
+    if file.endswith(".pkl") and "plant" in file:
+        data = pickle.load(open(data_folder+file, "rb"))
+
+        env, history = data
+        plant.reset()
+        clock.elapsed_time = 0
     
+        sim.run(max_t=max_time,delta_t=dt, plant=plant, clock=clock, env = env)
+        fig, axes = plt.subplots(2, 3, figsize=(15, 10))
+        fig.suptitle(file)
+        for i in range(3):
+            ax = axes[0, i]
+            lenptime = plant.history.extract_field_for_node(Stem,f"S{i}", "length")
+            leng = [x[1] for x in lenptime]
+            exp_lenptime = history.extract_field_for_node(Stem,f"S{i}", "length")
+            expected_len = [x[1] for x in exp_lenptime]
+
+            ax.plot(leng, label="Simulated")
+            ax.plot(expected_len, label="Expected")
+            ax.set_title(f"Stem S{i}")
+            ax.legend()
 
 
-from utils import EvolutionaryOptimizer
-optimizer = EvolutionaryOptimizer(max_epochs=50, pop_size=20, mutation_scale=0.1, loss_threshold=1e-3)
-    # optimizer = DifferentialEvolutionOptimizer(max_epochs=50, pop_size=20)  # Alternative option.
+            ax2 = axes[1, i]
+            
+            sizeptime = plant.history.extract_field_for_node(Leaf,f"L{i}0", "size")
+            size = [x[1] for x in sizeptime]
+            exp_sizeptime = history.extract_field_for_node(Leaf,f"L{i}0", "size")
+            expected_size = [x[1] for x in exp_sizeptime]
 
-best_params, opt_info = sim.tune(plant, clock, dataset, max_t=20, delta_t=1, batch_size=3, optimizer=optimizer)
+            
+            ax2.plot(size, label="Simulated")
+            ax2.plot(expected_size, label="Expected")
+            ax2.set_title(f"Leaf S{i}")
+            ax2.legend()
 
+        fig.tight_layout(rect=[0, 0, 1, 0.96]) 
+        
+        
+        plt.savefig(f"botanicode/training_files/simple/{file[:-4]}.png")

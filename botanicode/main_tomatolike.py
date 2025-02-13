@@ -12,8 +12,8 @@ from simulator import Clock, Simulation
 from plant import Plant, PlantState
 from plant_reg import PlantRegulation
 
-from model import Model, StaticRule, DynamicRule
-from utils import Dataset,NumericalIntegrator
+from botanicode.development_engine import Model, StaticRule, DynamicRule
+from utils import NumericalIntegrator
 
 
 
@@ -181,11 +181,10 @@ model.env_reads = env_reads
 # create a simulation
 
 dt = 1
-max_time = 50
-sim = Simulation(plant, model, clock, env, ni)
+max_time = 20
+sim = Simulation(solver=ni, folder=result_folder, model=model)
 
-ni.set_dt(dt)
-sim.run(max_t=max_time,delta_t=dt)
+sim.run(max_t=max_time,delta_t=dt, plant=plant, env=env, clock=clock)
 
 plant.plot()
 import matplotlib.pyplot as plt
@@ -194,7 +193,7 @@ plt.show()
 
 plant.history.plot_field(Stem,"S0", "length")
 
-print(plant.history.extract_field_for_node(Stem,"S4", "rank"))
+print(plant.history.extract_field_for_node(Stem,"S0", "length"))
 
 print(plant.history.extract_field_for_node(Leaf,"L41", "rank"))
 

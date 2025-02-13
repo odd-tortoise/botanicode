@@ -1,65 +1,90 @@
-from typing import Any, List
+from typing import Any, Dict, List
 import numpy as np
-from scipy.spatial.transform import Rotation as R
 from dataclasses import dataclass
 
 
+# Future:
+# add more shapes
+# add rotations objects to deal btter with orientations
+# make the leaf pattern generation more flexible by integrating it into the plant regulation file (similar to the leaf positioning)
+
+
 class NodeShape:
-    required_state_variables = []
-    def __init__(self):
+    """Base class for all node shapes."""
+    required_state_variables: List[str] = []
+
+    def __init__(self) -> None:
         self.points: List[np.ndarray] = []  # Local points in the shape's coordinate system
         self.real_points: List[np.ndarray] = []  # Global points in 3D space
-        self.position = np.array([0, 0, 0])  # Global position of the shape
+        self.position: np.ndarray = np.array([0, 0, 0])  # Global position of the shape
 
-    def generate_real_points(self):
+    def generate_real_points(self) -> None:
         """
         Transform local points into global 3D points using the shape's position and orientation.
         """
-        self.real_points = [
-            point + self.position for point in self.points
-        ]
+        self.real_points = [point + self.position for point in self.points]
 
-    def generate_points(self, state , n_points: int = 10):
-        """Generate the shape's local points. To be implemented by subclasses."""
+    def generate_points(self, state: Any, n_points: int = 10) -> None:
+        """
+        Generate the shape's local points. To be implemented by subclasses.
+
+        Args:
+            state (Any): The state of the node containing required variables.
+            n_points (int): The number of points to generate.
+        """
         pass
 
 
 class CylinderShape(NodeShape):
-    required_state_variables = ["length", "direction", "radius"]
+    required_state_variables: List[str] = ["length", "direction", "radius"]
 
-    def __init__(self, state: Any):
+    def __init__(self, state: Any) -> None:
         super().__init__()
         self.generate_points(state)
-        
-    def generate_points(self, state , n_points: int = 10):
+
+    def generate_points(self, state: Any, n_points: int = 10) -> None:
         """
         Generate local points for a cylinder along the given direction.
+
+        Args:
+            state (Any): The state of the node containing required variables.
+            n_points (int): The number of points to generate along the cylinder.
         """
         # Points along the cylinder axis
-        axis_points = [
-           state.direction * i * state.length / n_points for i in range(n_points + 1)
-        ]
-        
+        axis_points = [state.direction * i * state.length / n_points for i in range(n_points + 1)]
         self.points = axis_points
 
-    def compute_plug_points(self) -> dict:
+    def compute_plug_points(self) -> Dict[str, np.ndarray]:
         """
-        Return attachment points in local coordinates:
+        Return attachment points in absolute coordinates:
         - 'base': The bottom center of the cylinder.
         - 'tip': The top center of the cylinder.
+
+        Returns:
+            Dict[str, np.ndarray]: A dictionary with 'base' and 'tip' points.
         """
         return {"base": self.real_points[0], "tip": self.real_points[-1]}
-    
 
 
 class LeafShape(NodeShape):
-    required_state_variables = ["size", "petioles_size", "rachid_size", "leaflets_number", "leaf_bending_rate", "outline_function", "y_angle", "z_angle"]
+    required_state_variables: List[str] = [
+        "size", "petioles_size", "rachid_size", "leaflets_number", 
+        "leaf_bending_rate", "outline_function", "y_angle", "z_angle"
+    ]
 
-    def __init__(self, state: Any):
+    def __init__(self, state: Any) -> None:
         super().__init__()
         self.generate_points(state)
+
         
-    def generate_points(self, state, n_points: int = 10):
+    def generate_points(self, state: Any, n_points: int = 10) -> None:
+        """
+        Generate local points for a leaf shape.
+
+        Args:
+            state (Any): The state of the node containing required variables.
+            n_points (int): The number of points to generate along the leaf.
+        """
         rachid_points = [np.array([0, 0, 0])]
         leaves_points = []
 
@@ -73,8 +98,8 @@ class LeafShape(NodeShape):
             
             if leaves_to_plot >= 2:
                
-                leaf_points_up = self.generate_leaf_points(state=state,angle_with_z = np.pi/2, angle_wiht_y = y_angle)
-                leaf_points_down = self.generate_leaf_points(state=state,angle_with_z = -np.pi/2, angle_wiht_y = y_angle)
+                leaf_points_up = self._generate_leaf_points(state=state,angle_with_z = np.pi/2, angle_with_y = y_angle)
+                leaf_points_down = self._generate_leaf_points(state=state,angle_with_z = -np.pi/2, angle_with_y = y_angle)
 
                 petiole_up = np.array([0,state.petioles_size,0])
                 petiole_down = np.array([0, -state.petioles_size,0])
@@ -91,7 +116,7 @@ class LeafShape(NodeShape):
             if leaves_to_plot == 1:
                 # add the leaves on the sides
                  # add the leaf on the tip 
-                leaf_point = self.generate_leaf_points(state=state,angle_with_z = 0, angle_wiht_y=- y_angle)
+                leaf_point = self._generate_leaf_points(state=state,angle_with_z = 0, angle_with_y=- y_angle)
                 petiole = np.array([state.petioles_size,0,0])
                 # translate the leaf points to the tip of the rachid
                 leaf_point = [point + rachid_point + petiole for point in leaf_point]
@@ -102,12 +127,13 @@ class LeafShape(NodeShape):
             y_angle -= state.leaf_bending_rate*state.y_angle
 
                 
-        # rotate the rachid points
+         # Rotate the rachid points
         z_rotation_angle = state.z_angle
-
-        rot_z = np.array([[np.cos(z_rotation_angle), -np.sin(z_rotation_angle), 0],  
-                        [np.sin(z_rotation_angle), np.cos(z_rotation_angle), 0],
-                        [0, 0, 1]])
+        rot_z = np.array([
+            [np.cos(z_rotation_angle), -np.sin(z_rotation_angle), 0],
+            [np.sin(z_rotation_angle), np.cos(z_rotation_angle), 0],
+            [0, 0, 1]
+        ])
         
         rotated_leaves = []
         
@@ -115,71 +141,86 @@ class LeafShape(NodeShape):
             leaf = [np.dot(rot_z, point) for point in leaf]
             
             rotated_leaves.append([leaf])
-
         rotated_rachid = [np.dot(rot_z, point) for point in rachid_points]
         
         self.leaves_points = rotated_leaves
         self.rachid_points = rotated_rachid
         
   
-    def generate_leaf_points(self,state,angle_with_z = 0,angle_wiht_y = 0,n_points=11):
+    def _generate_leaf_points(self, state: Any, angle_with_z: float = 0, angle_with_y: float = 0, n_points: int = 11) -> List[np.ndarray]:
+        """
+        Generate points for a single leaf.
 
-        temp_points = []
-        angles = np.linspace(0, 2*np.pi, n_points)
-        for theta in angles:
-            point = state.outline_function(theta, state.size)
-            temp_points.append(point)
+        Args:
+            state (Any): The state of the node containing required variables.
+            angle_with_z (float): The angle to rotate around the z-axis.
+            angle_with_y (float): The angle to rotate around the y-axis.
+            n_points (int): The number of points to generate along the leaf.
 
-        y_rotation_angle = angle_wiht_y
+        Returns:
+            List[np.ndarray]: A list of points representing the leaf.
+        """
+        temp_points = [state.outline_function(theta, state.size) for theta in np.linspace(0, 2 * np.pi, n_points)]
 
-        rot_y = np.array([[np.cos(y_rotation_angle), 0, np.sin(y_rotation_angle)],
-                        [0, 1, 0],
-                        [-np.sin(y_rotation_angle), 0, np.cos(y_rotation_angle)]])
+        rot_y = np.array([
+            [np.cos(angle_with_y), 0, np.sin(angle_with_y)],
+            [0, 1, 0],
+            [-np.sin(angle_with_y), 0, np.cos(angle_with_y)]
+        ])
 
-        z_rotation_angle = angle_with_z
+        rot_z = np.array([
+            [np.cos(angle_with_z), -np.sin(angle_with_z), 0],
+            [np.sin(angle_with_z), np.cos(angle_with_z), 0],
+            [0, 0, 1]
+        ])
 
-        rot_z = np.array([[np.cos(z_rotation_angle), -np.sin(z_rotation_angle), 0],  
-                        [np.sin(z_rotation_angle), np.cos(z_rotation_angle), 0],
-                        [0, 0, 1]])
-        
-        points = [np.dot(rot_y,point) for point in temp_points]
-        points = [np.dot(rot_z,point) for point in points]   
+        points = [np.dot(rot_y, point) for point in temp_points]
+        points = [np.dot(rot_z, point) for point in points]
 
         return points
     
-    def generate_real_points(self):
+    def generate_real_points(self) -> None:
         """
         Transform local points into global 3D points using the shape's position and orientation.
+        Leaves are different, they have 2 sets of points, one for the rachid and one for the leaves.
         """
-        self.real_rachid_points = [
-            point + self.position for point in self.rachid_points
-        ]
-        self.real_leaves_points = [
-            point + self.position for leaf in self.leaves_points for point in leaf
-        ]
+        self.real_rachid_points = [point + self.position for point in self.rachid_points]
+        self.real_leaves_points = [point + self.position for leaf in self.leaves_points for point in leaf]
 
 
             
-    def compute_plug_points(self) -> dict:
+    def compute_plug_points(self) -> Dict[str, np.ndarray]:
         """
         Return the attachment point for the leaf:
         - 'base': The base of the leaf where it connects to a stem.
+
+        Returns:
+            Dict[str, np.ndarray]: A dictionary with the 'base' point.
         """
         return {"base": self.real_rachid_points[0]}
 
 
 class PointShape(NodeShape):
-    def __init__(self, state: Any):
+    def __init__(self, state: Any) -> None:
         super().__init__()
         self.generate_points(state)
-        
 
-    def generate_points(self, state, n_points=0):
+    def generate_points(self, state: Any, n_points: int = 0) -> None:
+        """
+        Generate a single point for the shape.
+
+        Args:
+            state (Any): The state of the node.
+            n_points (int): The number of points to generate (default is 0).
+        """
         self.points = [np.array([0, 0, 0])]
-       
-    def compute_plug_points(self) -> dict:
+
+    def compute_plug_points(self) -> Dict[str, np.ndarray]:
         """
         Return the single point for a PointShape.
+
+        Returns:
+            Dict[str, np.ndarray]: A dictionary with the 'base' point.
         """
         return {"base": self.real_points[0]}
     

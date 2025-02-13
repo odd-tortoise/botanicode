@@ -3,29 +3,32 @@ from typing import List
 from dataclasses import dataclass, field
 import networkx as nx
 
-from env import Environment
+from env import Environment, Clock
+from env_components import Sky,Air,Soil
 from botanical_nodes import NodeFactory, NodeState
 from botanical_nodes import Stem, Leaf, Root, SAM, RAM
 from shapes import CylinderShape, PointShape, LeafShape
-from simulator import Clock, Simulation
+from simulator import Simulation
 
 from plant import Plant, PlantState
 from plant_reg import PlantRegulation
 
-from model import Model, StaticRule, DynamicRule
-from utils import Dataset,NumericalIntegrator
+from development_engine import StaticRule, DynamicRule, DevelopmentEngine
+from utils import NumericalIntegrator
 
 
 
-result_folder = "results_main/"
-
-env_setting_file = "botanicode/single_run_files/env_setting.json"
+result_folder = "botanicode/single_run_files/"
 
 # create a clock
 clock = Clock(photo_period=(8,18),step="hour")
 
 #create environment
-env = Environment().set_env(env_setting_file)
+env = Environment(
+    sky = Sky(light_intensity=500),
+    air = Air(temperature=20, humidity=0.5),
+    soil = Soil(moisture=0.5)
+)
 
 # create a numerical integrator for the ODEs 
 ni = NumericalIntegrator("forward_euler")
@@ -41,7 +44,6 @@ node_factory = NodeFactory()
 class StemState(NodeState):
     length: float = 1.0
     radius: float = 0.1
-    age: int = 0
     water: float = 0.0
     direction: np.ndarray =  field(default_factory=lambda: np.array([0, 0, 1]))
     tt: float = 0.0
@@ -51,7 +53,6 @@ class LeafState(NodeState):
     size: float = 1.0
     petioles_size: float = 0.1
     rachid_size: float = 1
-    age: int = 0
     water : float = 0.0
     leaflets_number: int = plant_reg.phylotaxis["leaflets_number"]
     leaf_bending_rate: float = plant_reg.phylotaxis["leaf_bending_rate"]
@@ -67,16 +68,15 @@ class LeafState(NodeState):
 class RootState(NodeState):
     length: float = 1.0
     radius: float = 0.1 
-    age: int = 0
     direction: np.ndarray = field(default_factory=lambda: np.array([0, 0, -1]))
 
 @dataclass
 class SAMState(NodeState):
-    age: int = 0
+    pass
 
 @dataclass
 class RAMState(NodeState):
-    age: int = 0
+    pass
 
 
 node_factory.add_blueprint(Stem, StemState, CylinderShape)
@@ -191,7 +191,7 @@ def shoots_if_rule(plant : Plant):
 
 
 # create a model to store the rules
-model = Model("tomato")
+model = DevelopmentEngine("tomato")
 model.add_rule(stem_rule)
 model.add_rule(leaf_rule)
 model.add_rule(plant_rule)
@@ -211,9 +211,9 @@ model.env_reads = env_reads
 
 dt = 1
 max_time = 20
-sim = Simulation(solver=ni, folder=result_folder, model=model)
+sim = Simulation(solver=ni, folder=result_folder)
 
-sim.run(max_t=max_time,delta_t=dt, plant=plant, env=env, clock=clock)
+sim.run(max_t=max_time,delta_t=dt, dev_eng= model, plant=plant, env=env, clock=clock)
 
 plant.plot()
 import matplotlib.pyplot as plt
@@ -223,5 +223,14 @@ plt.show()
 fig, ax = plt.subplots(2,1)
 plant.structure.plot_value("water",[Stem,Leaf],ax[0])
 plant.structure.plot(ax[1])
+plt.show()
+
+
+
+sim.history.plot_node_field(Stem,"S0", "length")
+plt.show()
+
+
+sim.history.plot_plant_field("internodes_no")
 plt.show()
 

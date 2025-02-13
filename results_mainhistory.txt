@@ -1,0 +1,394 @@
+Plant
+0: {'plant_height': 0, 'age': 0.0, 'internodes_no': 0, 'expected_internodes_no': 0}
+1: {'plant_height': 6.0, 'age': 1.0, 'internodes_no': 1, 'expected_internodes_no': 2.0}
+2: {'plant_height': 11.5970319724898, 'age': 2.0, 'internodes_no': 2, 'expected_internodes_no': 3.0}
+3: {'plant_height': 17.877811531102488, 'age': 3.0, 'internodes_no': 3, 'expected_internodes_no': 4.0}
+4: {'plant_height': 24.94379903848917, 'age': 4.0, 'internodes_no': 4, 'expected_internodes_no': 5.0}
+5: {'plant_height': 31.914032497158985, 'age': 5.0, 'internodes_no': 5, 'expected_internodes_no': 5}
+6: {'plant_height': 33.80095852071146, 'age': 6.0, 'internodes_no': 5, 'expected_internodes_no': 5}
+7: {'plant_height': 35.78810437729181, 'age': 7.0, 'internodes_no': 5, 'expected_internodes_no': 5}
+8: {'plant_height': 37.87927702888726, 'age': 8.0, 'internodes_no': 5, 'expected_internodes_no': 5}
+9: {'plant_height': 40.07822540274349, 'age': 9.0, 'internodes_no': 5, 'expected_internodes_no': 5}
+10: {'plant_height': 42.38860859214378, 'age': 10.0, 'internodes_no': 5, 'expected_internodes_no': 5}
+11: {'plant_height': 44.813960862234296, 'age': 11.0, 'internodes_no': 5, 'expected_internodes_no': 5}
+12: {'plant_height': 47.35765352332942, 'age': 12.0, 'internodes_no': 5, 'expected_internodes_no': 5}
+13: {'plant_height': 50.02285381248387, 'age': 13.0, 'internodes_no': 5, 'expected_internodes_no': 5}
+14: {'plant_height': 52.81248101334749, 'age': 14.0, 'internodes_no': 5, 'expected_internodes_no': 5}
+15: {'plant_height': 55.729160143423734, 'age': 15.0, 'internodes_no': 5, 'expected_internodes_no': 5}
+16: {'plant_height': 58.77517364516476, 'age': 16.0, 'internodes_no': 5, 'expected_internodes_no': 5}
+17: {'plant_height': 61.95241163044451, 'age': 17.0, 'internodes_no': 5, 'expected_internodes_no': 5}
+18: {'plant_height': 65.26232134367751, 'age': 18.0, 'internodes_no': 5, 'expected_internodes_no': 5}
+19: {'plant_height': 68.70585662324751, 'age': 19.0, 'internodes_no': 5, 'expected_internodes_no': 5}
+20: {'plant_height': 72.28342824932457, 'age': 20.0, 'internodes_no': 5, 'expected_internodes_no': 5}
+
+Nodes
+<class 'botanical_nodes.Stem'> - S0
+0: {'age': 0, 'rank': 0, 'length': 1.0, 'radius': 0.1}
+1: {'age': 1, 'rank': 0, 'length': 5.0, 'radius': 0.1, 'temp': 25.0}
+2: {'age': 2, 'rank': 0, 'length': 5.263698639156467, 'radius': 0.1, 'temp': 25.0}
+3: {'age': 3, 'rank': 0, 'length': 5.538223782261934, 'radius': 0.1, 'temp': 25.0}
+4: {'age': 4, 'rank': 0, 'length': 5.823695792286339, 'radius': 0.1, 'temp': 25.0}
+5: {'age': 5, 'rank': 0, 'length': 6.120201096688806, 'radius': 0.1, 'temp': 25.0}
+6: {'age': 6, 'rank': 0, 'length': 6.427788917186544, 'radius': 0.1, 'temp': 25.0}
+7: {'age': 7, 'rank': 0, 'length': 6.746468069877774, 'radius': 0.1, 'temp': 25.0}
+8: {'age': 8, 'rank': 0, 'length': 7.076203889240356, 'radius': 0.1, 'temp': 25.0}
+9: {'age': 9, 'rank': 0, 'length': 7.416915333639818, 'radius': 0.1, 'temp': 25.0}
+10: {'age': 10, 'rank': 0, 'length': 7.7684723331952155, 'radius': 0.1, 'temp': 25.0}
+11: {'age': 11, 'rank': 0, 'length': 8.130693442933135, 'radius': 0.1, 'temp': 25.0}
+12: {'age': 12, 'rank': 0, 'length': 8.503343864879882, 'radius': 0.1, 'temp': 25.0}
+13: {'age': 13, 'rank': 0, 'length': 8.886133901888957, 'radius': 0.1, 'temp': 25.0}
+14: {'age': 14, 'rank': 0, 'length': 9.278717903397105, 'radius': 0.1, 'temp': 25.0}
+15: {'age': 15, 'rank': 0, 'length': 9.680693758814604, 'radius': 0.1, 'temp': 25.0}
+16: {'age': 16, 'rank': 0, 'length': 10.09160298781072, 'radius': 0.1, 'temp': 25.0}
+17: {'age': 17, 'rank': 0, 'length': 10.51093146835135, 'radius': 0.1, 'temp': 25.0}
+18: {'age': 18, 'rank': 0, 'length': 10.93811083306167, 'radius': 0.1, 'temp': 25.0}
+19: {'age': 19, 'rank': 0, 'length': 11.37252055248897, 'radius': 0.1, 'temp': 25.0}
+20: {'age': 20, 'rank': 0, 'length': 11.813490710385539, 'radius': 0.1, 'temp': 25.0}
+<class 'botanical_nodes.Stem'> - S1
+1: {'age': 0, 'rank': 1, 'length': 1.0, 'radius': 0.1, 'temp': 27.5}
+2: {'age': 1, 'rank': 1, 'length': 5.333333333333333, 'radius': 0.1, 'temp': 27.631849319578233}
+3: {'age': 2, 'rank': 1, 'length': 5.633118950674569, 'radius': 0.1, 'temp': 27.76911189113097}
+4: {'age': 3, 'rank': 1, 'length': 5.947182751094089, 'radius': 0.1, 'temp': 27.91184789614317}
+5: {'age': 4, 'rank': 1, 'length': 6.2759015613675855, 'radius': 0.1, 'temp': 28.0601005483444}
+6: {'age': 5, 'rank': 1, 'length': 6.6196259162076165, 'radius': 0.1, 'temp': 28.213894458593273}
+7: {'age': 6, 'rank': 1, 'length': 6.978675188705295, 'radius': 0.1, 'temp': 28.373234034938886}
+8: {'age': 7, 'rank': 1, 'length': 7.353332488782844, 'radius': 0.1, 'temp': 28.538101944620177}
+9: {'age': 8, 'rank': 1, 'length': 7.74383937566836, 'radius': 0.1, 'temp': 28.70845766681991}
+10: {'age': 9, 'rank': 1, 'length': 8.150390441191574, 'radius': 0.1, 'temp': 28.884236166597606}
+11: {'age': 10, 'rank': 1, 'length': 8.573127831750144, 'radius': 0.1, 'temp': 29.065346721466568}
+12: {'age': 11, 'rank': 1, 'length': 9.012135787772547, 'radius': 0.1, 'temp': 29.25167193243994}
+13: {'age': 12, 'rank': 1, 'length': 9.467435290005087, 'radius': 0.1, 'temp': 29.443066950944477}
+14: {'age': 13, 'rank': 1, 'length': 9.938978911519628, 'radius': 0.1, 'temp': 29.639358951698554}
+15: {'age': 14, 'rank': 1, 'length': 10.426645982474733, 'radius': 0.1, 'temp': 29.840346879407303}
+16: {'age': 15, 'rank': 1, 'length': 10.93023818084063, 'radius': 0.1, 'temp': 30.04580149390536}
+17: {'age': 16, 'rank': 1, 'length': 11.449475665991924, 'radius': 0.1, 'temp': 30.255465734175676}
+18: {'age': 17, 'rank': 1, 'length': 11.983993872783067, 'radius': 0.1, 'temp': 30.469055416530836}
+19: {'age': 18, 'rank': 1, 'length': 12.533341081012885, 'radius': 0.1, 'temp': 30.686260276244486}
+20: {'age': 19, 'rank': 1, 'length': 13.096976868712758, 'radius': 0.1, 'temp': 30.90674535519277}
+<class 'botanical_nodes.Stem'> - S2
+2: {'age': 0, 'rank': 2, 'length': 1.0, 'radius': 0.1, 'temp': 30.2985159862449}
+3: {'age': 1, 'rank': 2, 'length': 5.706468798165987, 'radius': 0.1, 'temp': 30.58567136646825}
+4: {'age': 2, 'rank': 2, 'length': 6.047733059701912, 'radius': 0.1, 'temp': 30.885439271690213}
+5: {'age': 3, 'rank': 2, 'length': 6.407420575422817, 'radius': 0.1, 'temp': 31.198051329028196}
+6: {'age': 4, 'rank': 2, 'length': 6.786244204159305, 'radius': 0.1, 'temp': 31.52370741669708}
+7: {'age': 5, 'rank': 2, 'length': 7.184905130986042, 'radius': 0.1, 'temp': 31.862571629291534}
+8: {'age': 6, 'rank': 2, 'length': 7.604086566844117, 'radius': 0.1, 'temp': 32.2147681890116}
+9: {'age': 7, 'rank': 2, 'length': 8.044446822377418, 'radius': 0.1, 'temp': 32.58037735465409}
+10: {'age': 8, 'rank': 2, 'length': 8.506611775078031, 'radius': 0.1, 'temp': 32.95943138719339}
+11: {'age': 9, 'rank': 2, 'length': 8.991166765712585, 'radius': 0.1, 'temp': 33.35191063734164}
+12: {'age': 10, 'rank': 2, 'length': 9.49864797894208, 'radius': 0.1, 'temp': 33.757739826326215}
+13: {'age': 11, 'rank': 2, 'length': 10.029533383755131, 'radius': 0.1, 'temp': 34.176784595947026}
+14: {'age': 12, 'rank': 2, 'length': 10.58423333136709, 'radius': 0.1, 'temp': 34.60884840745837}
+15: {'age': 13, 'rank': 2, 'length': 11.163080930999026, 'radius': 0.1, 'temp': 35.05366987064467}
+16: {'age': 14, 'rank': 2, 'length': 11.766322346692967, 'radius': 0.1, 'temp': 35.510920584325675}
+17: {'age': 15, 'rank': 2, 'length': 12.394107180150005, 'radius': 0.1, 'temp': 35.980203567171635}
+18: {'age': 16, 'rank': 2, 'length': 13.046479124483767, 'radius': 0.1, 'temp': 36.461052352922366}
+19: {'age': 17, 'rank': 2, 'length': 13.72336709066479, 'radius': 0.1, 'temp': 36.95293081675093}
+20: {'age': 18, 'rank': 2, 'length': 14.42457702115607, 'radius': 0.1, 'temp': 37.45523378954915}
+<class 'botanical_nodes.Stem'> - S3
+3: {'age': 0, 'rank': 3, 'length': 1.0, 'radius': 0.1, 'temp': 33.43890576555124}
+4: {'age': 1, 'rank': 3, 'length': 6.125187435406832, 'radius': 0.1, 'temp': 33.909305801541166}
+5: {'age': 2, 'rank': 3, 'length': 6.514255994447161, 'radius': 0.1, 'temp': 34.401761616739606}
+6: {'age': 3, 'rank': 3, 'length': 6.926732043088192, 'radius': 0.1, 'temp': 34.91682951877674}
+7: {'age': 4, 'rank': 3, 'length': 7.363765081388234, 'radius': 0.1, 'temp': 35.455024194784556}
+8: {'age': 5, 'rank': 3, 'length': 7.8265171111642315, 'radius': 0.1, 'temp': 36.01681147243366}
+9: {'age': 6, 'rank': 3, 'length': 8.31615528212635, 'radius': 0.1, 'temp': 36.602600765842794}
+10: {'age': 7, 'rank': 3, 'length': 8.833843419059049, 'radius': 0.1, 'temp': 37.21273727473241}
+11: {'age': 8, 'rank': 3, 'length': 9.380732395953213, 'radius': 0.1, 'temp': 37.84749402019793}
+12: {'age': 9, 'rank': 3, 'length': 9.957949344233203, 'radius': 0.1, 'temp': 38.50706381579725}
+13: {'age': 10, 'rank': 3, 'length': 10.566585708014498, 'radius': 0.1, 'temp': 39.19155128782459}
+14: {'age': 11, 'rank': 3, 'length': 11.207684189625525, 'radius': 0.1, 'temp': 39.90096507314191}
+15: {'age': 12, 'rank': 3, 'length': 11.882224663159635, 'radius': 0.1, 'temp': 40.63521033614418}
+16: {'age': 13, 'rank': 3, 'length': 12.591109172053638, 'radius': 0.1, 'temp': 41.394081757672154}
+17: {'age': 14, 'rank': 3, 'length': 13.335146167788265, 'radius': 0.1, 'temp': 42.17725715724664}
+18: {'age': 15, 'rank': 3, 'length': 14.115034189633565, 'radius': 0.1, 'temp': 42.98429191516425}
+19: {'age': 16, 'rank': 3, 'length': 14.931345228470235, 'radius': 0.1, 'temp': 43.814614362083326}
+20: {'age': 17, 'rank': 3, 'length': 15.784508059373135, 'radius': 0.1, 'temp': 44.66752230012718}
+<class 'botanical_nodes.Stem'> - S4
+4: {'age': 0, 'rank': 4, 'length': 1.0, 'radius': 0.1, 'temp': 36.97189951924459}
+5: {'age': 1, 'rank': 4, 'length': 6.596253269232612, 'radius': 0.1, 'temp': 37.65888961396318}
+6: {'age': 2, 'rank': 4, 'length': 7.040567440069799, 'radius': 0.1, 'temp': 38.38019554032083}
+7: {'age': 3, 'rank': 4, 'length': 7.514290906334464, 'radius': 0.1, 'temp': 39.136906735478675}
+8: {'age': 4, 'rank': 4, 'length': 8.019136972855712, 'radius': 0.1, 'temp': 39.93007002801578}
+9: {'age': 5, 'rank': 4, 'length': 8.556868588931549, 'radius': 0.1, 'temp': 40.760678406905974}
+10: {'age': 6, 'rank': 4, 'length': 9.129290623619918, 'radius': 0.1, 'temp': 41.62965898426194}
+11: {'age': 7, 'rank': 4, 'length': 9.73824042588522, 'radius': 0.1, 'temp': 42.537860218174536}
+12: {'age': 8, 'rank': 4, 'length': 10.3855765475017, 'radius': 0.1, 'temp': 43.48603848791386}
+13: {'age': 9, 'rank': 4, 'length': 11.073165528820196, 'radius': 0.1, 'temp': 44.47484414183184}
+14: {'age': 10, 'rank': 4, 'length': 11.802866677438137, 'radius': 0.1, 'temp': 45.504807167954674}
+15: {'age': 11, 'rank': 4, 'length': 12.576514807975734, 'radius': 0.1, 'temp': 46.576322667724}
+16: {'age': 12, 'rank': 4, 'length': 13.395900957766806, 'radius': 0.1, 'temp': 47.68963634369898}
+17: {'age': 13, 'rank': 4, 'length': 14.262751148162968, 'radius': 0.1, 'temp': 48.84483024114077}
+18: {'age': 14, 'rank': 4, 'length': 15.178703323715443, 'radius': 0.1, 'temp': 50.04180900998104}
+19: {'age': 15, 'rank': 4, 'length': 16.145282670610626, 'radius': 0.1, 'temp': 51.28028697631844}
+20: {'age': 16, 'rank': 4, 'length': 17.163875589697078, 'radius': 0.1, 'temp': 52.55977632981375}
+<class 'botanical_nodes.SAM'> - SA0
+0: {'age': 0, 'rank': 0}
+<class 'botanical_nodes.SAM'> - M1M
+1: {'age': 0, 'rank': 0, 'temp': 28.0}
+<class 'botanical_nodes.SAM'> - M2M
+2: {'age': 0, 'rank': 0, 'temp': 30.7985159862449}
+<class 'botanical_nodes.SAM'> - M3M
+3: {'age': 0, 'rank': 0, 'temp': 33.93890576555124}
+<class 'botanical_nodes.SAM'> - M4M
+4: {'age': 0, 'rank': 0, 'temp': 37.47189951924459}
+5: {'age': 1, 'rank': 0, 'temp': 40.95701624857949}
+6: {'age': 2, 'rank': 0, 'temp': 41.90047926035573}
+7: {'age': 3, 'rank': 0, 'temp': 42.8940521886459}
+8: {'age': 4, 'rank': 0, 'temp': 43.93963851444363}
+9: {'age': 5, 'rank': 0, 'temp': 45.03911270137175}
+10: {'age': 6, 'rank': 0, 'temp': 46.19430429607189}
+11: {'age': 7, 'rank': 0, 'temp': 47.40698043111715}
+12: {'age': 8, 'rank': 0, 'temp': 48.67882676166471}
+13: {'age': 9, 'rank': 0, 'temp': 50.01142690624194}
+14: {'age': 10, 'rank': 0, 'temp': 51.40624050667374}
+15: {'age': 11, 'rank': 0, 'temp': 52.86458007171187}
+16: {'age': 12, 'rank': 0, 'temp': 54.38758682258238}
+17: {'age': 13, 'rank': 0, 'temp': 55.97620581522226}
+18: {'age': 14, 'rank': 0, 'temp': 57.63116067183876}
+19: {'age': 15, 'rank': 0, 'temp': 59.35292831162376}
+20: {'age': 16, 'rank': 0, 'temp': 61.141714124662286}
+<class 'botanical_nodes.Root'> - R0
+0: {'age': 0, 'rank': 0, 'length': 1.0, 'radius': 0.1}
+1: {'age': 1, 'rank': 0, 'length': 1.0, 'radius': 0.1}
+2: {'age': 2, 'rank': 0, 'length': 1.0, 'radius': 0.1}
+3: {'age': 3, 'rank': 0, 'length': 1.0, 'radius': 0.1}
+4: {'age': 4, 'rank': 0, 'length': 1.0, 'radius': 0.1}
+5: {'age': 5, 'rank': 0, 'length': 1.0, 'radius': 0.1}
+6: {'age': 6, 'rank': 0, 'length': 1.0, 'radius': 0.1}
+7: {'age': 7, 'rank': 0, 'length': 1.0, 'radius': 0.1}
+8: {'age': 8, 'rank': 0, 'length': 1.0, 'radius': 0.1}
+9: {'age': 9, 'rank': 0, 'length': 1.0, 'radius': 0.1}
+10: {'age': 10, 'rank': 0, 'length': 1.0, 'radius': 0.1}
+11: {'age': 11, 'rank': 0, 'length': 1.0, 'radius': 0.1}
+12: {'age': 12, 'rank': 0, 'length': 1.0, 'radius': 0.1}
+13: {'age': 13, 'rank': 0, 'length': 1.0, 'radius': 0.1}
+14: {'age': 14, 'rank': 0, 'length': 1.0, 'radius': 0.1}
+15: {'age': 15, 'rank': 0, 'length': 1.0, 'radius': 0.1}
+16: {'age': 16, 'rank': 0, 'length': 1.0, 'radius': 0.1}
+17: {'age': 17, 'rank': 0, 'length': 1.0, 'radius': 0.1}
+18: {'age': 18, 'rank': 0, 'length': 1.0, 'radius': 0.1}
+19: {'age': 19, 'rank': 0, 'length': 1.0, 'radius': 0.1}
+20: {'age': 20, 'rank': 0, 'length': 1.0, 'radius': 0.1}
+<class 'botanical_nodes.RAM'> - RAM
+0: {'age': 0, 'rank': 0}
+1: {'age': 1, 'rank': 0}
+2: {'age': 2, 'rank': 0}
+3: {'age': 3, 'rank': 0}
+4: {'age': 4, 'rank': 0}
+5: {'age': 5, 'rank': 0}
+6: {'age': 6, 'rank': 0}
+7: {'age': 7, 'rank': 0}
+8: {'age': 8, 'rank': 0}
+9: {'age': 9, 'rank': 0}
+10: {'age': 10, 'rank': 0}
+11: {'age': 11, 'rank': 0}
+12: {'age': 12, 'rank': 0}
+13: {'age': 13, 'rank': 0}
+14: {'age': 14, 'rank': 0}
+15: {'age': 15, 'rank': 0}
+16: {'age': 16, 'rank': 0}
+17: {'age': 17, 'rank': 0}
+18: {'age': 18, 'rank': 0}
+19: {'age': 19, 'rank': 0}
+20: {'age': 20, 'rank': 0}
+<class 'botanical_nodes.Leaf'> - L00
+0: {'age': 0, 'rank': 0, 'size': 1.0, 'petioles_size': 0.1, 'rachid_size': 1, 'leaflets_number': 5, 'leaf_bending_rate': 0.5, 'y_angle': 0.75, 'z_angle': 1.5707963267948966}
+1: {'age': 1, 'rank': 0, 'size': 1.9562499999999994, 'petioles_size': 0.1, 'rachid_size': 0.9781249999999997, 'leaflets_number': 5, 'leaf_bending_rate': 0.5, 'y_angle': 0.75, 'z_angle': 1.5707963267948966, 'temp': 27.5, 'light': 10, 's_max': 4}
+2: {'age': 2, 'rank': 0, 'size': 3.3305920410156236, 'petioles_size': 0.1, 'rachid_size': 1.6652960205078118, 'leaflets_number': 5, 'leaf_bending_rate': 0.5, 'y_angle': 0.75, 'z_angle': 1.5707963267948966, 'temp': 27.631849319578233, 'light': 10, 's_max': 4}
+3: {'age': 3, 'rank': 0, 'size': 4.100665714655153, 'petioles_size': 0.1, 'rachid_size': 2.0503328573275765, 'leaflets_number': 5, 'leaf_bending_rate': 0.5, 'y_angle': 0.75, 'z_angle': 1.5707963267948966, 'temp': 27.76911189113097, 'light': 10, 's_max': 4}
+4: {'age': 4, 'rank': 0, 'size': 3.957378331381365, 'petioles_size': 0.1, 'rachid_size': 1.9786891656906824, 'leaflets_number': 5, 'leaf_bending_rate': 0.5, 'y_angle': 0.75, 'z_angle': 1.5707963267948966, 'temp': 27.91184789614317, 'light': 10, 's_max': 4}
+5: {'age': 5, 'rank': 0, 'size': 4.01622699735819, 'petioles_size': 0.1, 'rachid_size': 2.008113498679095, 'leaflets_number': 5, 'leaf_bending_rate': 0.5, 'y_angle': 0.75, 'z_angle': 1.5707963267948966, 'temp': 28.0601005483444, 'light': 10, 's_max': 4}
+6: {'age': 6, 'rank': 0, 'size': 3.9933680802620897, 'petioles_size': 0.1, 'rachid_size': 1.9966840401310448, 'leaflets_number': 5, 'leaf_bending_rate': 0.5, 'y_angle': 0.75, 'z_angle': 1.5707963267948966, 'temp': 28.213894458593273, 'light': 10, 's_max': 4}
+7: {'age': 7, 'rank': 0, 'size': 4.002708183018672, 'petioles_size': 0.1, 'rachid_size': 2.001354091509336, 'leaflets_number': 5, 'leaf_bending_rate': 0.5, 'y_angle': 0.75, 'z_angle': 1.5707963267948966, 'temp': 28.373234034938886, 'light': 10, 's_max': 4}
+8: {'age': 8, 'rank': 0, 'size': 3.9988635862819977, 'petioles_size': 0.1, 'rachid_size': 1.9994317931409988, 'leaflets_number': 5, 'leaf_bending_rate': 0.5, 'y_angle': 0.75, 'z_angle': 1.5707963267948966, 'temp': 28.538101944620177, 'light': 10, 's_max': 4}
+9: {'age': 9, 'rank': 0, 'size': 4.000484680119576, 'petioles_size': 0.1, 'rachid_size': 2.000242340059788, 'leaflets_number': 5, 'leaf_bending_rate': 0.5, 'y_angle': 0.75, 'z_angle': 1.5707963267948966, 'temp': 28.70845766681991, 'light': 10, 's_max': 4}
+10: {'age': 10, 'rank': 0, 'size': 3.9997888748843096, 'petioles_size': 0.1, 'rachid_size': 1.9998944374421548, 'leaflets_number': 5, 'leaf_bending_rate': 0.5, 'y_angle': 0.75, 'z_angle': 1.5707963267948966, 'temp': 28.884236166597606, 'light': 10, 's_max': 4}
+11: {'age': 11, 'rank': 0, 'size': 4.000093768175917, 'petioles_size': 0.1, 'rachid_size': 2.0000468840879586, 'leaflets_number': 5, 'leaf_bending_rate': 0.5, 'y_angle': 0.75, 'z_angle': 1.5707963267948966, 'temp': 29.065346721466568, 'light': 10, 's_max': 4}
+12: {'age': 12, 'rank': 0, 'size': 3.999957494754241, 'petioles_size': 0.1, 'rachid_size': 1.9999787473771204, 'leaflets_number': 5, 'leaf_bending_rate': 0.5, 'y_angle': 0.75, 'z_angle': 1.5707963267948966, 'temp': 29.25167193243994, 'light': 10, 's_max': 4}
+13: {'age': 13, 'rank': 0, 'size': 4.000019661568848, 'petioles_size': 0.1, 'rachid_size': 2.000009830784424, 'leaflets_number': 5, 'leaf_bending_rate': 0.5, 'y_angle': 0.75, 'z_angle': 1.5707963267948966, 'temp': 29.443066950944477, 'light': 10, 's_max': 4}
+14: {'age': 14, 'rank': 0, 'size': 3.9999907165821753, 'petioles_size': 0.1, 'rachid_size': 1.9999953582910877, 'leaflets_number': 5, 'leaf_bending_rate': 0.5, 'y_angle': 0.75, 'z_angle': 1.5707963267948966, 'temp': 29.639358951698554, 'light': 10, 's_max': 4}
+15: {'age': 15, 'rank': 0, 'size': 4.0000044742779055, 'petioles_size': 0.1, 'rachid_size': 2.0000022371389528, 'leaflets_number': 5, 'leaf_bending_rate': 0.5, 'y_angle': 0.75, 'z_angle': 1.5707963267948966, 'temp': 29.840346879407303, 'light': 10, 's_max': 4}
+16: {'age': 16, 'rank': 0, 'size': 3.999997798570201, 'petioles_size': 0.1, 'rachid_size': 1.9999988992851006, 'leaflets_number': 5, 'leaf_bending_rate': 0.5, 'y_angle': 0.75, 'z_angle': 1.5707963267948966, 'temp': 30.04580149390536, 'light': 10, 's_max': 4}
+17: {'age': 17, 'rank': 0, 'size': 4.000001105754518, 'petioles_size': 0.1, 'rachid_size': 2.000000552877259, 'leaflets_number': 5, 'leaf_bending_rate': 0.5, 'y_angle': 0.75, 'z_angle': 1.5707963267948966, 'temp': 30.255465734175676, 'light': 10, 's_max': 4}
+18: {'age': 18, 'rank': 0, 'size': 3.9999994329981594, 'petioles_size': 0.1, 'rachid_size': 1.9999997164990797, 'leaflets_number': 5, 'leaf_bending_rate': 0.5, 'y_angle': 0.75, 'z_angle': 1.5707963267948966, 'temp': 30.469055416530836, 'light': 10, 's_max': 4}
+19: {'age': 19, 'rank': 0, 'size': 4.000000296798562, 'petioles_size': 0.1, 'rachid_size': 2.000000148399281, 'leaflets_number': 5, 'leaf_bending_rate': 0.5, 'y_angle': 0.75, 'z_angle': 1.5707963267948966, 'temp': 30.686260276244486, 'light': 10, 's_max': 4}
+20: {'age': 20, 'rank': 0, 'size': 3.999999841416632, 'petioles_size': 0.1, 'rachid_size': 1.999999920708316, 'leaflets_number': 5, 'leaf_bending_rate': 0.5, 'y_angle': 0.75, 'z_angle': 1.5707963267948966, 'temp': 30.90674535519277, 'light': 10, 's_max': 4}
+<class 'botanical_nodes.Leaf'> - L01
+0: {'age': 0, 'rank': 0, 'size': 1.0, 'petioles_size': 0.1, 'rachid_size': 1, 'leaflets_number': 5, 'leaf_bending_rate': 0.5, 'y_angle': 0.75, 'z_angle': 4.71238898038469}
+1: {'age': 1, 'rank': 0, 'size': 1.9562499999999994, 'petioles_size': 0.1, 'rachid_size': 0.9781249999999997, 'leaflets_number': 5, 'leaf_bending_rate': 0.5, 'y_angle': 0.75, 'z_angle': 4.71238898038469, 'temp': 27.5, 'light': 10, 's_max': 4}
+2: {'age': 2, 'rank': 0, 'size': 3.3305920410156236, 'petioles_size': 0.1, 'rachid_size': 1.6652960205078118, 'leaflets_number': 5, 'leaf_bending_rate': 0.5, 'y_angle': 0.75, 'z_angle': 4.71238898038469, 'temp': 27.631849319578233, 'light': 10, 's_max': 4}
+3: {'age': 3, 'rank': 0, 'size': 4.100665714655153, 'petioles_size': 0.1, 'rachid_size': 2.0503328573275765, 'leaflets_number': 5, 'leaf_bending_rate': 0.5, 'y_angle': 0.75, 'z_angle': 4.71238898038469, 'temp': 27.76911189113097, 'light': 10, 's_max': 4}
+4: {'age': 4, 'rank': 0, 'size': 3.957378331381365, 'petioles_size': 0.1, 'rachid_size': 1.9786891656906824, 'leaflets_number': 5, 'leaf_bending_rate': 0.5, 'y_angle': 0.75, 'z_angle': 4.71238898038469, 'temp': 27.91184789614317, 'light': 10, 's_max': 4}
+5: {'age': 5, 'rank': 0, 'size': 4.01622699735819, 'petioles_size': 0.1, 'rachid_size': 2.008113498679095, 'leaflets_number': 5, 'leaf_bending_rate': 0.5, 'y_angle': 0.75, 'z_angle': 4.71238898038469, 'temp': 28.0601005483444, 'light': 10, 's_max': 4}
+6: {'age': 6, 'rank': 0, 'size': 3.9933680802620897, 'petioles_size': 0.1, 'rachid_size': 1.9966840401310448, 'leaflets_number': 5, 'leaf_bending_rate': 0.5, 'y_angle': 0.75, 'z_angle': 4.71238898038469, 'temp': 28.213894458593273, 'light': 10, 's_max': 4}
+7: {'age': 7, 'rank': 0, 'size': 4.002708183018672, 'petioles_size': 0.1, 'rachid_size': 2.001354091509336, 'leaflets_number': 5, 'leaf_bending_rate': 0.5, 'y_angle': 0.75, 'z_angle': 4.71238898038469, 'temp': 28.373234034938886, 'light': 10, 's_max': 4}
+8: {'age': 8, 'rank': 0, 'size': 3.9988635862819977, 'petioles_size': 0.1, 'rachid_size': 1.9994317931409988, 'leaflets_number': 5, 'leaf_bending_rate': 0.5, 'y_angle': 0.75, 'z_angle': 4.71238898038469, 'temp': 28.538101944620177, 'light': 10, 's_max': 4}
+9: {'age': 9, 'rank': 0, 'size': 4.000484680119576, 'petioles_size': 0.1, 'rachid_size': 2.000242340059788, 'leaflets_number': 5, 'leaf_bending_rate': 0.5, 'y_angle': 0.75, 'z_angle': 4.71238898038469, 'temp': 28.70845766681991, 'light': 10, 's_max': 4}
+10: {'age': 10, 'rank': 0, 'size': 3.9997888748843096, 'petioles_size': 0.1, 'rachid_size': 1.9998944374421548, 'leaflets_number': 5, 'leaf_bending_rate': 0.5, 'y_angle': 0.75, 'z_angle': 4.71238898038469, 'temp': 28.884236166597606, 'light': 10, 's_max': 4}
+11: {'age': 11, 'rank': 0, 'size': 4.000093768175917, 'petioles_size': 0.1, 'rachid_size': 2.0000468840879586, 'leaflets_number': 5, 'leaf_bending_rate': 0.5, 'y_angle': 0.75, 'z_angle': 4.71238898038469, 'temp': 29.065346721466568, 'light': 10, 's_max': 4}
+12: {'age': 12, 'rank': 0, 'size': 3.999957494754241, 'petioles_size': 0.1, 'rachid_size': 1.9999787473771204, 'leaflets_number': 5, 'leaf_bending_rate': 0.5, 'y_angle': 0.75, 'z_angle': 4.71238898038469, 'temp': 29.25167193243994, 'light': 10, 's_max': 4}
+13: {'age': 13, 'rank': 0, 'size': 4.000019661568848, 'petioles_size': 0.1, 'rachid_size': 2.000009830784424, 'leaflets_number': 5, 'leaf_bending_rate': 0.5, 'y_angle': 0.75, 'z_angle': 4.71238898038469, 'temp': 29.443066950944477, 'light': 10, 's_max': 4}
+14: {'age': 14, 'rank': 0, 'size': 3.9999907165821753, 'petioles_size': 0.1, 'rachid_size': 1.9999953582910877, 'leaflets_number': 5, 'leaf_bending_rate': 0.5, 'y_angle': 0.75, 'z_angle': 4.71238898038469, 'temp': 29.639358951698554, 'light': 10, 's_max': 4}
+15: {'age': 15, 'rank': 0, 'size': 4.0000044742779055, 'petioles_size': 0.1, 'rachid_size': 2.0000022371389528, 'leaflets_number': 5, 'leaf_bending_rate': 0.5, 'y_angle': 0.75, 'z_angle': 4.71238898038469, 'temp': 29.840346879407303, 'light': 10, 's_max': 4}
+16: {'age': 16, 'rank': 0, 'size': 3.999997798570201, 'petioles_size': 0.1, 'rachid_size': 1.9999988992851006, 'leaflets_number': 5, 'leaf_bending_rate': 0.5, 'y_angle': 0.75, 'z_angle': 4.71238898038469, 'temp': 30.04580149390536, 'light': 10, 's_max': 4}
+17: {'age': 17, 'rank': 0, 'size': 4.000001105754518, 'petioles_size': 0.1, 'rachid_size': 2.000000552877259, 'leaflets_number': 5, 'leaf_bending_rate': 0.5, 'y_angle': 0.75, 'z_angle': 4.71238898038469, 'temp': 30.255465734175676, 'light': 10, 's_max': 4}
+18: {'age': 18, 'rank': 0, 'size': 3.9999994329981594, 'petioles_size': 0.1, 'rachid_size': 1.9999997164990797, 'leaflets_number': 5, 'leaf_bending_rate': 0.5, 'y_angle': 0.75, 'z_angle': 4.71238898038469, 'temp': 30.469055416530836, 'light': 10, 's_max': 4}
+19: {'age': 19, 'rank': 0, 'size': 4.000000296798562, 'petioles_size': 0.1, 'rachid_size': 2.000000148399281, 'leaflets_number': 5, 'leaf_bending_rate': 0.5, 'y_angle': 0.75, 'z_angle': 4.71238898038469, 'temp': 30.686260276244486, 'light': 10, 's_max': 4}
+20: {'age': 20, 'rank': 0, 'size': 3.999999841416632, 'petioles_size': 0.1, 'rachid_size': 1.999999920708316, 'leaflets_number': 5, 'leaf_bending_rate': 0.5, 'y_angle': 0.75, 'z_angle': 4.71238898038469, 'temp': 30.90674535519277, 'light': 10, 's_max': 4}
+<class 'botanical_nodes.Leaf'> - L10
+1: {'age': 0, 'rank': 1, 'size': 1.0, 'petioles_size': 0.1, 'rachid_size': 1, 'leaflets_number': 5, 'leaf_bending_rate': 0.5, 'y_angle': 0.75, 'z_angle': 0.0, 'temp': 28.0, 'light': 10}
+2: {'age': 1, 'rank': 1, 'size': 2.2250000000000028, 'petioles_size': 0.1, 'rachid_size': 1.1125000000000014, 'leaflets_number': 5, 'leaf_bending_rate': 0.5, 'y_angle': 0.75, 'z_angle': 0.0, 'temp': 30.2985159862449, 'light': 10, 's_max': 8}
+3: {'age': 2, 'rank': 1, 'size': 4.658231211567223, 'petioles_size': 0.1, 'rachid_size': 2.3291156057836115, 'leaflets_number': 5, 'leaf_bending_rate': 0.5, 'y_angle': 0.75, 'z_angle': 0.0, 'temp': 30.58567136646825, 'light': 10, 's_max': 8}
+4: {'age': 3, 'rank': 1, 'size': 7.633974581401085, 'petioles_size': 0.1, 'rachid_size': 3.8169872907005424, 'leaflets_number': 5, 'leaf_bending_rate': 0.5, 'y_angle': 0.75, 'z_angle': 0.0, 'temp': 30.885439271690213, 'light': 10, 's_max': 8}
+5: {'age': 4, 'rank': 1, 'size': 8.1733557196132, 'petioles_size': 0.1, 'rachid_size': 4.0866778598066, 'leaflets_number': 5, 'leaf_bending_rate': 0.5, 'y_angle': 0.75, 'z_angle': 0.0, 'temp': 31.198051329028196, 'light': 10, 's_max': 8}
+6: {'age': 5, 'rank': 1, 'size': 7.897077873614257, 'petioles_size': 0.1, 'rachid_size': 3.9485389368071284, 'leaflets_number': 5, 'leaf_bending_rate': 0.5, 'y_angle': 0.75, 'z_angle': 0.0, 'temp': 31.52370741669708, 'light': 10, 's_max': 8}
+7: {'age': 6, 'rank': 1, 'size': 8.057215164177704, 'petioles_size': 0.1, 'rachid_size': 4.028607582088852, 'leaflets_number': 5, 'leaf_bending_rate': 0.5, 'y_angle': 0.75, 'z_angle': 0.0, 'temp': 31.862571629291534, 'light': 10, 's_max': 8}
+8: {'age': 7, 'rank': 1, 'size': 7.96541214759364, 'petioles_size': 0.1, 'rachid_size': 3.98270607379682, 'leaflets_number': 5, 'leaf_bending_rate': 0.5, 'y_angle': 0.75, 'z_angle': 0.0, 'temp': 32.2147681890116, 'light': 10, 's_max': 8}
+9: {'age': 8, 'rank': 1, 'size': 8.020883260237031, 'petioles_size': 0.1, 'rachid_size': 4.010441630118516, 'leaflets_number': 5, 'leaf_bending_rate': 0.5, 'y_angle': 0.75, 'z_angle': 0.0, 'temp': 32.58037735465409, 'light': 10, 's_max': 8}
+10: {'age': 9, 'rank': 1, 'size': 7.986775231250184, 'petioles_size': 0.1, 'rachid_size': 3.993387615625092, 'leaflets_number': 5, 'leaf_bending_rate': 0.5, 'y_angle': 0.75, 'z_angle': 0.0, 'temp': 32.95943138719339, 'light': 10, 's_max': 8}
+11: {'age': 10, 'rank': 1, 'size': 8.008533246514034, 'petioles_size': 0.1, 'rachid_size': 4.004266623257017, 'leaflets_number': 5, 'leaf_bending_rate': 0.5, 'y_angle': 0.75, 'z_angle': 0.0, 'temp': 33.35191063734164, 'light': 10, 's_max': 8}
+12: {'age': 11, 'rank': 1, 'size': 7.994288064238664, 'petioles_size': 0.1, 'rachid_size': 3.997144032119332, 'leaflets_number': 5, 'leaf_bending_rate': 0.5, 'y_angle': 0.75, 'z_angle': 0.0, 'temp': 33.757739826326215, 'light': 10, 's_max': 8}
+13: {'age': 12, 'rank': 1, 'size': 8.003922282635997, 'petioles_size': 0.1, 'rachid_size': 4.001961141317999, 'leaflets_number': 5, 'leaf_bending_rate': 0.5, 'y_angle': 0.75, 'z_angle': 0.0, 'temp': 34.176784595947026, 'light': 10, 's_max': 8}
+14: {'age': 13, 'rank': 1, 'size': 7.997216446035103, 'petioles_size': 0.1, 'rachid_size': 3.9986082230175515, 'leaflets_number': 5, 'leaf_bending_rate': 0.5, 'y_angle': 0.75, 'z_angle': 0.0, 'temp': 34.60884840745837, 'light': 10, 's_max': 8}
+15: {'age': 14, 'rank': 1, 'size': 8.002031549924524, 'petioles_size': 0.1, 'rachid_size': 4.001015774962262, 'leaflets_number': 5, 'leaf_bending_rate': 0.5, 'y_angle': 0.75, 'z_angle': 0.0, 'temp': 35.05366987064467, 'light': 10, 's_max': 8}
+16: {'age': 15, 'rank': 1, 'size': 7.998469981697184, 'petioles_size': 0.1, 'rachid_size': 3.999234990848592, 'leaflets_number': 5, 'leaf_bending_rate': 0.5, 'y_angle': 0.75, 'z_angle': 0.0, 'temp': 35.510920584325675, 'light': 10, 's_max': 8}
+17: {'age': 16, 'rank': 1, 'size': 8.001186080059984, 'petioles_size': 0.1, 'rachid_size': 4.000593040029992, 'leaflets_number': 5, 'leaf_bending_rate': 0.5, 'y_angle': 0.75, 'z_angle': 0.0, 'temp': 35.980203567171635, 'light': 10, 's_max': 8}
+18: {'age': 17, 'rank': 1, 'size': 7.999051993606954, 'petioles_size': 0.1, 'rachid_size': 3.999525996803477, 'leaflets_number': 5, 'leaf_bending_rate': 0.5, 'y_angle': 0.75, 'z_angle': 0.0, 'temp': 36.461052352922366, 'light': 10, 's_max': 8}
+19: {'age': 18, 'rank': 1, 'size': 8.000780054342496, 'petioles_size': 0.1, 'rachid_size': 4.000390027171248, 'leaflets_number': 5, 'leaf_bending_rate': 0.5, 'y_angle': 0.75, 'z_angle': 0.0, 'temp': 36.95293081675093, 'light': 10, 's_max': 8}
+20: {'age': 19, 'rank': 1, 'size': 7.999338649101818, 'petioles_size': 0.1, 'rachid_size': 3.999669324550909, 'leaflets_number': 5, 'leaf_bending_rate': 0.5, 'y_angle': 0.75, 'z_angle': 0.0, 'temp': 37.45523378954915, 'light': 10, 's_max': 8}
+<class 'botanical_nodes.Leaf'> - L11
+1: {'age': 0, 'rank': 1, 'size': 1.0, 'petioles_size': 0.1, 'rachid_size': 1, 'leaflets_number': 5, 'leaf_bending_rate': 0.5, 'y_angle': 0.75, 'z_angle': 3.141592653589793, 'temp': 28.0, 'light': 10}
+2: {'age': 1, 'rank': 1, 'size': 2.2250000000000028, 'petioles_size': 0.1, 'rachid_size': 1.1125000000000014, 'leaflets_number': 5, 'leaf_bending_rate': 0.5, 'y_angle': 0.75, 'z_angle': 3.141592653589793, 'temp': 30.2985159862449, 'light': 10, 's_max': 8}
+3: {'age': 2, 'rank': 1, 'size': 4.658231211567223, 'petioles_size': 0.1, 'rachid_size': 2.3291156057836115, 'leaflets_number': 5, 'leaf_bending_rate': 0.5, 'y_angle': 0.75, 'z_angle': 3.141592653589793, 'temp': 30.58567136646825, 'light': 10, 's_max': 8}
+4: {'age': 3, 'rank': 1, 'size': 7.633974581401085, 'petioles_size': 0.1, 'rachid_size': 3.8169872907005424, 'leaflets_number': 5, 'leaf_bending_rate': 0.5, 'y_angle': 0.75, 'z_angle': 3.141592653589793, 'temp': 30.885439271690213, 'light': 10, 's_max': 8}
+5: {'age': 4, 'rank': 1, 'size': 8.1733557196132, 'petioles_size': 0.1, 'rachid_size': 4.0866778598066, 'leaflets_number': 5, 'leaf_bending_rate': 0.5, 'y_angle': 0.75, 'z_angle': 3.141592653589793, 'temp': 31.198051329028196, 'light': 10, 's_max': 8}
+6: {'age': 5, 'rank': 1, 'size': 7.897077873614257, 'petioles_size': 0.1, 'rachid_size': 3.9485389368071284, 'leaflets_number': 5, 'leaf_bending_rate': 0.5, 'y_angle': 0.75, 'z_angle': 3.141592653589793, 'temp': 31.52370741669708, 'light': 10, 's_max': 8}
+7: {'age': 6, 'rank': 1, 'size': 8.057215164177704, 'petioles_size': 0.1, 'rachid_size': 4.028607582088852, 'leaflets_number': 5, 'leaf_bending_rate': 0.5, 'y_angle': 0.75, 'z_angle': 3.141592653589793, 'temp': 31.862571629291534, 'light': 10, 's_max': 8}
+8: {'age': 7, 'rank': 1, 'size': 7.96541214759364, 'petioles_size': 0.1, 'rachid_size': 3.98270607379682, 'leaflets_number': 5, 'leaf_bending_rate': 0.5, 'y_angle': 0.75, 'z_angle': 3.141592653589793, 'temp': 32.2147681890116, 'light': 10, 's_max': 8}
+9: {'age': 8, 'rank': 1, 'size': 8.020883260237031, 'petioles_size': 0.1, 'rachid_size': 4.010441630118516, 'leaflets_number': 5, 'leaf_bending_rate': 0.5, 'y_angle': 0.75, 'z_angle': 3.141592653589793, 'temp': 32.58037735465409, 'light': 10, 's_max': 8}
+10: {'age': 9, 'rank': 1, 'size': 7.986775231250184, 'petioles_size': 0.1, 'rachid_size': 3.993387615625092, 'leaflets_number': 5, 'leaf_bending_rate': 0.5, 'y_angle': 0.75, 'z_angle': 3.141592653589793, 'temp': 32.95943138719339, 'light': 10, 's_max': 8}
+11: {'age': 10, 'rank': 1, 'size': 8.008533246514034, 'petioles_size': 0.1, 'rachid_size': 4.004266623257017, 'leaflets_number': 5, 'leaf_bending_rate': 0.5, 'y_angle': 0.75, 'z_angle': 3.141592653589793, 'temp': 33.35191063734164, 'light': 10, 's_max': 8}
+12: {'age': 11, 'rank': 1, 'size': 7.994288064238664, 'petioles_size': 0.1, 'rachid_size': 3.997144032119332, 'leaflets_number': 5, 'leaf_bending_rate': 0.5, 'y_angle': 0.75, 'z_angle': 3.141592653589793, 'temp': 33.757739826326215, 'light': 10, 's_max': 8}
+13: {'age': 12, 'rank': 1, 'size': 8.003922282635997, 'petioles_size': 0.1, 'rachid_size': 4.001961141317999, 'leaflets_number': 5, 'leaf_bending_rate': 0.5, 'y_angle': 0.75, 'z_angle': 3.141592653589793, 'temp': 34.176784595947026, 'light': 10, 's_max': 8}
+14: {'age': 13, 'rank': 1, 'size': 7.997216446035103, 'petioles_size': 0.1, 'rachid_size': 3.9986082230175515, 'leaflets_number': 5, 'leaf_bending_rate': 0.5, 'y_angle': 0.75, 'z_angle': 3.141592653589793, 'temp': 34.60884840745837, 'light': 10, 's_max': 8}
+15: {'age': 14, 'rank': 1, 'size': 8.002031549924524, 'petioles_size': 0.1, 'rachid_size': 4.001015774962262, 'leaflets_number': 5, 'leaf_bending_rate': 0.5, 'y_angle': 0.75, 'z_angle': 3.141592653589793, 'temp': 35.05366987064467, 'light': 10, 's_max': 8}
+16: {'age': 15, 'rank': 1, 'size': 7.998469981697184, 'petioles_size': 0.1, 'rachid_size': 3.999234990848592, 'leaflets_number': 5, 'leaf_bending_rate': 0.5, 'y_angle': 0.75, 'z_angle': 3.141592653589793, 'temp': 35.510920584325675, 'light': 10, 's_max': 8}
+17: {'age': 16, 'rank': 1, 'size': 8.001186080059984, 'petioles_size': 0.1, 'rachid_size': 4.000593040029992, 'leaflets_number': 5, 'leaf_bending_rate': 0.5, 'y_angle': 0.75, 'z_angle': 3.141592653589793, 'temp': 35.980203567171635, 'light': 10, 's_max': 8}
+18: {'age': 17, 'rank': 1, 'size': 7.999051993606954, 'petioles_size': 0.1, 'rachid_size': 3.999525996803477, 'leaflets_number': 5, 'leaf_bending_rate': 0.5, 'y_angle': 0.75, 'z_angle': 3.141592653589793, 'temp': 36.461052352922366, 'light': 10, 's_max': 8}
+19: {'age': 18, 'rank': 1, 'size': 8.000780054342496, 'petioles_size': 0.1, 'rachid_size': 4.000390027171248, 'leaflets_number': 5, 'leaf_bending_rate': 0.5, 'y_angle': 0.75, 'z_angle': 3.141592653589793, 'temp': 36.95293081675093, 'light': 10, 's_max': 8}
+20: {'age': 19, 'rank': 1, 'size': 7.999338649101818, 'petioles_size': 0.1, 'rachid_size': 3.999669324550909, 'leaflets_number': 5, 'leaf_bending_rate': 0.5, 'y_angle': 0.75, 'z_angle': 3.141592653589793, 'temp': 37.45523378954915, 'light': 10, 's_max': 8}
+<class 'botanical_nodes.Leaf'> - L20
+2: {'age': 0, 'rank': 2, 'size': 1.0, 'petioles_size': 0.1, 'rachid_size': 1, 'leaflets_number': 5, 'leaf_bending_rate': 0.5, 'y_angle': 0.75, 'z_angle': 1.5707963267948966, 'temp': 30.7985159862449, 'light': 10}
+3: {'age': 1, 'rank': 2, 'size': 2.4115986493695583, 'petioles_size': 0.1, 'rachid_size': 1.2057993246847791, 'leaflets_number': 5, 'leaf_bending_rate': 0.5, 'y_angle': 0.75, 'z_angle': 1.5707963267948966, 'temp': 33.43890576555124, 'light': 10, 's_max': 12}
+4: {'age': 2, 'rank': 2, 'size': 5.633350243446497, 'petioles_size': 0.1, 'rachid_size': 2.8166751217232484, 'leaflets_number': 5, 'leaf_bending_rate': 0.5, 'y_angle': 0.75, 'z_angle': 1.5707963267948966, 'temp': 33.909305801541166, 'light': 10, 's_max': 12}
+5: {'age': 3, 'rank': 2, 'size': 10.700752374974048, 'petioles_size': 0.1, 'rachid_size': 5.350376187487024, 'leaflets_number': 5, 'leaf_bending_rate': 0.5, 'y_angle': 0.75, 'z_angle': 1.5707963267948966, 'temp': 34.401761616739606, 'light': 10, 's_max': 12}
+6: {'age': 4, 'rank': 2, 'size': 12.693607309077272, 'petioles_size': 0.1, 'rachid_size': 6.346803654538636, 'leaflets_number': 5, 'leaf_bending_rate': 0.5, 'y_angle': 0.75, 'z_angle': 1.5707963267948966, 'temp': 34.91682951877674, 'light': 10, 's_max': 12}
+7: {'age': 5, 'rank': 2, 'size': 11.41268650131769, 'petioles_size': 0.1, 'rachid_size': 5.706343250658845, 'leaflets_number': 5, 'leaf_bending_rate': 0.5, 'y_angle': 0.75, 'z_angle': 1.5707963267948966, 'temp': 35.455024194784556, 'light': 10, 's_max': 12}
+8: {'age': 6, 'rank': 2, 'size': 12.402889904737538, 'petioles_size': 0.1, 'rachid_size': 6.201444952368769, 'leaflets_number': 5, 'leaf_bending_rate': 0.5, 'y_angle': 0.75, 'z_angle': 1.5707963267948966, 'temp': 36.01681147243366, 'light': 10, 's_max': 12}
+9: {'age': 7, 'rank': 2, 'size': 11.652990006104215, 'petioles_size': 0.1, 'rachid_size': 5.826495003052107, 'leaflets_number': 5, 'leaf_bending_rate': 0.5, 'y_angle': 0.75, 'z_angle': 1.5707963267948966, 'temp': 36.602600765842794, 'light': 10, 's_max': 12}
+10: {'age': 8, 'rank': 2, 'size': 12.269698684411052, 'petioles_size': 0.1, 'rachid_size': 6.134849342205526, 'leaflets_number': 5, 'leaf_bending_rate': 0.5, 'y_angle': 0.75, 'z_angle': 1.5707963267948966, 'temp': 37.21273727473241, 'light': 10, 's_max': 12}
+11: {'age': 9, 'rank': 2, 'size': 11.7566092158201, 'petioles_size': 0.1, 'rachid_size': 5.87830460791005, 'leaflets_number': 5, 'leaf_bending_rate': 0.5, 'y_angle': 0.75, 'z_angle': 1.5707963267948966, 'temp': 37.84749402019793, 'light': 10, 's_max': 12}
+12: {'age': 10, 'rank': 2, 'size': 12.207853901209834, 'petioles_size': 0.1, 'rachid_size': 6.103926950604917, 'leaflets_number': 5, 'leaf_bending_rate': 0.5, 'y_angle': 0.75, 'z_angle': 1.5707963267948966, 'temp': 38.50706381579725, 'light': 10, 's_max': 12}
+13: {'age': 11, 'rank': 2, 'size': 11.800729937283556, 'petioles_size': 0.1, 'rachid_size': 5.900364968641778, 'leaflets_number': 5, 'leaf_bending_rate': 0.5, 'y_angle': 0.75, 'z_angle': 1.5707963267948966, 'temp': 39.19155128782459, 'light': 10, 's_max': 12}
+14: {'age': 12, 'rank': 2, 'size': 12.18473074817375, 'petioles_size': 0.1, 'rachid_size': 6.092365374086875, 'leaflets_number': 5, 'leaf_bending_rate': 0.5, 'y_angle': 0.75, 'z_angle': 1.5707963267948966, 'temp': 39.90096507314191, 'light': 10, 's_max': 12}
+15: {'age': 13, 'rank': 2, 'size': 11.810510498460207, 'petioles_size': 0.1, 'rachid_size': 5.905255249230104, 'leaflets_number': 5, 'leaf_bending_rate': 0.5, 'y_angle': 0.75, 'z_angle': 1.5707963267948966, 'temp': 40.63521033614418, 'light': 10, 's_max': 12}
+16: {'age': 14, 'rank': 2, 'size': 12.18942837402846, 'petioles_size': 0.1, 'rachid_size': 6.09471418701423, 'leaflets_number': 5, 'leaf_bending_rate': 0.5, 'y_angle': 0.75, 'z_angle': 1.5707963267948966, 'temp': 41.394081757672154, 'light': 10, 's_max': 12}
+17: {'age': 15, 'rank': 2, 'size': 11.791178742511484, 'petioles_size': 0.1, 'rachid_size': 5.895589371255742, 'leaflets_number': 5, 'leaf_bending_rate': 0.5, 'y_angle': 0.75, 'z_angle': 1.5707963267948966, 'temp': 42.17725715724664, 'light': 10, 's_max': 12}
+18: {'age': 16, 'rank': 2, 'size': 12.223890824401899, 'petioles_size': 0.1, 'rachid_size': 6.111945412200949, 'leaflets_number': 5, 'leaf_bending_rate': 0.5, 'y_angle': 0.75, 'z_angle': 1.5707963267948966, 'temp': 42.98429191516425, 'light': 10, 's_max': 12}
+19: {'age': 17, 'rank': 2, 'size': 11.733723571936626, 'petioles_size': 0.1, 'rachid_size': 5.866861785968313, 'leaflets_number': 5, 'leaf_bending_rate': 0.5, 'y_angle': 0.75, 'z_angle': 1.5707963267948966, 'temp': 43.814614362083326, 'light': 10, 's_max': 12}
+20: {'age': 18, 'rank': 2, 'size': 12.304119382539062, 'petioles_size': 0.1, 'rachid_size': 6.152059691269531, 'leaflets_number': 5, 'leaf_bending_rate': 0.5, 'y_angle': 0.75, 'z_angle': 1.5707963267948966, 'temp': 44.66752230012718, 'light': 10, 's_max': 12}
+<class 'botanical_nodes.Leaf'> - L21
+2: {'age': 0, 'rank': 2, 'size': 1.0, 'petioles_size': 0.1, 'rachid_size': 1, 'leaflets_number': 5, 'leaf_bending_rate': 0.5, 'y_angle': 0.75, 'z_angle': 4.71238898038469, 'temp': 30.7985159862449, 'light': 10}
+3: {'age': 1, 'rank': 2, 'size': 2.4115986493695583, 'petioles_size': 0.1, 'rachid_size': 1.2057993246847791, 'leaflets_number': 5, 'leaf_bending_rate': 0.5, 'y_angle': 0.75, 'z_angle': 4.71238898038469, 'temp': 33.43890576555124, 'light': 10, 's_max': 12}
+4: {'age': 2, 'rank': 2, 'size': 5.633350243446497, 'petioles_size': 0.1, 'rachid_size': 2.8166751217232484, 'leaflets_number': 5, 'leaf_bending_rate': 0.5, 'y_angle': 0.75, 'z_angle': 4.71238898038469, 'temp': 33.909305801541166, 'light': 10, 's_max': 12}
+5: {'age': 3, 'rank': 2, 'size': 10.700752374974048, 'petioles_size': 0.1, 'rachid_size': 5.350376187487024, 'leaflets_number': 5, 'leaf_bending_rate': 0.5, 'y_angle': 0.75, 'z_angle': 4.71238898038469, 'temp': 34.401761616739606, 'light': 10, 's_max': 12}
+6: {'age': 4, 'rank': 2, 'size': 12.693607309077272, 'petioles_size': 0.1, 'rachid_size': 6.346803654538636, 'leaflets_number': 5, 'leaf_bending_rate': 0.5, 'y_angle': 0.75, 'z_angle': 4.71238898038469, 'temp': 34.91682951877674, 'light': 10, 's_max': 12}
+7: {'age': 5, 'rank': 2, 'size': 11.41268650131769, 'petioles_size': 0.1, 'rachid_size': 5.706343250658845, 'leaflets_number': 5, 'leaf_bending_rate': 0.5, 'y_angle': 0.75, 'z_angle': 4.71238898038469, 'temp': 35.455024194784556, 'light': 10, 's_max': 12}
+8: {'age': 6, 'rank': 2, 'size': 12.402889904737538, 'petioles_size': 0.1, 'rachid_size': 6.201444952368769, 'leaflets_number': 5, 'leaf_bending_rate': 0.5, 'y_angle': 0.75, 'z_angle': 4.71238898038469, 'temp': 36.01681147243366, 'light': 10, 's_max': 12}
+9: {'age': 7, 'rank': 2, 'size': 11.652990006104215, 'petioles_size': 0.1, 'rachid_size': 5.826495003052107, 'leaflets_number': 5, 'leaf_bending_rate': 0.5, 'y_angle': 0.75, 'z_angle': 4.71238898038469, 'temp': 36.602600765842794, 'light': 10, 's_max': 12}
+10: {'age': 8, 'rank': 2, 'size': 12.269698684411052, 'petioles_size': 0.1, 'rachid_size': 6.134849342205526, 'leaflets_number': 5, 'leaf_bending_rate': 0.5, 'y_angle': 0.75, 'z_angle': 4.71238898038469, 'temp': 37.21273727473241, 'light': 10, 's_max': 12}
+11: {'age': 9, 'rank': 2, 'size': 11.7566092158201, 'petioles_size': 0.1, 'rachid_size': 5.87830460791005, 'leaflets_number': 5, 'leaf_bending_rate': 0.5, 'y_angle': 0.75, 'z_angle': 4.71238898038469, 'temp': 37.84749402019793, 'light': 10, 's_max': 12}
+12: {'age': 10, 'rank': 2, 'size': 12.207853901209834, 'petioles_size': 0.1, 'rachid_size': 6.103926950604917, 'leaflets_number': 5, 'leaf_bending_rate': 0.5, 'y_angle': 0.75, 'z_angle': 4.71238898038469, 'temp': 38.50706381579725, 'light': 10, 's_max': 12}
+13: {'age': 11, 'rank': 2, 'size': 11.800729937283556, 'petioles_size': 0.1, 'rachid_size': 5.900364968641778, 'leaflets_number': 5, 'leaf_bending_rate': 0.5, 'y_angle': 0.75, 'z_angle': 4.71238898038469, 'temp': 39.19155128782459, 'light': 10, 's_max': 12}
+14: {'age': 12, 'rank': 2, 'size': 12.18473074817375, 'petioles_size': 0.1, 'rachid_size': 6.092365374086875, 'leaflets_number': 5, 'leaf_bending_rate': 0.5, 'y_angle': 0.75, 'z_angle': 4.71238898038469, 'temp': 39.90096507314191, 'light': 10, 's_max': 12}
+15: {'age': 13, 'rank': 2, 'size': 11.810510498460207, 'petioles_size': 0.1, 'rachid_size': 5.905255249230104, 'leaflets_number': 5, 'leaf_bending_rate': 0.5, 'y_angle': 0.75, 'z_angle': 4.71238898038469, 'temp': 40.63521033614418, 'light': 10, 's_max': 12}
+16: {'age': 14, 'rank': 2, 'size': 12.18942837402846, 'petioles_size': 0.1, 'rachid_size': 6.09471418701423, 'leaflets_number': 5, 'leaf_bending_rate': 0.5, 'y_angle': 0.75, 'z_angle': 4.71238898038469, 'temp': 41.394081757672154, 'light': 10, 's_max': 12}
+17: {'age': 15, 'rank': 2, 'size': 11.791178742511484, 'petioles_size': 0.1, 'rachid_size': 5.895589371255742, 'leaflets_number': 5, 'leaf_bending_rate': 0.5, 'y_angle': 0.75, 'z_angle': 4.71238898038469, 'temp': 42.17725715724664, 'light': 10, 's_max': 12}
+18: {'age': 16, 'rank': 2, 'size': 12.223890824401899, 'petioles_size': 0.1, 'rachid_size': 6.111945412200949, 'leaflets_number': 5, 'leaf_bending_rate': 0.5, 'y_angle': 0.75, 'z_angle': 4.71238898038469, 'temp': 42.98429191516425, 'light': 10, 's_max': 12}
+19: {'age': 17, 'rank': 2, 'size': 11.733723571936626, 'petioles_size': 0.1, 'rachid_size': 5.866861785968313, 'leaflets_number': 5, 'leaf_bending_rate': 0.5, 'y_angle': 0.75, 'z_angle': 4.71238898038469, 'temp': 43.814614362083326, 'light': 10, 's_max': 12}
+20: {'age': 18, 'rank': 2, 'size': 12.304119382539062, 'petioles_size': 0.1, 'rachid_size': 6.152059691269531, 'leaflets_number': 5, 'leaf_bending_rate': 0.5, 'y_angle': 0.75, 'z_angle': 4.71238898038469, 'temp': 44.66752230012718, 'light': 10, 's_max': 12}
+<class 'botanical_nodes.Leaf'> - L30
+3: {'age': 0, 'rank': 3, 'size': 1.0, 'petioles_size': 0.1, 'rachid_size': 1, 'leaflets_number': 5, 'leaf_bending_rate': 0.5, 'y_angle': 0.75, 'z_angle': 0.0, 'temp': 33.93890576555124, 'light': 10}
+4: {'age': 1, 'rank': 3, 'size': 2.590886207760215, 'petioles_size': 0.1, 'rachid_size': 1.2954431038801075, 'leaflets_number': 5, 'leaf_bending_rate': 0.5, 'y_angle': 0.75, 'z_angle': 0.0, 'temp': 36.97189951924459, 'light': 10, 's_max': 16}
+5: {'age': 2, 'rank': 3, 'size': 6.604819966640779, 'petioles_size': 0.1, 'rachid_size': 3.3024099833203895, 'leaflets_number': 5, 'leaf_bending_rate': 0.5, 'y_angle': 0.75, 'z_angle': 0.0, 'temp': 37.65888961396318, 'light': 10, 's_max': 16}
+6: {'age': 3, 'rank': 3, 'size': 13.90752270918037, 'petioles_size': 0.1, 'rachid_size': 6.953761354590185, 'leaflets_number': 5, 'leaf_bending_rate': 0.5, 'y_angle': 0.75, 'z_angle': 0.0, 'temp': 38.38019554032083, 'light': 10, 's_max': 16}
+7: {'age': 4, 'rank': 3, 'size': 17.39786272124372, 'petioles_size': 0.1, 'rachid_size': 8.69893136062186, 'leaflets_number': 5, 'leaf_bending_rate': 0.5, 'y_angle': 0.75, 'z_angle': 0.0, 'temp': 39.136906735478675, 'light': 10, 's_max': 16}
+8: {'age': 5, 'rank': 3, 'size': 14.423479367992844, 'petioles_size': 0.1, 'rachid_size': 7.211739683996422, 'leaflets_number': 5, 'leaf_bending_rate': 0.5, 'y_angle': 0.75, 'z_angle': 0.0, 'temp': 39.93007002801578, 'light': 10, 's_max': 16}
+9: {'age': 6, 'rank': 3, 'size': 17.26087430806512, 'petioles_size': 0.1, 'rachid_size': 8.63043715403256, 'leaflets_number': 5, 'leaf_bending_rate': 0.5, 'y_angle': 0.75, 'z_angle': 0.0, 'temp': 40.760678406905974, 'light': 10, 's_max': 16}
+10: {'age': 7, 'rank': 3, 'size': 14.48866504137607, 'petioles_size': 0.1, 'rachid_size': 7.244332520688035, 'leaflets_number': 5, 'leaf_bending_rate': 0.5, 'y_angle': 0.75, 'z_angle': 0.0, 'temp': 41.62965898426194, 'light': 10, 's_max': 16}
+11: {'age': 8, 'rank': 3, 'size': 17.337333948510526, 'petioles_size': 0.1, 'rachid_size': 8.668666974255263, 'leaflets_number': 5, 'leaf_bending_rate': 0.5, 'y_angle': 0.75, 'z_angle': 0.0, 'temp': 42.537860218174536, 'light': 10, 's_max': 16}
+12: {'age': 9, 'rank': 3, 'size': 14.25522600022544, 'petioles_size': 0.1, 'rachid_size': 7.12761300011272, 'leaflets_number': 5, 'leaf_bending_rate': 0.5, 'y_angle': 0.75, 'z_angle': 0.0, 'temp': 43.48603848791386, 'light': 10, 's_max': 16}
+13: {'age': 10, 'rank': 3, 'size': 17.635198411334763, 'petioles_size': 0.1, 'rachid_size': 8.817599205667381, 'leaflets_number': 5, 'leaf_bending_rate': 0.5, 'y_angle': 0.75, 'z_angle': 0.0, 'temp': 44.47484414183184, 'light': 10, 's_max': 16}
+14: {'age': 11, 'rank': 3, 'size': 13.62731330431171, 'petioles_size': 0.1, 'rachid_size': 6.813656652155855, 'leaflets_number': 5, 'leaf_bending_rate': 0.5, 'y_angle': 0.75, 'z_angle': 0.0, 'temp': 45.504807167954674, 'light': 10, 's_max': 16}
+15: {'age': 12, 'rank': 3, 'size': 18.22519651739806, 'petioles_size': 0.1, 'rachid_size': 9.11259825869903, 'leaflets_number': 5, 'leaf_bending_rate': 0.5, 'y_angle': 0.75, 'z_angle': 0.0, 'temp': 46.576322667724, 'light': 10, 's_max': 16}
+16: {'age': 13, 'rank': 3, 'size': 12.322427216749823, 'petioles_size': 0.1, 'rachid_size': 6.161213608374911, 'leaflets_number': 5, 'leaf_bending_rate': 0.5, 'y_angle': 0.75, 'z_angle': 0.0, 'temp': 47.68963634369898, 'light': 10, 's_max': 16}
+17: {'age': 14, 'rank': 3, 'size': 19.075968682660477, 'petioles_size': 0.1, 'rachid_size': 9.537984341330239, 'leaflets_number': 5, 'leaf_bending_rate': 0.5, 'y_angle': 0.75, 'z_angle': 0.0, 'temp': 48.84483024114077, 'light': 10, 's_max': 16}
+18: {'age': 15, 'rank': 3, 'size': 10.119493301411179, 'petioles_size': 0.1, 'rachid_size': 5.0597466507055895, 'leaflets_number': 5, 'leaf_bending_rate': 0.5, 'y_angle': 0.75, 'z_angle': 0.0, 'temp': 50.04180900998104, 'light': 10, 's_max': 16}
+19: {'age': 16, 'rank': 3, 'size': 19.4253538242231, 'petioles_size': 0.1, 'rachid_size': 9.71267691211155, 'leaflets_number': 5, 'leaf_bending_rate': 0.5, 'y_angle': 0.75, 'z_angle': 0.0, 'temp': 51.28028697631844, 'light': 10, 's_max': 16}
+20: {'age': 17, 'rank': 3, 'size': 8.762465873349266, 'petioles_size': 0.1, 'rachid_size': 4.381232936674633, 'leaflets_number': 5, 'leaf_bending_rate': 0.5, 'y_angle': 0.75, 'z_angle': 0.0, 'temp': 52.55977632981375, 'light': 10, 's_max': 16}
+<class 'botanical_nodes.Leaf'> - L31
+3: {'age': 0, 'rank': 3, 'size': 1.0, 'petioles_size': 0.1, 'rachid_size': 1, 'leaflets_number': 5, 'leaf_bending_rate': 0.5, 'y_angle': 0.75, 'z_angle': 3.141592653589793, 'temp': 33.93890576555124, 'light': 10}
+4: {'age': 1, 'rank': 3, 'size': 2.590886207760215, 'petioles_size': 0.1, 'rachid_size': 1.2954431038801075, 'leaflets_number': 5, 'leaf_bending_rate': 0.5, 'y_angle': 0.75, 'z_angle': 3.141592653589793, 'temp': 36.97189951924459, 'light': 10, 's_max': 16}
+5: {'age': 2, 'rank': 3, 'size': 6.604819966640779, 'petioles_size': 0.1, 'rachid_size': 3.3024099833203895, 'leaflets_number': 5, 'leaf_bending_rate': 0.5, 'y_angle': 0.75, 'z_angle': 3.141592653589793, 'temp': 37.65888961396318, 'light': 10, 's_max': 16}
+6: {'age': 3, 'rank': 3, 'size': 13.90752270918037, 'petioles_size': 0.1, 'rachid_size': 6.953761354590185, 'leaflets_number': 5, 'leaf_bending_rate': 0.5, 'y_angle': 0.75, 'z_angle': 3.141592653589793, 'temp': 38.38019554032083, 'light': 10, 's_max': 16}
+7: {'age': 4, 'rank': 3, 'size': 17.39786272124372, 'petioles_size': 0.1, 'rachid_size': 8.69893136062186, 'leaflets_number': 5, 'leaf_bending_rate': 0.5, 'y_angle': 0.75, 'z_angle': 3.141592653589793, 'temp': 39.136906735478675, 'light': 10, 's_max': 16}
+8: {'age': 5, 'rank': 3, 'size': 14.423479367992844, 'petioles_size': 0.1, 'rachid_size': 7.211739683996422, 'leaflets_number': 5, 'leaf_bending_rate': 0.5, 'y_angle': 0.75, 'z_angle': 3.141592653589793, 'temp': 39.93007002801578, 'light': 10, 's_max': 16}
+9: {'age': 6, 'rank': 3, 'size': 17.26087430806512, 'petioles_size': 0.1, 'rachid_size': 8.63043715403256, 'leaflets_number': 5, 'leaf_bending_rate': 0.5, 'y_angle': 0.75, 'z_angle': 3.141592653589793, 'temp': 40.760678406905974, 'light': 10, 's_max': 16}
+10: {'age': 7, 'rank': 3, 'size': 14.48866504137607, 'petioles_size': 0.1, 'rachid_size': 7.244332520688035, 'leaflets_number': 5, 'leaf_bending_rate': 0.5, 'y_angle': 0.75, 'z_angle': 3.141592653589793, 'temp': 41.62965898426194, 'light': 10, 's_max': 16}
+11: {'age': 8, 'rank': 3, 'size': 17.337333948510526, 'petioles_size': 0.1, 'rachid_size': 8.668666974255263, 'leaflets_number': 5, 'leaf_bending_rate': 0.5, 'y_angle': 0.75, 'z_angle': 3.141592653589793, 'temp': 42.537860218174536, 'light': 10, 's_max': 16}
+12: {'age': 9, 'rank': 3, 'size': 14.25522600022544, 'petioles_size': 0.1, 'rachid_size': 7.12761300011272, 'leaflets_number': 5, 'leaf_bending_rate': 0.5, 'y_angle': 0.75, 'z_angle': 3.141592653589793, 'temp': 43.48603848791386, 'light': 10, 's_max': 16}
+13: {'age': 10, 'rank': 3, 'size': 17.635198411334763, 'petioles_size': 0.1, 'rachid_size': 8.817599205667381, 'leaflets_number': 5, 'leaf_bending_rate': 0.5, 'y_angle': 0.75, 'z_angle': 3.141592653589793, 'temp': 44.47484414183184, 'light': 10, 's_max': 16}
+14: {'age': 11, 'rank': 3, 'size': 13.62731330431171, 'petioles_size': 0.1, 'rachid_size': 6.813656652155855, 'leaflets_number': 5, 'leaf_bending_rate': 0.5, 'y_angle': 0.75, 'z_angle': 3.141592653589793, 'temp': 45.504807167954674, 'light': 10, 's_max': 16}
+15: {'age': 12, 'rank': 3, 'size': 18.22519651739806, 'petioles_size': 0.1, 'rachid_size': 9.11259825869903, 'leaflets_number': 5, 'leaf_bending_rate': 0.5, 'y_angle': 0.75, 'z_angle': 3.141592653589793, 'temp': 46.576322667724, 'light': 10, 's_max': 16}
+16: {'age': 13, 'rank': 3, 'size': 12.322427216749823, 'petioles_size': 0.1, 'rachid_size': 6.161213608374911, 'leaflets_number': 5, 'leaf_bending_rate': 0.5, 'y_angle': 0.75, 'z_angle': 3.141592653589793, 'temp': 47.68963634369898, 'light': 10, 's_max': 16}
+17: {'age': 14, 'rank': 3, 'size': 19.075968682660477, 'petioles_size': 0.1, 'rachid_size': 9.537984341330239, 'leaflets_number': 5, 'leaf_bending_rate': 0.5, 'y_angle': 0.75, 'z_angle': 3.141592653589793, 'temp': 48.84483024114077, 'light': 10, 's_max': 16}
+18: {'age': 15, 'rank': 3, 'size': 10.119493301411179, 'petioles_size': 0.1, 'rachid_size': 5.0597466507055895, 'leaflets_number': 5, 'leaf_bending_rate': 0.5, 'y_angle': 0.75, 'z_angle': 3.141592653589793, 'temp': 50.04180900998104, 'light': 10, 's_max': 16}
+19: {'age': 16, 'rank': 3, 'size': 19.4253538242231, 'petioles_size': 0.1, 'rachid_size': 9.71267691211155, 'leaflets_number': 5, 'leaf_bending_rate': 0.5, 'y_angle': 0.75, 'z_angle': 3.141592653589793, 'temp': 51.28028697631844, 'light': 10, 's_max': 16}
+20: {'age': 17, 'rank': 3, 'size': 8.762465873349266, 'petioles_size': 0.1, 'rachid_size': 4.381232936674633, 'leaflets_number': 5, 'leaf_bending_rate': 0.5, 'y_angle': 0.75, 'z_angle': 3.141592653589793, 'temp': 52.55977632981375, 'light': 10, 's_max': 16}
+<class 'botanical_nodes.Leaf'> - L40
+4: {'age': 0, 'rank': 4, 'size': 1.0, 'petioles_size': 0.1, 'rachid_size': 1, 'leaflets_number': 5, 'leaf_bending_rate': 0.5, 'y_angle': 0.75, 'z_angle': 1.5707963267948966, 'temp': 37.47189951924459, 'light': 10}
+5: {'age': 1, 'rank': 4, 'size': 2.779915227164116, 'petioles_size': 0.1, 'rachid_size': 1.389957613582058, 'leaflets_number': 5, 'leaf_bending_rate': 0.5, 'y_angle': 0.75, 'z_angle': 1.5707963267948966, 'temp': 40.95701624857949, 'light': 10, 's_max': 20}
+6: {'age': 2, 'rank': 4, 'size': 7.681484633310783, 'petioles_size': 0.1, 'rachid_size': 3.8407423166553913, 'leaflets_number': 5, 'leaf_bending_rate': 0.5, 'y_angle': 0.75, 'z_angle': 1.5707963267948966, 'temp': 41.90047926035573, 'light': 10, 's_max': 20}
+7: {'age': 3, 'rank': 4, 'size': 17.593512968014544, 'petioles_size': 0.1, 'rachid_size': 8.796756484007272, 'leaflets_number': 5, 'leaf_bending_rate': 0.5, 'y_angle': 0.75, 'z_angle': 1.5707963267948966, 'temp': 42.8940521886459, 'light': 10, 's_max': 20}
+8: {'age': 4, 'rank': 4, 'size': 22.13369405987568, 'petioles_size': 0.1, 'rachid_size': 11.06684702993784, 'leaflets_number': 5, 'leaf_bending_rate': 0.5, 'y_angle': 0.75, 'z_angle': 1.5707963267948966, 'temp': 43.93963851444363, 'light': 10, 's_max': 20}
+9: {'age': 5, 'rank': 4, 'size': 16.94590224962619, 'petioles_size': 0.1, 'rachid_size': 8.472951124813095, 'leaflets_number': 5, 'leaf_bending_rate': 0.5, 'y_angle': 0.75, 'z_angle': 1.5707963267948966, 'temp': 45.03911270137175, 'light': 10, 's_max': 20}
+10: {'age': 6, 'rank': 4, 'size': 22.773337607803462, 'petioles_size': 0.1, 'rachid_size': 11.386668803901731, 'leaflets_number': 5, 'leaf_bending_rate': 0.5, 'y_angle': 0.75, 'z_angle': 1.5707963267948966, 'temp': 46.19430429607189, 'light': 10, 's_max': 20}
+11: {'age': 7, 'rank': 4, 'size': 15.479470187404974, 'petioles_size': 0.1, 'rachid_size': 7.739735093702487, 'leaflets_number': 5, 'leaf_bending_rate': 0.5, 'y_angle': 0.75, 'z_angle': 1.5707963267948966, 'temp': 47.40698043111715, 'light': 10, 's_max': 20}
+12: {'age': 8, 'rank': 4, 'size': 23.772776999809604, 'petioles_size': 0.1, 'rachid_size': 11.886388499904802, 'leaflets_number': 5, 'leaf_bending_rate': 0.5, 'y_angle': 0.75, 'z_angle': 1.5707963267948966, 'temp': 48.67882676166471, 'light': 10, 's_max': 20}
+13: {'age': 9, 'rank': 4, 'size': 12.857841756310089, 'petioles_size': 0.1, 'rachid_size': 6.428920878155044, 'leaflets_number': 5, 'leaf_bending_rate': 0.5, 'y_angle': 0.75, 'z_angle': 1.5707963267948966, 'temp': 50.01142690624194, 'light': 10, 's_max': 20}
+14: {'age': 10, 'rank': 4, 'size': 24.33955772858537, 'petioles_size': 0.1, 'rachid_size': 12.169778864292685, 'leaflets_number': 5, 'leaf_bending_rate': 0.5, 'y_angle': 0.75, 'z_angle': 1.5707963267948966, 'temp': 51.40624050667374, 'light': 10, 's_max': 20}
+15: {'age': 11, 'rank': 4, 'size': 10.765365190398107, 'petioles_size': 0.1, 'rachid_size': 5.382682595199054, 'leaflets_number': 5, 'leaf_bending_rate': 0.5, 'y_angle': 0.75, 'z_angle': 1.5707963267948966, 'temp': 52.86458007171187, 'light': 10, 's_max': 20}
+16: {'age': 12, 'rank': 4, 'size': 23.90409216195762, 'petioles_size': 0.1, 'rachid_size': 11.95204608097881, 'leaflets_number': 5, 'leaf_bending_rate': 0.5, 'y_angle': 0.75, 'z_angle': 1.5707963267948966, 'temp': 54.38758682258238, 'light': 10, 's_max': 20}
+17: {'age': 13, 'rank': 4, 'size': 11.214954350161195, 'petioles_size': 0.1, 'rachid_size': 5.607477175080597, 'leaflets_number': 5, 'leaf_bending_rate': 0.5, 'y_angle': 0.75, 'z_angle': 1.5707963267948966, 'temp': 55.97620581522226, 'light': 10, 's_max': 20}
+18: {'age': 14, 'rank': 4, 'size': 25.00243764107769, 'petioles_size': 0.1, 'rachid_size': 12.501218820538845, 'leaflets_number': 5, 'leaf_bending_rate': 0.5, 'y_angle': 0.75, 'z_angle': 1.5707963267948966, 'temp': 57.63116067183876, 'light': 10, 's_max': 20}
+19: {'age': 15, 'rank': 4, 'size': 6.982162768657972, 'petioles_size': 0.1, 'rachid_size': 3.491081384328986, 'leaflets_number': 5, 'leaf_bending_rate': 0.5, 'y_angle': 0.75, 'z_angle': 1.5707963267948966, 'temp': 59.35292831162376, 'light': 10, 's_max': 20}
+20: {'age': 16, 'rank': 4, 'size': 20.469026370524134, 'petioles_size': 0.1, 'rachid_size': 10.234513185262067, 'leaflets_number': 5, 'leaf_bending_rate': 0.5, 'y_angle': 0.75, 'z_angle': 1.5707963267948966, 'temp': 61.141714124662286, 'light': 10, 's_max': 20}
+<class 'botanical_nodes.Leaf'> - L41
+4: {'age': 0, 'rank': 4, 'size': 1.0, 'petioles_size': 0.1, 'rachid_size': 1, 'leaflets_number': 5, 'leaf_bending_rate': 0.5, 'y_angle': 0.75, 'z_angle': 4.71238898038469, 'temp': 37.47189951924459, 'light': 10}
+5: {'age': 1, 'rank': 4, 'size': 2.779915227164116, 'petioles_size': 0.1, 'rachid_size': 1.389957613582058, 'leaflets_number': 5, 'leaf_bending_rate': 0.5, 'y_angle': 0.75, 'z_angle': 4.71238898038469, 'temp': 40.95701624857949, 'light': 10, 's_max': 20}
+6: {'age': 2, 'rank': 4, 'size': 7.681484633310783, 'petioles_size': 0.1, 'rachid_size': 3.8407423166553913, 'leaflets_number': 5, 'leaf_bending_rate': 0.5, 'y_angle': 0.75, 'z_angle': 4.71238898038469, 'temp': 41.90047926035573, 'light': 10, 's_max': 20}
+7: {'age': 3, 'rank': 4, 'size': 17.593512968014544, 'petioles_size': 0.1, 'rachid_size': 8.796756484007272, 'leaflets_number': 5, 'leaf_bending_rate': 0.5, 'y_angle': 0.75, 'z_angle': 4.71238898038469, 'temp': 42.8940521886459, 'light': 10, 's_max': 20}
+8: {'age': 4, 'rank': 4, 'size': 22.13369405987568, 'petioles_size': 0.1, 'rachid_size': 11.06684702993784, 'leaflets_number': 5, 'leaf_bending_rate': 0.5, 'y_angle': 0.75, 'z_angle': 4.71238898038469, 'temp': 43.93963851444363, 'light': 10, 's_max': 20}
+9: {'age': 5, 'rank': 4, 'size': 16.94590224962619, 'petioles_size': 0.1, 'rachid_size': 8.472951124813095, 'leaflets_number': 5, 'leaf_bending_rate': 0.5, 'y_angle': 0.75, 'z_angle': 4.71238898038469, 'temp': 45.03911270137175, 'light': 10, 's_max': 20}
+10: {'age': 6, 'rank': 4, 'size': 22.773337607803462, 'petioles_size': 0.1, 'rachid_size': 11.386668803901731, 'leaflets_number': 5, 'leaf_bending_rate': 0.5, 'y_angle': 0.75, 'z_angle': 4.71238898038469, 'temp': 46.19430429607189, 'light': 10, 's_max': 20}
+11: {'age': 7, 'rank': 4, 'size': 15.479470187404974, 'petioles_size': 0.1, 'rachid_size': 7.739735093702487, 'leaflets_number': 5, 'leaf_bending_rate': 0.5, 'y_angle': 0.75, 'z_angle': 4.71238898038469, 'temp': 47.40698043111715, 'light': 10, 's_max': 20}
+12: {'age': 8, 'rank': 4, 'size': 23.772776999809604, 'petioles_size': 0.1, 'rachid_size': 11.886388499904802, 'leaflets_number': 5, 'leaf_bending_rate': 0.5, 'y_angle': 0.75, 'z_angle': 4.71238898038469, 'temp': 48.67882676166471, 'light': 10, 's_max': 20}
+13: {'age': 9, 'rank': 4, 'size': 12.857841756310089, 'petioles_size': 0.1, 'rachid_size': 6.428920878155044, 'leaflets_number': 5, 'leaf_bending_rate': 0.5, 'y_angle': 0.75, 'z_angle': 4.71238898038469, 'temp': 50.01142690624194, 'light': 10, 's_max': 20}
+14: {'age': 10, 'rank': 4, 'size': 24.33955772858537, 'petioles_size': 0.1, 'rachid_size': 12.169778864292685, 'leaflets_number': 5, 'leaf_bending_rate': 0.5, 'y_angle': 0.75, 'z_angle': 4.71238898038469, 'temp': 51.40624050667374, 'light': 10, 's_max': 20}
+15: {'age': 11, 'rank': 4, 'size': 10.765365190398107, 'petioles_size': 0.1, 'rachid_size': 5.382682595199054, 'leaflets_number': 5, 'leaf_bending_rate': 0.5, 'y_angle': 0.75, 'z_angle': 4.71238898038469, 'temp': 52.86458007171187, 'light': 10, 's_max': 20}
+16: {'age': 12, 'rank': 4, 'size': 23.90409216195762, 'petioles_size': 0.1, 'rachid_size': 11.95204608097881, 'leaflets_number': 5, 'leaf_bending_rate': 0.5, 'y_angle': 0.75, 'z_angle': 4.71238898038469, 'temp': 54.38758682258238, 'light': 10, 's_max': 20}
+17: {'age': 13, 'rank': 4, 'size': 11.214954350161195, 'petioles_size': 0.1, 'rachid_size': 5.607477175080597, 'leaflets_number': 5, 'leaf_bending_rate': 0.5, 'y_angle': 0.75, 'z_angle': 4.71238898038469, 'temp': 55.97620581522226, 'light': 10, 's_max': 20}
+18: {'age': 14, 'rank': 4, 'size': 25.00243764107769, 'petioles_size': 0.1, 'rachid_size': 12.501218820538845, 'leaflets_number': 5, 'leaf_bending_rate': 0.5, 'y_angle': 0.75, 'z_angle': 4.71238898038469, 'temp': 57.63116067183876, 'light': 10, 's_max': 20}
+19: {'age': 15, 'rank': 4, 'size': 6.982162768657972, 'petioles_size': 0.1, 'rachid_size': 3.491081384328986, 'leaflets_number': 5, 'leaf_bending_rate': 0.5, 'y_angle': 0.75, 'z_angle': 4.71238898038469, 'temp': 59.35292831162376, 'light': 10, 's_max': 20}
+20: {'age': 16, 'rank': 4, 'size': 20.469026370524134, 'petioles_size': 0.1, 'rachid_size': 10.234513185262067, 'leaflets_number': 5, 'leaf_bending_rate': 0.5, 'y_angle': 0.75, 'z_angle': 4.71238898038469, 'temp': 61.141714124662286, 'light': 10, 's_max': 20}

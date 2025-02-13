@@ -12,7 +12,7 @@ from simulator import Clock, Simulation
 from plant import Plant, PlantState
 from plant_reg import PlantRegulation
 
-from model import Model, StaticRule, DynamicRule
+from botanicode.development_engine import Model, StaticRule, DynamicRule
 from utils import NumericalIntegrator
 
 
@@ -281,12 +281,88 @@ import os
 data_folder = "botanicode/training_files/medium/"
 
 for file in os.listdir(data_folder):
-    if file.endswith(".pkl"):
+    if file.endswith(".pkl") and "plant" in file:
         data = pickle.load(open(data_folder+file, "rb"))
         dataset.append(data)
 
 from utils import EvolutionaryOptimizer
-optimizer = EvolutionaryOptimizer(max_epochs=50, pop_size=20, mutation_scale=0.1, loss_threshold=1e-3)
+optimizer = EvolutionaryOptimizer(max_epochs=50, pop_size=70, mutation_scale=0.2, loss_threshold=1e-3)
     # optimizer = DifferentialEvolutionOptimizer(max_epochs=50, pop_size=20)  # Alternative option.
 
-best_params, opt_info = sim.tune(plant, clock, dataset, max_t=25, delta_t=1, batch_size=3, optimizer=optimizer)
+best_params, opt_info = sim.tune(plant, clock, dataset, max_t=25, delta_t=1, batch_size=4, optimizer=optimizer)
+
+
+print("Best parameters found:", best_params)
+
+
+# run a simulation with the best parameters
+
+model.set_trainable_params(best_params)
+
+import pickle
+
+# save the best parameters and loss
+training_results = (best_params, opt_info)  
+pickle.dump(training_results, open("botanicode/training_files/medium/results.pkl", "wb"))
+
+
+import matplotlib.pyplot as plt
+# plot the best loss
+plt.semilogy([x[1] for x in opt_info])
+plt.xlabel("Epoch")
+plt.ylabel("Loss")
+plt.title("Training loss")
+plt.savefig("botanicode/training_files/medium/loss.png")
+
+# plot the losses
+plt.semilogy([x[0] for x in opt_info])
+plt.xlabel("Epoch")
+plt.ylabel("Losses")
+plt.title("Training losses")
+plt.savefig("botanicode/training_files/medium/losses.png")
+
+
+# Create subplots with appropriate projections
+
+for file in os.listdir(data_folder):
+    if file.endswith(".pkl") and "plant" in file:
+        data = pickle.load(open(data_folder+file, "rb"))
+
+        env, history = data
+        plant.reset()
+        clock.elapsed_time = 0
+    
+        sim.run(max_t=max_time,delta_t=dt, plant=plant, clock=clock, env = env)
+        
+        fig, axes = plt.subplots(2, 3, figsize=(15, 10))
+        fig.suptitle(file)
+
+        for i in range(3):
+            ax = axes[0, i]
+            lenptime = plant.history.extract_field_for_node(Stem,f"S{i}", "length")
+            leng = [x[1] for x in lenptime]
+            exp_lenptime = history.extract_field_for_node(Stem,f"S{i}", "length")
+            expected_len = [x[1] for x in exp_lenptime]
+
+            ax.plot(leng, label="Simulated")
+            ax.plot(expected_len, label="Expected")
+            ax.set_title(f"Stem S{i}")
+            ax.legend()
+
+
+            ax2 = axes[1, i]
+            
+            sizeptime = plant.history.extract_field_for_node(Leaf,f"L{i}0", "size")
+            size = [x[1] for x in sizeptime]
+            exp_sizeptime = history.extract_field_for_node(Leaf,f"L{i}0", "size")
+            expected_size = [x[1] for x in exp_sizeptime]
+
+            
+            ax2.plot(size, label="Simulated")
+            ax2.plot(expected_size, label="Expected")
+            ax2.set_title(f"Leaf S{i}")
+            ax2.legend()
+
+        fig.tight_layout(rect=[0, 0, 1, 0.96]) 
+        
+        plt.savefig(f"botanicode/training_files/medium/{file[:-4]}.png")
