@@ -73,39 +73,8 @@ class NumericalIntegrator:
         # Solve the implicit equation using a root-finding method
         y_next = fsolve(implicit_eq, y)  # Use y as the initial guess
         return y_next
-# utility functions for plotting and animating the simulation
-def plotter(plot_methods, plot_3ds=None, ncols=1, figsize=(10, 10), dpi=100, save_folder=None, name= "plot", save_format='png'):
-    """
-    Generate the plot and save or show it. Helper function to group multiple plots.
-    """
-    plot_3ds = plot_3ds if plot_3ds is not None else [False] * len(plot_methods)
-    n_objects = len(plot_methods)
-    nrows = (n_objects + ncols - 1) // ncols
 
-    # Create subplots with appropriate projections
-    fig = plt.figure(figsize=figsize)
-    axes = []
 
-    for i, is_3d in enumerate(plot_3ds):
-        if is_3d:
-            ax = fig.add_subplot(nrows, ncols, i + 1, projection='3d')
-        else:
-            ax = fig.add_subplot(nrows, ncols, i + 1)
-        axes.append(ax)
-
-    # Call the plot methods
-    for ax, plot_method in zip(axes, plot_methods):
-        plot_method(ax)
-
-    plt.tight_layout()
-
-    if save_folder:
-        if not os.path.exists(save_folder):
-            os.makedirs(save_folder)
-        save_path = os.path.join(save_folder, f"{name}.{save_format}")
-        plt.savefig(save_path, dpi=dpi, format=save_format)
-
-    plt.show()
 
 def animate(img_folder, fps=1, save_name="animation.mp4", dpi=100):
     """
@@ -135,6 +104,44 @@ def animate(img_folder, fps=1, save_name="animation.mp4", dpi=100):
     plt.close(fig)
 
     print(f"Animation completed. Saved to {save_path}.")
+
+
+class Plotter:
+    def __init__(self, object_to_plot, plot_methods, plot_3ds=None, ncols=1, figsize=(10, 10)):
+        self.obj_to_plot = object_to_plot
+        self.plot_methods = plot_methods
+        self.plot_3ds = plot_3ds if plot_3ds is not None else [False] * len(plot_methods)
+        self.n_objects = len(plot_methods)
+        self.nrows = (self.n_objects + ncols - 1) // ncols
+        self.ncols = ncols
+        self.figsize = figsize
+        
+    def plot(self, save_folder = None, name = None):
+
+        # Create subplots with appropriate projections
+        fig = plt.figure(figsize=self.figsize)
+        axes = []
+
+        for i, is_3d in enumerate(self.plot_3ds):
+            if is_3d:
+                ax = fig.add_subplot(self.nrows, self.ncols, i + 1, projection='3d')
+            else:
+                ax = fig.add_subplot(self.nrows, self.ncols, i + 1)
+            axes.append(ax)
+
+        # Call the plot methods
+        for ax, plot_method in zip(axes, self.plot_methods):
+            # Call the plot method with the object to plot and the axis
+            plot_method(ax = ax)
+
+        plt.tight_layout()
+
+        if save_folder and name:
+            save_path = os.path.join(save_folder, f"{name}.png")
+            plt.savefig(save_path, dpi = 100, format='png')
+
+        plt.show()
+
 
 from abc import ABC, abstractmethod
 

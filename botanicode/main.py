@@ -215,22 +215,15 @@ sim = Simulation(solver=ni, folder=result_folder)
 
 sim.run(max_t=max_time,delta_t=dt, dev_eng= model, plant=plant, env=env, clock=clock)
 
-plant.plot()
-import matplotlib.pyplot as plt
-plt.show()
+from utils import Plotter
 
+plotter_plant = Plotter(plant, [plant.plot], [True])
+plotter_plant.plot()
 
-fig, ax = plt.subplots(2,1)
-plant.structure.plot_value("water",[Stem,Leaf],ax[0])
-plant.structure.plot(ax[1])
-plt.show()
+plotter_graph = Plotter(plant.structure, [plant.structure.plot, lambda ax : plant.structure.plot_value("water",[Stem,Leaf], ax)])
+plotter_graph.plot()
 
+plotter_history = Plotter(sim.history, [ lambda ax : sim.history.plot_node_field(Stem,"S0", "length", ax),
+                                         lambda ax : sim.history.plot_plant_field("internodes_no", ax)])
 
-
-sim.history.plot_node_field(Stem,"S0", "length")
-plt.show()
-
-
-sim.history.plot_plant_field("internodes_no")
-plt.show()
-
+plotter_history.plot()

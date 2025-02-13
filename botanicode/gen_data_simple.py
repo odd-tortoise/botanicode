@@ -12,11 +12,7 @@ from plant import Plant, PlantState
 from plant_reg import PlantRegulation
 
 from development_engine import StaticRule, DynamicRule, DevelopmentEngine
-from utils import NumericalIntegrator
-
-
-
-result_folder = "results_main"
+from utils import NumericalIntegrator, Plotter
 
 # create a clock
 clock = Clock(photo_period=(8,18),step="hour")
@@ -108,7 +104,6 @@ def leaf_size_rule(t,y, plant: Plant, params : np.array):
     nodes = [node for node in plant.structure.G.nodes() if isinstance(node, Leaf)]
     for node in nodes:
         node.state.s_max = 4*(node.state.rank+1)
-        
         rhs.append((0.05*node.state.temp)/node.state.s_max * node.state.size * ( node.state.s_max -  node.state.size))
 
     return np.array(rhs)

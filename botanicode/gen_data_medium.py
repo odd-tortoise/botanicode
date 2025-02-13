@@ -1,25 +1,19 @@
 import numpy as np
-from typing import List
 from dataclasses import dataclass, field
-import networkx as nx
 
-from env import Environment
+
+from env import Environment, Clock
+from env_components import *
 from botanical_nodes import NodeFactory, NodeState
 from botanical_nodes import Stem, Leaf, Root, SAM, RAM
 from shapes import CylinderShape, PointShape, LeafShape
-from simulator import Clock, Simulation
+from simulator import Simulation
 
 from plant import Plant, PlantState
 from plant_reg import PlantRegulation
 
-from model import Model, StaticRule, DynamicRule
-from utils import NumericalIntegrator
-
-
-
-result_folder = "results_main"
-
-env_setting_file = "botanicode/single_run_files/env_setting.json"
+from development_engine import  StaticRule, DynamicRule, DevelopmentEngine
+from utils import NumericalIntegrator, Plotter
 
 # create a clock
 clock = Clock(photo_period=(8,18),step="hour")
@@ -38,7 +32,6 @@ node_factory = NodeFactory()
 class StemState(NodeState):
     length: float = 1.0
     radius: float = 0.1
-    age: int = 0
     direction: np.ndarray =  field(default_factory=lambda: np.array([0, 0, 1]))
 
 @dataclass
@@ -46,7 +39,6 @@ class LeafState(NodeState):
     size: float = 1.0
     petioles_size: float = 0.1
     rachid_size: float = 1
-    age: int = 0
     leaflets_number: int = plant_reg.phylotaxis["leaflets_number"]
     leaf_bending_rate: float = plant_reg.phylotaxis["leaf_bending_rate"]
     outline_function: callable = plant_reg.phylotaxis["outline_function"]
@@ -57,16 +49,15 @@ class LeafState(NodeState):
 class RootState(NodeState):
     length: float = 1.0
     radius: float = 0.1 
-    age: int = 0
     direction: np.ndarray = field(default_factory=lambda: np.array([0, 0, -1]))
 
 @dataclass
 class SAMState(NodeState):
-    age: int = 0
+    pass
 
 @dataclass
 class RAMState(NodeState):
-    age: int = 0
+    pass
 
 
 node_factory.add_blueprint(Stem, StemState, CylinderShape)
@@ -82,7 +73,6 @@ class PlantState(PlantState):
     #it also has the plant height
     internodes_no : int = 0
     expected_internodes_no : int = 0
-    age : float = 0.0
     
 state = PlantState()
 
@@ -124,8 +114,6 @@ leaf_rule = DynamicRule(action=leaf_size_rule, var = "size", types = [Leaf])
 
 def plant_rule_action(plant : Plant, params : np.array):
     plant.state.internodes_no = len([node for node in plant.structure.G.nodes() if isinstance(node, Stem)])
-    apical_temp = np.mean([node.state.temp for node in plant.structure.G.nodes() if isinstance(node, SAM)])
-    plant.state.age +=1
     plant.state.expected_internodes_no = 2+plant.state.age if plant.state.age < 4 else 5
 plant_rule = StaticRule(action=plant_rule_action)
 
@@ -155,7 +143,7 @@ def shoots_if_rule(plant : Plant):
 
 
 # create a model to store the rules
-model = Model("tomato")
+model = DevelopmentEngine("tomato")
 model.add_rule(stem_rule)
 model.add_rule(leaf_rule)
 model.add_rule(plant_rule)
@@ -174,9 +162,13 @@ model.env_reads = env_reads
 # create a simulation
 dt = 1
 max_time = 25
-sim = Simulation(solver=ni, folder=result_folder, model=model)
+sim = Simulation(solver=ni)
 
-env = Environment().set_env(env_setting_file)
+env = Environment(
+    sky=Sky(light_intensity=10),
+    air=Air(temperature=20, humidity=0.5),
+    soil=Soil(moisture=0.5)
+)
 temperatures = [15, 20, 25]
 PARs = [500, 750, 900]
 
@@ -187,26 +179,23 @@ import pickle
 fig = plt.figure(figsize=(10, 10))
 axes = []
 
-
-
 for i,temp in enumerate(temperatures):
     for j, PAR in enumerate(PARs):
-        env.air.temperature = temp
-        env.sky.par = PAR
         plant.reset()
         clock.elapsed_time = 0
-    
+        sim.history.reset()
+        env.air.temperature = temp
+        env.sky.light_intensity = PAR
+       
+        sim.run(max_t=max_time,delta_t=dt, dev_eng=model, plant=plant, clock=clock, env = env)
 
-        sim.run(max_t=max_time,delta_t=dt, plant=plant, clock=clock, env = env)
         ax = fig.add_subplot(3, 3, 3*i + j+1, projection='3d')
         plant.plot(ax=ax)
         ax.set_title(f"Temp: {temp} PAR: {PAR}")
 
-
         # save the plant and the env
-        with open(f"botanicode/training_files/medium/plant_{temp}_{PAR}.pkl", "wb") as f:
-            pickle.dump((env,plant.history), f)
-
+        with open(f"botanicode/training_files/medium/data_{temp}_{PAR}.pkl", "wb") as f:
+            pickle.dump((env,sim.history), f)
 
 plt.show()
 

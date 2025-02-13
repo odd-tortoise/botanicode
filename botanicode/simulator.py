@@ -13,6 +13,7 @@ from utils import NumericalIntegrator, BaseOptimizer, EvolutionaryOptimizer
 
 import pickle
 import matplotlib.pyplot as plt
+import os
 
 
 class Tracker:
@@ -158,7 +159,7 @@ class Tracker:
                 field_values.append((ts, state[field]))
         return field_values
 
-    def plot_node_field(self, node_type, node_name, field):
+    def plot_node_field(self, node_type, node_name, field, ax = None):
         """
         Plots a given field over time for a specific node.
 
@@ -168,6 +169,13 @@ class Tracker:
             field (str): The field to plot.
            
         """
+
+        show = False
+        if ax is None:
+            fig = plt.figure()
+            ax = fig.add_subplot(111)
+            show = True
+
         # Retrieve the snapshots for the specified node
         snapshots = None
         if node_type in self.data["Nodes"] and node_name in self.data["Nodes"][node_type]:
@@ -188,23 +196,31 @@ class Tracker:
             print(f"Field '{field}' not found in snapshots for node '{node_name}'.")
             return
 
-        import matplotlib.pyplot as plt
+        
+        ax.plot(timestamps, values, marker='o', linestyle='-')
+        ax.set_xlabel("Time")
+        ax.set_ylabel(field)
+        ax.set_title(f"{node_type} '{node_name}' - {field} over time")
+        ax.grid(True)
 
-        plt.figure(figsize=(8, 4))
-        plt.plot(timestamps, values, marker='o', linestyle='-')
-        plt.xlabel("Time")
-        plt.ylabel(field)
-        plt.title(f"{node_type} '{node_name}' - {field} over time")
-        plt.grid(True)
-        plt.show()
+        if show:
+            plt.show()
 
-    def plot_plant_field(self, field):
+    def plot_plant_field(self, field, ax = None):
         """
         Plots a given field over time for the plant.
 
         Args:
             field (str): The field to plot.
         """
+
+        show = False
+        if ax is None:
+            fig = plt.figure()
+            ax = fig.add_subplot(111)
+            show = True
+
+        
         snapshots = self.data["Plant"]
         
         # Extract timestamps and field values
@@ -218,16 +234,16 @@ class Tracker:
         if not timestamps:
             print(f"Field '{field}' not found in snapshots for plant.")
             return
+        
 
-        import matplotlib.pyplot as plt
+        ax.plot(timestamps, values, marker='o', linestyle='-')
+        ax.set_xlabel("Time")
+        ax.set_ylabel(field)
+        ax.set_title(f"Plant - {field} over time")
+        ax.grid(True)
 
-        plt.figure(figsize=(8, 4))
-        plt.plot(timestamps, values, marker='o', linestyle='-')
-        plt.xlabel("Time")
-        plt.ylabel(field)
-        plt.title(f"Plant - {field} over time")
-        plt.grid(True)
-        plt.show()
+        if show:
+            plt.show()
     
     # TODO: extend these methods to take lists of nodes/types 
     # TODO: make this class more generic to store data also for other purposes (like parameter history)
@@ -528,3 +544,50 @@ class Simulation:
             plt.savefig(folder+"losses.png")
 
         return best_parameters, optimization_info
+    
+
+    def inspect_tuning(self, plant, clock, dataset_folder, max_t, delta_t, dev_eng : DevelopmentEngine, node_type, node_names, var, name,folder : str = None):
+
+        for file in os.listdir(dataset_folder):
+            if file.endswith(".pkl") and "data" in file:
+                data = pickle.load(open(dataset_folder+file, "rb"))
+                env = data[0]
+                exp_history = data[1]
+        
+                plant.reset()
+                self.history.reset()
+                clock.elapsed_time = 0
+            
+                self.run(max_t=max_t,delta_t=delta_t, dev_eng=dev_eng, plant=plant, clock=clock, env = env)
+
+                n_plots = len(node_names)
+                n_cols = n_plots if n_plots < 4 else 4
+                n_rows = n_plots//4 + 1
+                fig, axes = plt.subplots(n_rows, n_cols, figsize=(15, 10))
+
+
+                fig.suptitle(name)
+            
+                for i,node_name in enumerate(node_names):
+                    ax = axes[i//4,i%4] if n_rows > 1 else axes[i%4]
+                    lenptime = self.history.extract_field_nodename(node_type, node_name, var)
+                    leng = [x[1] for x in lenptime]
+
+
+                    if isinstance(exp_history, Tracker):
+                        exp_lenptime = exp_history.extract_field_nodename(node_type, node_name, var)
+                        expected_len = [x[1] for x in exp_lenptime]
+                    else:
+                        expected_len = exp_history[node_name][var]
+
+                    ax.plot(leng, label="Simulated")
+                    ax.plot(expected_len, label="Expected")
+                    ax.set_title(node_name)
+                    ax.legend()
+
+                fig.tight_layout(rect=[0, 0, 1, 0.96]) 
+                
+                if folder:
+                    plt.savefig(folder+f"{file[:-4]}_"+f"{name}.png")
+                else:
+                    plt.show()

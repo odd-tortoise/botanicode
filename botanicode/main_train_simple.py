@@ -15,8 +15,6 @@ from plant_reg import PlantRegulation
 from development_engine import DevelopmentEngine, StaticRule, DynamicRule
 from utils import NumericalIntegrator, EvolutionaryOptimizer
 
-
-
 # create a clock
 clock = Clock(photo_period=(8,18),step="hour")
 
@@ -222,7 +220,7 @@ for file in os.listdir(data_folder):
         dataset.append([data[0], data[1].data]) #data[0] is the env, data[1] is the history, data[1].data is the dictionary of the history
 
 
-optimizer = EvolutionaryOptimizer(max_epochs=2, pop_size=30, mutation_scale=0.1, loss_threshold=1e-3)
+optimizer = EvolutionaryOptimizer(max_epochs=1, pop_size=1, mutation_scale=0.1, loss_threshold=1e-3)
 
 best_params, opt_info = sim.tune(plant, clock, dataset, max_t=20, delta_t=1, batch_size=3, dev_eng=model,optimizer=optimizer, folder="botanicode/training_files/simple/results/")
 
@@ -234,47 +232,31 @@ print("Best parameters found:", best_params)
 
 model.set_trainable_params(best_params)
 
-import pickle
-import matplotlib.pyplot as plt
 
-for file in os.listdir(data_folder):
-    if file.endswith(".pkl") and "plant" in file:
-        data = pickle.load(open(data_folder+file, "rb"))
+sim.inspect_tuning(
+    plant=plant,
+    clock=clock,
+    dataset_folder=data_folder,
+    max_t=20,
+    delta_t=1,
+    dev_eng=model,
+    node_type=Stem,
+    node_names=["S0","S1","S2"],
+    var = "length",
+    folder="botanicode/training_files/simple/results/",
+    name="stem_length"
+)
 
-        env, history = data
-        plant.reset()
-        clock.elapsed_time = 0
-    
-        sim.run(max_t=max_time,delta_t=dt, plant=plant, clock=clock, env = env)
-        fig, axes = plt.subplots(2, 3, figsize=(15, 10))
-        fig.suptitle(file)
-        for i in range(3):
-            ax = axes[0, i]
-            lenptime = plant.history.extract_field_for_node(Stem,f"S{i}", "length")
-            leng = [x[1] for x in lenptime]
-            exp_lenptime = history.extract_field_for_node(Stem,f"S{i}", "length")
-            expected_len = [x[1] for x in exp_lenptime]
-
-            ax.plot(leng, label="Simulated")
-            ax.plot(expected_len, label="Expected")
-            ax.set_title(f"Stem S{i}")
-            ax.legend()
-
-
-            ax2 = axes[1, i]
-            
-            sizeptime = plant.history.extract_field_for_node(Leaf,f"L{i}0", "size")
-            size = [x[1] for x in sizeptime]
-            exp_sizeptime = history.extract_field_for_node(Leaf,f"L{i}0", "size")
-            expected_size = [x[1] for x in exp_sizeptime]
-
-            
-            ax2.plot(size, label="Simulated")
-            ax2.plot(expected_size, label="Expected")
-            ax2.set_title(f"Leaf S{i}")
-            ax2.legend()
-
-        fig.tight_layout(rect=[0, 0, 1, 0.96]) 
-        
-        
-        plt.savefig(f"botanicode/training_files/simple/{file[:-4]}.png")
+sim.inspect_tuning(
+    plant=plant,
+    clock=clock,
+    dataset_folder=data_folder,
+    max_t=20,
+    delta_t=1,
+    dev_eng=model,
+    node_type=Leaf,
+    node_names=["L00","L10","L20"],
+    var = "size",
+    folder="botanicode/training_files/simple/results/",
+    name="leaf_size"
+)
